@@ -17,8 +17,8 @@ const TURN_SPEED := 12.0
 const DEADZONE := 0.15
 const BOUND := 18.5  # keeps the hero on the street block
 
-const GRAB_MIN := 0.55  # reachable ledge window above the feet
-const GRAB_MAX := 2.4
+const GRAB_MIN := 0.45  # reachable ledge window above the feet (forgiving)
+const GRAB_MAX := 2.6
 const PULL_TIME := 0.55  # seconds from hang to standing on the roof
 
 enum { GROUND, AIR, CLIMB }
@@ -31,6 +31,7 @@ var _land_until := 0.0
 var _climb_t := 0.0
 var _climb_from := Vector3.ZERO
 var _climb_to := Vector3.ZERO
+var _hint_done := false
 
 @onready var _body: Node3D = $Body
 @onready var _anim: AnimationPlayer = $Body/Mannequin/AnimationPlayer
@@ -88,10 +89,12 @@ func _move_step(delta: float) -> void:
 			_land_until = _now() + 0.45
 		_air_time = 0.0
 		state = GROUND
+		if not _hint_done:
+			_check_climb_hint()
 	else:
 		_air_time += delta
 		state = AIR
-		if _air_time > 0.06:
+		if _air_time > 0.04:
 			_try_grab()
 	_drive_anim()
 
@@ -119,16 +122,16 @@ func _face_travel(delta: float) -> void:
 func _try_grab() -> void:
 	var fwd := -_body.global_transform.basis.z
 	var flat := Vector2(velocity.x, velocity.z)
-	if flat.length() < 1.0:
+	if flat.length() < 0.75:
 		return
-	if Vector2(fwd.x, fwd.z).dot(flat.normalized()) < 0.5:
+	if Vector2(fwd.x, fwd.z).dot(flat.normalized()) < 0.35:
 		return
 	var space := get_world_3d().direct_space_state
 	var exclude := [get_rid()]
 	for h: float in [0.45, 1.15]:  # knee and chest probes above the feet
-		var origin: Vector3 = global_position + Vector3.UP * h + fwd * 0.28
+		var origin: Vector3 = global_position + Vector3.UP * h + fwd * 0.36
 		var wall := space.intersect_ray(PhysicsRayQueryParameters3D.create(
-				origin, origin + fwd * 0.55, 1, exclude))
+				origin, origin + fwd * 0.70, 1, exclude))
 		if wall.is_empty():
 			continue
 		var n: Vector3 = wall.normal
@@ -151,6 +154,37 @@ func _try_grab() -> void:
 			continue
 		_start_climb(wall_pos, n, ledge_y)
 		return
+
+
+## First time the player stands near a climbable edge, show the HUD hint once.
+func _check_climb_hint() -> void:
+	if not _near_climbable():
+		return
+	_hint_done = true
+	var hud := get_tree().get_first_node_in_group("hud")
+	if hud and hud.has_method("show_hint"):
+		hud.show_hint("Jump while moving to climb")
+
+
+## A wall within ~1.4 m ahead with a flat top a jump could reach (0.9-3.6 m up).
+func _near_climbable() -> bool:
+	var fwd := -_body.global_transform.basis.z
+	var space := get_world_3d().direct_space_state
+	var exclude := [get_rid()]
+	var origin := global_position + Vector3.UP * 1.15 + fwd * 0.36
+	var wall := space.intersect_ray(PhysicsRayQueryParameters3D.create(
+			origin, origin + fwd * 1.0, 1, exclude))
+	if wall.is_empty() or wall.normal.y > 0.6:
+		return false
+	var n: Vector3 = wall.normal
+	var wall_pos: Vector3 = wall.position
+	var top: Vector3 = wall_pos - n * 0.35 + Vector3.UP * 3.75
+	var ledge := space.intersect_ray(PhysicsRayQueryParameters3D.create(
+			top, top + Vector3.DOWN * 3.8, 1, exclude))
+	if ledge.is_empty() or ledge.normal.y < 0.65:
+		return false
+	var rel: float = ledge.position.y - global_position.y
+	return rel > 0.9 and rel < 3.6
 
 
 func _start_climb(wall_pos: Vector3, n: Vector3, ledge_y: float) -> void:

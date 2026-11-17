@@ -29,7 +29,7 @@ var _r_sum := 0.0
 var _face_n := 0
 var _climb_face_ok := false
 const CLIMB_START := Vector3(9.0, 0.02, -4.8)
-const JUMP_AT := [8, 12, 16, 20]
+const JUMP_AT := [6, 10, 14, 18]  # deliberately imperfect timings: tests forgiveness
 
 
 func _ready() -> void:
@@ -81,6 +81,8 @@ func _physics_process(_delta: float) -> void:
 		5:
 			_climb()
 		6:
+			_hint()
+		7:
 			_camera_wall()
 		_:
 			_finish()
@@ -210,6 +212,16 @@ func _climb() -> void:
 		_r_sum = 0.0
 		_face_n = 0
 		_pf = 0
+
+
+func _hint() -> void:
+	if _pf == 1:
+		_player.global_position = Vector3(9.0, 0.02, -5.6)  # 1.1 m from the annex face, facing it
+		_player.velocity = Vector3.ZERO
+	if _pf >= 40:
+		var hud := _main.get_node("UI")
+		_check(hud.hint_shown, "climb hint shown once near a climbable edge")
+		_next()
 
 
 func _camera_wall() -> void:
