@@ -1,8 +1,9 @@
-[gd_scene load_steps=35 format=3]
+[gd_scene load_steps=56 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="1_player"]
 [ext_resource type="Script" path="res://scripts/camera_follow.gd" id="2_camera"]
 [ext_resource type="Script" path="res://scripts/joystick.gd" id="3_stick"]
+[ext_resource type="Script" path="res://scripts/touch_buttons.gd" id="4_buttons"]
 
 [sub_resource type="StandardMaterial3D" id="mat_asphalt"]
 	albedo_color = Color(0.043, 0.047, 0.058, 1)
@@ -140,6 +141,111 @@
 	fog_density = 0.012
 	glow_enabled = true
 	glow_intensity = 0.55
+
+[sub_resource type="StandardMaterial3D" id="mat_crate"]
+	albedo_color = Color(0.16, 0.1, 0.06, 1)
+	roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="mat_garage"]
+	albedo_color = Color(0.08, 0.09, 0.08, 1)
+	roughness = 0.95
+
+[sub_resource type="BoxMesh" id="mesh_crate120"]
+	size = Vector3(1.2, 1.2, 1.2)
+	material = SubResource("mat_crate")
+
+[sub_resource type="BoxMesh" id="mesh_crate110"]
+	size = Vector3(1.1, 1.1, 1.1)
+	material = SubResource("mat_crate")
+
+[sub_resource type="BoxMesh" id="mesh_annex1"]
+	size = Vector3(2.2, 3.4, 2.2)
+	material = SubResource("mat_building_b")
+
+[sub_resource type="BoxMesh" id="mesh_annex2"]
+	size = Vector3(2.2, 5.7, 2.2)
+	material = SubResource("mat_building_a")
+
+[sub_resource type="BoxMesh" id="mesh_garage"]
+	size = Vector3(3.5, 3.2, 3.5)
+	material = SubResource("mat_garage")
+
+[sub_resource type="BoxMesh" id="mesh_ac"]
+	size = Vector3(1.0, 0.9, 1.0)
+	material = SubResource("mat_garage")
+
+[sub_resource type="BoxMesh" id="mesh_ramp"]
+	size = Vector3(5.8, 0.25, 2.2)
+	material = SubResource("mat_crate")
+
+[sub_resource type="BoxShape3D" id="shape_crate120"]
+	size = Vector3(1.2, 1.2, 1.2)
+
+[sub_resource type="BoxShape3D" id="shape_crate110"]
+	size = Vector3(1.1, 1.1, 1.1)
+
+[sub_resource type="BoxShape3D" id="shape_annex1"]
+	size = Vector3(2.2, 3.4, 2.2)
+
+[sub_resource type="BoxShape3D" id="shape_annex2"]
+	size = Vector3(2.2, 5.7, 2.2)
+
+[sub_resource type="BoxShape3D" id="shape_garage"]
+	size = Vector3(3.5, 3.2, 3.5)
+
+[sub_resource type="BoxShape3D" id="shape_ac"]
+	size = Vector3(1.0, 0.9, 1.0)
+
+[sub_resource type="BoxShape3D" id="shape_ramp"]
+	size = Vector3(5.8, 0.25, 2.2)
+
+[sub_resource type="StyleBoxFlat" id="style_jump"]
+	bg_color = Color(0.09, 0.07, 0.03, 0.55)
+	border_width_left = 2
+	border_width_top = 2
+	border_width_right = 2
+	border_width_bottom = 2
+	border_color = Color(1, 0.58, 0.13, 0.9)
+	corner_radius_top_left = 44
+	corner_radius_top_right = 44
+	corner_radius_bottom_right = 44
+	corner_radius_bottom_left = 44
+
+[sub_resource type="StyleBoxFlat" id="style_jump_down"]
+	bg_color = Color(1, 0.58, 0.13, 0.5)
+	border_width_left = 2
+	border_width_top = 2
+	border_width_right = 2
+	border_width_bottom = 2
+	border_color = Color(1, 0.75, 0.35, 1)
+	corner_radius_top_left = 44
+	corner_radius_top_right = 44
+	corner_radius_bottom_right = 44
+	corner_radius_bottom_left = 44
+
+[sub_resource type="StyleBoxFlat" id="style_sprint"]
+	bg_color = Color(0.03, 0.08, 0.1, 0.55)
+	border_width_left = 2
+	border_width_top = 2
+	border_width_right = 2
+	border_width_bottom = 2
+	border_color = Color(0.15, 0.9, 1, 0.9)
+	corner_radius_top_left = 44
+	corner_radius_top_right = 44
+	corner_radius_bottom_right = 44
+	corner_radius_bottom_left = 44
+
+[sub_resource type="StyleBoxFlat" id="style_sprint_down"]
+	bg_color = Color(0.15, 0.9, 1, 0.5)
+	border_width_left = 2
+	border_width_top = 2
+	border_width_right = 2
+	border_width_bottom = 2
+	border_color = Color(0.5, 1, 1, 1)
+	corner_radius_top_left = 44
+	corner_radius_top_right = 44
+	corner_radius_bottom_right = 44
+	corner_radius_bottom_left = 44
 
 [node name="Main" type="Node3D"]
 
@@ -305,6 +411,99 @@ light_color = Color(1, 0.16, 0.12, 1)
 light_energy = 4.5
 omni_range = 12.0
 
+[node name="Parkour" type="Node3D" parent="."]
+
+[node name="CrateA" type="StaticBody3D" parent="Parkour"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0.6, -8.3)
+
+[node name="Shape" type="CollisionShape3D" parent="Parkour/CrateA"]
+shape = SubResource("shape_crate120")
+
+[node name="Mesh" type="MeshInstance3D" parent="Parkour/CrateA"]
+mesh = SubResource("mesh_crate120")
+
+[node name="CrateKiosk" type="StaticBody3D" parent="Parkour"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.2, 0.6, 0.8)
+
+[node name="Shape" type="CollisionShape3D" parent="Parkour/CrateKiosk"]
+shape = SubResource("shape_crate120")
+
+[node name="Mesh" type="MeshInstance3D" parent="Parkour/CrateKiosk"]
+mesh = SubResource("mesh_crate120")
+
+[node name="CrateStreet1" type="StaticBody3D" parent="Parkour"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 0.55, -4.5)
+
+[node name="Shape" type="CollisionShape3D" parent="Parkour/CrateStreet1"]
+shape = SubResource("shape_crate110")
+
+[node name="Mesh" type="MeshInstance3D" parent="Parkour/CrateStreet1"]
+mesh = SubResource("mesh_crate110")
+
+[node name="CrateStreet2" type="StaticBody3D" parent="Parkour"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0.55, 4.5)
+
+[node name="Shape" type="CollisionShape3D" parent="Parkour/CrateStreet2"]
+shape = SubResource("shape_crate110")
+
+[node name="Mesh" type="MeshInstance3D" parent="Parkour/CrateStreet2"]
+mesh = SubResource("mesh_crate110")
+
+[node name="Annex1" type="StaticBody3D" parent="Parkour"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 1.7, -7.8)
+
+[node name="Shape" type="CollisionShape3D" parent="Parkour/Annex1"]
+shape = SubResource("shape_annex1")
+
+[node name="Mesh" type="MeshInstance3D" parent="Parkour/Annex1"]
+mesh = SubResource("mesh_annex1")
+
+[node name="Annex2" type="StaticBody3D" parent="Parkour"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.3, 2.85, -7.8)
+
+[node name="Shape" type="CollisionShape3D" parent="Parkour/Annex2"]
+shape = SubResource("shape_annex2")
+
+[node name="Mesh" type="MeshInstance3D" parent="Parkour/Annex2"]
+mesh = SubResource("mesh_annex2")
+
+[node name="Garage1" type="StaticBody3D" parent="Parkour"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.5, 1.6, 7)
+
+[node name="Shape" type="CollisionShape3D" parent="Parkour/Garage1"]
+shape = SubResource("shape_garage")
+
+[node name="Mesh" type="MeshInstance3D" parent="Parkour/Garage1"]
+mesh = SubResource("mesh_garage")
+
+[node name="Garage2" type="StaticBody3D" parent="Parkour"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.5, 1.6, 7)
+
+[node name="Shape" type="CollisionShape3D" parent="Parkour/Garage2"]
+shape = SubResource("shape_garage")
+
+[node name="Mesh" type="MeshInstance3D" parent="Parkour/Garage2"]
+mesh = SubResource("mesh_garage")
+
+[node name="ACUnit" type="StaticBody3D" parent="Parkour"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.5, 3.65, 7)
+
+[node name="Shape" type="CollisionShape3D" parent="Parkour/ACUnit"]
+shape = SubResource("shape_ac")
+
+[node name="Mesh" type="MeshInstance3D" parent="Parkour/ACUnit"]
+mesh = SubResource("mesh_ac")
+
+[node name="Ramp" type="StaticBody3D" parent="Parkour"]
+position = Vector3(-15.67, 1.5, 7)
+rotation = Vector3(0, 0, 0.585)
+
+[node name="Shape" type="CollisionShape3D" parent="Parkour/Ramp"]
+shape = SubResource("shape_ramp")
+
+[node name="Mesh" type="MeshInstance3D" parent="Parkour/Ramp"]
+mesh = SubResource("mesh_ramp")
+
 [node name="Player" parent="." instance=ExtResource("1_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 3)
 
@@ -313,6 +512,7 @@ fov = 70.0
 script = ExtResource("2_camera")
 
 [node name="UI" type="CanvasLayer" parent="."]
+script = ExtResource("4_buttons")
 
 [node name="Joystick" type="Control" parent="UI"]
 anchor_left = 0.0
@@ -324,3 +524,37 @@ offset_top = -288.0
 offset_right = 288.0
 offset_bottom = -48.0
 script = ExtResource("3_stick")
+
+[node name="JumpBtn" type="Button" parent="UI"]
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -158.0
+offset_top = -158.0
+offset_right = -36.0
+offset_bottom = -36.0
+focus_mode = 0
+text = "JUMP"
+theme_override_colors/font_color = Color(1, 0.78, 0.45, 0.9)
+theme_override_colors/font_pressed_color = Color(1, 0.9, 0.6, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("style_jump")
+theme_override_styles/pressed = SubResource("style_jump_down")
+
+[node name="SprintBtn" type="Button" parent="UI"]
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -300.0
+offset_top = -150.0
+offset_right = -178.0
+offset_bottom = -28.0
+focus_mode = 0
+text = "SPRINT"
+theme_override_colors/font_color = Color(0.55, 0.95, 1, 0.9)
+theme_override_colors/font_pressed_color = Color(0.8, 1, 1, 1)
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("style_sprint")
+theme_override_styles/pressed = SubResource("style_sprint_down")
