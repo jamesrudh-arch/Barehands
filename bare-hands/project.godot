@@ -1,10 +1,10 @@
-; Engine configuration file for Bare Hands 3D — Batch 1.
+; Engine configuration file for Bare Hands 3D — Batch 3.
 config_version=5
 
 [application]
 
 config/name="Bare Hands 3D"
-config/description="Stylized noir open-world crime game set in Cinder City. Batch 1: one lit night street block and a walking placeholder hero."
+config/description="Stylized noir open-world crime game set in Cinder City. Batch 3: parkour hero with fists, a training dummy and a telegraphing thug."
 run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.7", "Mobile")
 config/icon="res://icon.svg"
@@ -12,6 +12,7 @@ config/icon="res://icon.svg"
 [autoload]
 
 InputBus="*res://scripts/input_bus.gd"
+Fx="*res://scripts/fx.gd"
 
 [display]
 
@@ -20,6 +21,19 @@ window/size/viewport_height=720
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 window/handheld/orientation=0
+
+[input]
+
+punch={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":88,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+]
+}
+dodge={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":67,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+]
+}
 
 [input_devices]
 

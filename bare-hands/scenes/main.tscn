@@ -1,9 +1,11 @@
-[gd_scene load_steps=57 format=3]
+[gd_scene load_steps=65 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="1_player"]
 [ext_resource type="Script" path="res://scripts/camera_follow.gd" id="2_camera"]
 [ext_resource type="Script" path="res://scripts/joystick.gd" id="3_stick"]
 [ext_resource type="Script" path="res://scripts/touch_buttons.gd" id="4_buttons"]
+[ext_resource type="PackedScene" path="res://scenes/enemy.tscn" id="5_enemy"]
+[ext_resource type="Script" path="res://scripts/style_meter.gd" id="6_style"]
 
 [sub_resource type="StandardMaterial3D" id="mat_asphalt"]
 	albedo_color = Color(0.043, 0.047, 0.058, 1)
@@ -258,6 +260,68 @@
 	corner_radius_top_right = 12
 	corner_radius_bottom_right = 12
 	corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="style_punch"]
+	bg_color = Color(0.11, 0.03, 0.03, 0.55)
+	border_width_left = 2
+	border_width_top = 2
+	border_width_right = 2
+	border_width_bottom = 2
+	border_color = Color(1, 0.16, 0.12, 0.9)
+	corner_radius_top_left = 44
+	corner_radius_top_right = 44
+	corner_radius_bottom_right = 44
+	corner_radius_bottom_left = 44
+
+[sub_resource type="StyleBoxFlat" id="style_punch_down"]
+	bg_color = Color(1, 0.16, 0.12, 0.5)
+	border_width_left = 2
+	border_width_top = 2
+	border_width_right = 2
+	border_width_bottom = 2
+	border_color = Color(1, 0.5, 0.4, 1)
+	corner_radius_top_left = 44
+	corner_radius_top_right = 44
+	corner_radius_bottom_right = 44
+	corner_radius_bottom_left = 44
+
+[sub_resource type="StyleBoxFlat" id="style_dodge"]
+	bg_color = Color(0.08, 0.09, 0.08, 0.55)
+	border_width_left = 2
+	border_width_top = 2
+	border_width_right = 2
+	border_width_bottom = 2
+	border_color = Color(0.9, 0.95, 0.9, 0.9)
+	corner_radius_top_left = 44
+	corner_radius_top_right = 44
+	corner_radius_bottom_right = 44
+	corner_radius_bottom_left = 44
+
+[sub_resource type="StyleBoxFlat" id="style_dodge_down"]
+	bg_color = Color(0.9, 0.95, 0.9, 0.4)
+	border_width_left = 2
+	border_width_top = 2
+	border_width_right = 2
+	border_width_bottom = 2
+	border_color = Color(1, 1, 1, 1)
+	corner_radius_top_left = 44
+	corner_radius_top_right = 44
+	corner_radius_bottom_right = 44
+	corner_radius_bottom_left = 44
+
+[sub_resource type="StyleBoxFlat" id="style_bar_bg"]
+	bg_color = Color(0.04, 0.05, 0.08, 0.7)
+	corner_radius_top_left = 4
+	corner_radius_top_right = 4
+	corner_radius_bottom_right = 4
+	corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="style_bar_fill"]
+	bg_color = Color(1, 0.58, 0.13, 0.9)
+	corner_radius_top_left = 4
+	corner_radius_top_right = 4
+	corner_radius_bottom_right = 4
+	corner_radius_bottom_left = 4
 
 [node name="Main" type="Node3D"]
 
@@ -519,6 +583,16 @@ mesh = SubResource("mesh_ramp")
 [node name="Player" parent="." instance=ExtResource("1_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 3)
 
+[node name="Dummy" parent="." instance=ExtResource("5_enemy")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.3, 0.02, -4.5)
+mode = 0
+max_hp = 5
+
+[node name="Thug" parent="." instance=ExtResource("5_enemy")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 0.02, 0)
+mode = 1
+max_hp = 8
+
 [node name="Camera" type="Camera3D" parent="."]
 fov = 70.0
 script = ExtResource("2_camera")
@@ -542,15 +616,15 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -158.0
-offset_top = -158.0
+offset_left = -152.0
+offset_top = -300.0
 offset_right = -36.0
-offset_bottom = -36.0
+offset_bottom = -184.0
 focus_mode = 0
 text = "JUMP"
 theme_override_colors/font_color = Color(1, 0.78, 0.45, 0.9)
 theme_override_colors/font_pressed_color = Color(1, 0.9, 0.6, 1)
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("style_jump")
 theme_override_styles/pressed = SubResource("style_jump_down")
 
@@ -559,17 +633,51 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -300.0
-offset_top = -150.0
-offset_right = -178.0
-offset_bottom = -28.0
+offset_left = -284.0
+offset_top = -300.0
+offset_right = -168.0
+offset_bottom = -184.0
 focus_mode = 0
 text = "SPRINT"
 theme_override_colors/font_color = Color(0.55, 0.95, 1, 0.9)
 theme_override_colors/font_pressed_color = Color(0.8, 1, 1, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 theme_override_styles/normal = SubResource("style_sprint")
 theme_override_styles/pressed = SubResource("style_sprint_down")
+
+[node name="PunchBtn" type="Button" parent="UI"]
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -152.0
+offset_top = -152.0
+offset_right = -36.0
+offset_bottom = -36.0
+focus_mode = 0
+text = "PUNCH"
+theme_override_colors/font_color = Color(1, 0.55, 0.45, 0.95)
+theme_override_colors/font_pressed_color = Color(1, 0.8, 0.7, 1)
+theme_override_font_sizes/font_size = 21
+theme_override_styles/normal = SubResource("style_punch")
+theme_override_styles/pressed = SubResource("style_punch_down")
+
+[node name="DodgeBtn" type="Button" parent="UI"]
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -284.0
+offset_top = -152.0
+offset_right = -168.0
+offset_bottom = -36.0
+focus_mode = 0
+text = "DODGE"
+theme_override_colors/font_color = Color(0.9, 0.95, 0.9, 0.9)
+theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("style_dodge")
+theme_override_styles/pressed = SubResource("style_dodge_down")
 
 [node name="HintLabel" type="Label" parent="UI"]
 anchor_left = 0.5
@@ -587,3 +695,41 @@ horizontal_alignment = 1
 vertical_alignment = 1
 text = "Jump while moving to climb"
 visible = false
+
+[node name="StyleMeter" type="Control" parent="UI"]
+anchor_left = 1.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 0.0
+offset_left = -190.0
+offset_top = 24.0
+offset_right = -30.0
+offset_bottom = 120.0
+script = ExtResource("6_style")
+
+[node name="RankLabel" type="Label" parent="UI/StyleMeter"]
+anchor_right = 1.0
+offset_bottom = 40.0
+theme_override_colors/font_color = Color(1, 0.7, 0.3, 1)
+theme_override_font_sizes/font_size = 26
+text = "STYLE D"
+
+[node name="Bar" type="ProgressBar" parent="UI/StyleMeter"]
+anchor_top = 1.0
+anchor_right = 1.0
+offset_top = -36.0
+offset_bottom = -24.0
+max_value = 500.0
+show_percentage = false
+theme_override_styles/background = SubResource("style_bar_bg")
+theme_override_styles/fill = SubResource("style_bar_fill")
+
+[node name="CashLabel" type="Label" parent="UI/StyleMeter"]
+anchor_top = 1.0
+anchor_right = 1.0
+offset_top = -20.0
+offset_bottom = -2.0
+theme_override_colors/font_color = Color(0.85, 0.85, 0.8, 0.9)
+theme_override_font_sizes/font_size = 14
+text = "$ 0"
+horizontal_alignment = 2

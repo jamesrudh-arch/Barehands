@@ -11,14 +11,21 @@ extends Camera3D
 @export var look_height := 1.5
 
 var _yaw := 0.0
+var _shake := 0.0  # impact shake, kept very subtle (a few centimetres)
 
 @onready var _target: CharacterBody3D = get_node(target_path) as CharacterBody3D
 
 
 func _ready() -> void:
+	add_to_group("camera")
 	var pivot := _pivot()
 	global_position = pivot + Vector3(0.0, height, distance)
 	look_at(pivot)
+
+
+## Called by Fx on impacts: 0.2 jab, 0.35 cross, 0.9 slam.
+func shake(amount: float) -> void:
+	_shake = maxf(_shake, amount)
 
 
 func _physics_process(delta: float) -> void:
@@ -36,6 +43,10 @@ func _physics_process(delta: float) -> void:
 	goal = _pull_in(pivot, goal)
 
 	global_position = global_position.lerp(goal, 1.0 - exp(-follow_speed * delta))
+	if _shake > 0.005:
+		global_position += Vector3(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0),
+				randf_range(-1.0, 1.0)) * 0.12 * _shake
+		_shake = maxf(_shake - 3.0 * delta, 0.0)
 	look_at(pivot)
 
 

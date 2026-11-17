@@ -10,6 +10,8 @@ func _ready() -> void:
 	$JumpBtn.button_down.connect(func() -> void: InputBus.queue_jump())
 	$SprintBtn.button_down.connect(func() -> void: InputBus.sprint = true)
 	$SprintBtn.button_up.connect(func() -> void: InputBus.sprint = false)
+	$PunchBtn.button_down.connect(func() -> void: InputBus.queue_punch())
+	$DodgeBtn.button_down.connect(func() -> void: InputBus.queue_dodge())
 
 
 ## Called by the hero the first time the player stands near a climbable edge.
