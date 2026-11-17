@@ -1,13 +1,17 @@
 extends Node
-## Headless smoke test for Batch 2 — not part of the game.
+## Headless smoke test for movement — not part of the game.
 ## Run from the project folder:  godot --headless res://tests/smoke.tscn
-## Checks: mannequin size, analog run speeds, sprint, model turn-to-face,
-## jump, code-faked ledge climb, camera follow + wall pull-in, anim states.
+## Checks: mannequin size, model faces its travel direction (hand bones vs
+## movement), analog run speeds, sprint, jump, ledge climb, camera follow +
+## wall pull-in, anim states. Combat has its own tests/smoke_combat.tscn.
 
 var _main: Node3D
 var _player: CharacterBody3D
 var _camera: Camera3D
 var _anim: AnimationPlayer
+var _skel: Skeleton3D
+var _hand_l := -1
+var _hand_r := -1
 var _fails := 0
 var _phase := 0
 var _pf := 0  # frame inside the current phase
@@ -20,6 +24,10 @@ var _saw_air_anim := false
 var _saw_climb := false
 var _yaw_end := 0.0
 var _climb_try := -1
+var _l_sum := 0.0  # hand bone X samples, for facing checks
+var _r_sum := 0.0
+var _face_n := 0
+var _climb_face_ok := false
 const CLIMB_START := Vector3(9.0, 0.02, -4.8)
 const JUMP_AT := [8, 12, 16, 20]
 
@@ -30,6 +38,19 @@ func _ready() -> void:
 	_player = _main.get_node("Player") as CharacterBody3D
 	_camera = _main.get_node("Camera") as Camera3D
 	_anim = _player.get_node("Body/Mannequin/AnimationPlayer")
+	_skel = _player.get_node("Body/Mannequin/Armature/Skeleton3D") as Skeleton3D
+	_hand_l = _skel.find_bone("hand_l")
+	_hand_r = _skel.find_bone("hand_r")
+
+
+func _hand_x(idx: int) -> float:
+	return (_skel.global_transform * _skel.get_bone_global_pose(idx)).origin.x
+
+
+func _sample_hands() -> void:
+	_l_sum += _hand_x(_hand_l)
+	_r_sum += _hand_x(_hand_r)
+	_face_n += 1
 
 
 func _flat_speed() -> float:
@@ -84,11 +105,20 @@ func _run() -> void:
 	_max_speed = maxf(_max_speed, _flat_speed())
 	if _pf == 1:
 		_camera.global_position = _player.global_position + Vector3(0, 3, 6.5)
+	if _pf > 70:
+		_sample_hands()
 	if _pf >= 90:
 		InputBus.move = Vector2.ZERO
 		_check(_max_speed >= 5.0, "full push reaches run speed (max %.1f)" % _max_speed)
 		_check(_player.global_position.z < -2.0, "travelled north")
 		_check(_camera.global_position.distance_to(_player.global_position) < 9.5, "camera follows while running")
+		var l := _l_sum / _face_n
+		var r := _r_sum / _face_n
+		_check(l < _player.global_position.x and r > _player.global_position.x,
+				"model faces travel (north): left hand west, right hand east (%.2f / %.2f)" % [l, r])
+		_l_sum = 0.0
+		_r_sum = 0.0
+		_face_n = 0
 		_next()
 
 
@@ -110,12 +140,21 @@ func _sprint_south() -> void:
 		InputBus.move = Vector2(0, 1)
 		InputBus.sprint = true
 		_max_speed = maxf(_max_speed, _flat_speed())
+		if _pf > 60:
+			_sample_hands()
 	else:
 		InputBus.move = Vector2.ZERO
 		InputBus.sprint = false
 		if _pf == 90:
 			_check(_max_speed >= 6.2, "sprint button tops run speed (max %.1f)" % _max_speed)
 			_check(_anim.current_animation == "Sprint", "sprint clip at full sprint (got %s)" % _anim.current_animation)
+			var l := _l_sum / maxf(_face_n, 1.0)
+			var r := _r_sum / maxf(_face_n, 1.0)
+			_check(l > _player.global_position.x and r < _player.global_position.x,
+					"model faces travel (south): left hand east, right hand west (%.2f / %.2f)" % [l, r])
+			_l_sum = 0.0
+			_r_sum = 0.0
+			_face_n = 0
 		if _pf >= 150:
 			_yaw_end = _player.get_node("Body").rotation.y
 			var d := absf(wrapf(_yaw_end - PI, -PI, PI))
@@ -155,14 +194,21 @@ func _climb() -> void:
 	InputBus.move = Vector2(0, -1)
 	if _pf == JUMP_AT[_climb_try]:
 		InputBus.queue_jump()
-	if _player.state == 2:  # CLIMB
+	if _player.state == 2:  # CLIMB — the body faces into the wall
+		_sample_hands()
 		_saw_climb = true
 	if _saw_climb and _player.is_on_floor() and _player.state == 0:
 		InputBus.move = Vector2.ZERO
 		_check(_player.global_position.y > 3.0, "pulled up onto the 3.4 m annex roof (%.2f)" % _player.global_position.y)
+		var l := _l_sum / maxf(_face_n, 1.0)
+		var r := _r_sum / maxf(_face_n, 1.0)
+		_check(l < r, "climb pose faces the wall (left hand west of right, %.2f < %.2f)" % [l, r])
 		_next()
 	elif _pf > 140:
 		InputBus.move = Vector2.ZERO  # retry with a later jump
+		_l_sum = 0.0
+		_r_sum = 0.0
+		_face_n = 0
 		_pf = 0
 
 

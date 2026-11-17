@@ -18,4 +18,5 @@ shape = SubResource("shape_capsule")
 [node name="Body" type="Node3D" parent="."]
 
 [node name="Mannequin" parent="Body" instance=ExtResource("2_mannequin")]
+rotation = Vector3(0, 3.141593, 0)
 scale = Vector3(0.93, 0.93, 0.93)
