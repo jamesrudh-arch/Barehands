@@ -196,10 +196,10 @@ func _climb() -> void:
 	InputBus.move = Vector2(0, -1)
 	if _pf == JUMP_AT[_climb_try]:
 		InputBus.queue_jump()
-	if _player.state == 2:  # CLIMB — the body faces into the wall
+	if _player.state == Player.State.CLIMB:  # the body faces into the wall
 		_sample_hands()
 		_saw_climb = true
-	if _saw_climb and _player.is_on_floor() and _player.state == 0:
+	if _saw_climb and _player.is_on_floor() and _player.state == Player.State.GROUND:
 		InputBus.move = Vector2.ZERO
 		_check(_player.global_position.y > 3.0, "pulled up onto the 3.4 m annex roof (%.2f)" % _player.global_position.y)
 		var l := _l_sum / maxf(_face_n, 1.0)

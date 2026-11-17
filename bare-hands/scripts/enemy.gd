@@ -1,3 +1,4 @@
+class_name Enemy
 extends CharacterBody3D
 ## Batch-3 enemies, both use the pack's mannequin. mode 0 = a passive training
 ## dummy that only reacts to hits; mode 1 = a thug that shambles at the hero,
@@ -12,12 +13,12 @@ const STRIKE_TIME := 0.22  # when the fist would land
 const RECOVER_TIME := 1.3
 const RESPAWN_TIME := 2.6
 
-enum { IDLE, WALK, TELEGRAPH, STRIKE, RECOVER, FLINCH, STAGGER, DOWN }
+enum State { IDLE, WALK, TELEGRAPH, STRIKE, RECOVER, FLINCH, STAGGER, DOWN }
 
 @export var mode := 0  # 0 training dummy, 1 thug
 @export var max_hp := 5
 
-var state := IDLE
+var state: State = State.IDLE
 var hp := 1
 var _t := 0.0  # game-time clock (stretches with slow-mo, unlike wall time)
 var _state_t := 0.0
@@ -63,39 +64,39 @@ func _physics_process(delta: float) -> void:
 		velocity.y = maxf(velocity.y - GRAVITY * delta, -30.0)
 
 	match state:
-		IDLE, RECOVER:
+		State.IDLE, State.RECOVER:
 			_brake(delta)
 			if mode == 1:
 				_think()
-			elif state == RECOVER and _state_t > 0.5:
-				_enter(IDLE)
-		WALK:
+			elif state == State.RECOVER and _state_t > 0.5:
+				_enter(State.IDLE)
+		State.WALK:
 			_brake(delta)
 			_think()
-		TELEGRAPH:
+		State.TELEGRAPH:
 			_brake(delta)
 			_face_player(delta)
 			_pulse(Color(1.0, 0.1, 0.08), 0.8 + 0.5 * sin(_state_t * 25.0))
 			if _state_t >= TELEGRAPH_TIME:
-				_enter(STRIKE)
+				_enter(State.STRIKE)
 				_play("Punch_Jab", 0.05, 2.2)
 				_struck = false
-		STRIKE:
+		State.STRIKE:
 			_brake(delta)
 			if not _struck and _state_t >= STRIKE_TIME:
 				_struck = true
 				_resolve_strike()
 			if _state_t >= 0.45:
-				_enter(RECOVER)
-		FLINCH:
+				_enter(State.RECOVER)
+		State.FLINCH:
 			_brake(delta)
 			if _state_t > 0.35:
-				_enter(IDLE if mode == 0 else WALK)
-		STAGGER:
+				_enter(State.IDLE if mode == 0 else State.WALK)
+		State.STAGGER:
 			_brake(delta)
 			if _state_t > 1.4:
-				_enter(RECOVER)
-		DOWN:
+				_enter(State.RECOVER)
+		State.DOWN:
 			_brake(delta)
 			if _state_t > RESPAWN_TIME:
 				_respawn()
@@ -112,17 +113,17 @@ func _think() -> void:
 	var dist := to.length()
 	_face_player(get_physics_process_delta_time())
 	if dist <= ATTACK_RANGE:
-		_enter(TELEGRAPH)
+		_enter(State.TELEGRAPH)
 		_play("Idle", 0.1)
 	elif dist < 9.0:
-		if state != WALK:
-			_enter(WALK)
+		if state != State.WALK:
+			_enter(State.WALK)
 			_play("Walk", 0.2, 1.1)
 		velocity.x = to.x / dist * WALK_SPEED
 		velocity.z = to.z / dist * WALK_SPEED
 	else:
-		if state == WALK:
-			_enter(IDLE)
+		if state == State.WALK:
+			_enter(State.IDLE)
 			_play("Idle", 0.2)
 
 
@@ -140,13 +141,13 @@ func _resolve_strike() -> void:
 	if age < 0.22:  # perfect dodge = parry
 		Fx.slow_mo(0.7, 0.35)
 		p.open_counter(1.3)
-		_enter(STAGGER)
+		_enter(State.STAGGER)
 		_play("Hit_Head", 0.05, 1.5)
 		_flash_white(Color(0.4, 1.0, 1.0), 2.2)
 		Fx.burst(p.global_position + Vector3.UP * 1.3, Color(0.3, 0.95, 1.0))
 		if _style():
 			_style().add("parry")
-		Fx.hit_landed.emit("parry", global_position)
+		Fx.emit_hit("parry", global_position)
 	elif age < 0.38:  # late dodge, just evaded
 		if _style():
 			_style().add("dodge")
@@ -156,7 +157,7 @@ func _resolve_strike() -> void:
 
 ## Called by the hero when a punch connects. kind: jab / cross / counter / slam.
 func take_hit(dir: Vector3, kind: String) -> void:
-	if state == DOWN:
+	if state == State.DOWN:
 		return
 	dir.y = 0.0
 	dir = dir.normalized()
@@ -183,11 +184,11 @@ func take_hit(dir: Vector3, kind: String) -> void:
 	if hp <= 0:
 		_die(kind)
 	else:
-		_enter(FLINCH)
+		_enter(State.FLINCH)
 
 
 func _die(cause: String) -> void:
-	_enter(DOWN)
+	_enter(State.DOWN)
 	_play("Death01", 0.08, 1.3)
 	if _style():
 		if cause == "slam":
@@ -200,7 +201,7 @@ func _respawn() -> void:
 	global_position = _spawn
 	velocity = Vector3.ZERO
 	hp = max_hp
-	_enter(IDLE)
+	_enter(State.IDLE)
 	_play("Idle", 0.15)
 
 
@@ -239,7 +240,7 @@ func _pulse(color: Color, energy: float) -> void:
 
 
 func _apply_flash(delta: float) -> void:
-	if state != TELEGRAPH:  # the telegraph pulse drives the brightness
+	if state != State.TELEGRAPH:  # the telegraph pulse drives the brightness
 		_flash = maxf(_flash - 6.0 * delta, 0.0)
 	for m in _mats:
 		m.emission = _flash_color

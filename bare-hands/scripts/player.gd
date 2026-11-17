@@ -1,3 +1,4 @@
+class_name Player
 extends CharacterBody3D
 ## Batch-3 hero: the Universal Animation Library mannequin. The stick sets
 ## walking/running speed analogously; the model turns to face its travel.
@@ -33,9 +34,9 @@ const BUFFER_TIME := 0.35  # a punch pressed during a punch chains the combo
 const DODGE_SPEED := 6.5
 const DODGE_TIME := 0.42
 
-enum { GROUND, AIR, CLIMB, PUNCH, DODGE }
+enum State { GROUND, AIR, CLIMB, PUNCH, DODGE }
 
-var state := GROUND
+var state: State = State.GROUND
 var _yaw := 0.0
 var _since_floor := 0.0
 var _air_time := 0.0
@@ -64,12 +65,12 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	_t += delta
 	match state:
-		CLIMB:
+		State.CLIMB:
 			_climb_step(delta)
 			return
-		PUNCH:
+		State.PUNCH:
 			_punch_step(delta)
-		DODGE:
+		State.DODGE:
 			_dodge_step(delta)
 		_:
 			_move_step(delta)
@@ -123,14 +124,14 @@ func _move_step(delta: float) -> void:
 			_anim.speed_scale = 1.8
 			_land_until = _t + 0.45
 		_air_time = 0.0
-		if state == GROUND or state == AIR:  # combat input may have taken over
-			state = GROUND
-		if not _hint_done and state == GROUND:
+		if state == State.GROUND or state == State.AIR:  # combat input may have taken over
+			state = State.GROUND
+		if not _hint_done and state == State.GROUND:
 			_check_climb_hint()
 	else:
 		_air_time += delta
-		if state == GROUND or state == AIR:
-			state = AIR
+		if state == State.GROUND or state == State.AIR:
+			state = State.AIR
 			if _air_time > 0.04:
 				_try_grab()
 
@@ -168,16 +169,16 @@ func _face_travel(delta: float) -> void:
 
 
 func _try_punch() -> void:
-	if state == PUNCH:
+	if state == State.PUNCH:
 		_punch_buffered_at = _t  # buffered follow-up input
-	elif state == DODGE:
+	elif state == State.DODGE:
 		_punch_buffered_at = _t  # buffered: fires the moment the dodge ends
-	elif state == GROUND and _t >= _hitstun_until:
+	elif state == State.GROUND and _t >= _hitstun_until:
 		_start_punch(1)
 
 
 func _start_punch(stage: int) -> void:
-	state = PUNCH
+	state = State.PUNCH
 	_punch_stage = stage
 	_punch_t = 0.0
 	_punch_hit_done = false
@@ -213,17 +214,17 @@ func _punch_step(delta: float) -> void:
 		_punch_hit_done = true
 		_land_punch()
 	move_and_slide()  # facing stays locked for the swing (soft-locked at start)
-	if state != PUNCH:  # dodge-cancelled mid-step
+	if state != State.PUNCH:  # dodge-cancelled mid-step
 		return
 	if _punch_t >= (JAB_LOCK if _punch_stage == 1 else CROSS_LOCK):
 		if _punch_stage == 1 and _t - _punch_buffered_at < BUFFER_TIME:
 			_start_punch(2)  # the buffered press chains the cross
 		else:
-			state = GROUND
+			state = State.GROUND
 
 
 func _try_dodge() -> void:
-	if state not in [GROUND, PUNCH] or _t < _hitstun_until:
+	if state not in [State.GROUND, State.PUNCH] or _t < _hitstun_until:
 		return
 	var stick := _stick()
 	var dir: Vector3
@@ -233,7 +234,7 @@ func _try_dodge() -> void:
 		dir = (right * stick.x + fwd * -stick.y).normalized()
 	else:
 		dir = _body.global_transform.basis.z  # no stick: hop backward
-	state = DODGE
+	state = State.DODGE
 	_dodge_t = 0.0
 	velocity.x = dir.x * DODGE_SPEED
 	velocity.z = dir.z * DODGE_SPEED
@@ -251,7 +252,7 @@ func _dodge_step(delta: float) -> void:
 	velocity.z = move_toward(velocity.z, 0.0, 16.0 * delta)
 	move_and_slide()
 	if _dodge_t >= DODGE_TIME:
-		state = GROUND
+		state = State.GROUND
 		if _t - _punch_buffered_at < BUFFER_TIME:
 			_start_punch(1)  # a punch buffered during the roll fires now
 
@@ -259,7 +260,7 @@ func _dodge_step(delta: float) -> void:
 ## How long ago the dodge started (99 = not dodging). The enemy reads this
 ## at its strike moment: young = parry, older = plain evade, none = hit.
 func dodge_age() -> float:
-	return _dodge_t if state == DODGE else 99.0
+	return _dodge_t if state == State.DODGE else 99.0
 
 
 ## Called by a parried enemy: the next punch inside the window counters.
@@ -268,7 +269,7 @@ func open_counter(seconds: float) -> void:
 
 
 func take_hit(dir: Vector3) -> void:
-	if state == CLIMB:
+	if state == State.CLIMB:
 		return
 	dir.y = 0.0
 	dir = dir.normalized()
@@ -276,10 +277,10 @@ func take_hit(dir: Vector3) -> void:
 	velocity.z = dir.z * 4.5
 	velocity.y = 1.5
 	_hitstun_until = _t + 0.45
-	state = GROUND
+	state = State.GROUND
 	_play("Hit_Chest", 0.04, 1.6)
 	Fx.shake(0.4)
-	Fx.hit_landed.emit("player_hit", global_position + Vector3.UP * 1.2)
+	Fx.emit_hit("player_hit", global_position + Vector3.UP * 1.2)
 
 
 func _land_punch() -> void:
@@ -298,15 +299,15 @@ func _land_punch() -> void:
 		target.take_hit(dir, "slam")  # layer 2a: flash + knockdown
 		Fx.burst(hit_pos, Color(1.0, 0.55, 0.2))  # layer 2b: particles
 		Fx.shake(0.9)  # layer 3: subtle shake last
-		Fx.hit_landed.emit("slam", hit_pos)
+		Fx.emit_hit("slam", hit_pos)
 		return
-	var counter: bool = _t < _counter_until and target.state == 6  # STAGGER
+	var counter: bool = _t < _counter_until and target.state == Enemy.State.STAGGER
 	var kind := "counter" if counter else ("jab" if _punch_stage == 1 else "cross")
 	Fx.hit_stop(0.11 if counter or kind == "cross" else 0.07)
 	target.take_hit(dir, kind)
 	Fx.burst(hit_pos, Color(0.3, 0.95, 1.0) if counter else Color(1.0, 0.75, 0.3))
 	Fx.shake(0.2 if kind == "jab" else 0.35)
-	Fx.hit_landed.emit(kind, hit_pos)
+	Fx.emit_hit(kind, hit_pos)
 	if _style():
 		_style().add(kind)
 
@@ -317,7 +318,7 @@ func _punch_target(min_dot: float, reach_slack: float) -> CharacterBody3D:
 	var target: CharacterBody3D = null
 	var best_d := PUNCH_REACH + reach_slack
 	for e in get_tree().get_nodes_in_group("enemy"):
-		if e.state == 7:  # DOWN: no hitting bodies on the floor
+		if e.state == Enemy.State.DOWN:  # no hitting bodies on the floor
 			continue
 		var to: Vector3 = e.global_position - global_position
 		to.y = 0.0
@@ -414,7 +415,7 @@ func _try_grab() -> void:
 
 
 func _start_climb(wall_pos: Vector3, n: Vector3, ledge_y: float) -> void:
-	state = CLIMB
+	state = State.CLIMB
 	velocity = Vector3.ZERO
 	_air_time = 0.0
 	_climb_t = 0.0
@@ -432,7 +433,7 @@ func _climb_step(delta: float) -> void:
 	var e := t * t * (3.0 - 2.0 * t)  # smoothstep ease
 	global_position = _climb_from.lerp(_climb_to, e)
 	if _climb_t >= 1.0:
-		state = GROUND
+		state = State.GROUND
 		velocity = -_body.global_transform.basis.z * 1.8
 		_play("Jump_Land", 0.06)
 		_anim.speed_scale = 1.8
@@ -448,7 +449,7 @@ func _gravity(delta: float) -> void:
 
 
 func _drive_anim() -> void:
-	if state == CLIMB or state == PUNCH or state == DODGE:
+	if state == State.CLIMB or state == State.PUNCH or state == State.DODGE:
 		return  # those states own their clips
 	if _t < _hitstun_until:
 		return  # hit reaction plays out
@@ -467,6 +468,7 @@ func _drive_anim() -> void:
 	else:
 		_play("Sprint", 0.25)
 		_anim.speed_scale = clampf(speed / 5.6, 0.75, 1.5)
+
 
 
 func _play(anim_name: String, blend: float = 0.25, speed := 1.0) -> void:

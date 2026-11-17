@@ -1,0 +1,86 @@
+extends CanvasLayer
+## Toggleable debug overlay: FPS, memory, node count, enemies, particles.
+## Toggle with the small DBG button (top-left) or F3 on a keyboard.
+## Everything is built in code so main.tscn stays declarative.
+
+var _label: Label
+var _tick := 0.0
+
+
+func _ready() -> void:
+	layer = 10
+	var btn := Button.new()
+	btn.text = "DBG"
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.position = Vector2(10, 10)
+	btn.custom_minimum_size = Vector2(64, 34)
+	btn.add_theme_font_size_override("font_size", 13)
+	btn.add_theme_color_override("font_color", Color(1, 1, 1, 0.55))
+	btn.add_theme_color_override("font_pressed_color", Color(1, 1, 1, 0.9))
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = Color(0.04, 0.05, 0.08, 0.35)
+	btn.add_theme_stylebox_override("normal", bg)
+	btn.add_theme_stylebox_override("pressed", bg)
+	btn.pressed.connect(_toggle)
+	add_child(btn)
+
+	var panel := PanelContainer.new()
+	panel.name = "Panel"
+	panel.position = Vector2(10, 50)
+	panel.visible = false
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.02, 0.03, 0.05, 0.82)
+	sb.border_color = Color(1, 0.58, 0.13, 0.5)
+	sb.set_border_width_all(1)
+	sb.set_corner_radius_all(6)
+	sb.content_margin_left = 10.0
+	sb.content_margin_right = 10.0
+	sb.content_margin_top = 8.0
+	sb.content_margin_bottom = 8.0
+	panel.add_theme_stylebox_override("panel", sb)
+	add_child(panel)
+
+	_label = Label.new()
+	_label.add_theme_font_size_override("font_size", 13)
+	_label.add_theme_color_override("font_color", Color(0.85, 0.95, 0.9, 0.95))
+	panel.add_child(_label)
+
+
+func _input(event: InputEvent) -> void:
+	if event.is_action_pressed("debug_panel"):
+		_toggle()
+
+
+func _toggle() -> void:
+	var panel := get_node("Panel")
+	panel.visible = not panel.visible
+	if panel.visible:
+		_refresh()
+
+
+func _process(delta: float) -> void:
+	if not get_node("Panel").visible:
+		return
+	_tick += delta
+	if _tick >= 0.25:
+		_tick = 0.0
+		_refresh()
+
+
+func _refresh() -> void:
+	var enemies := get_tree().get_nodes_in_group("enemy")
+	var states := ""
+	for e in enemies:
+		states += "\n  %s %s hp=%d" % [e.name, Enemy.State.find_key(e.state), e.hp]
+	var fps := Engine.get_frames_per_second()
+	_label.text = "%d fps   %.1f ms" % [fps, 1000.0 / maxf(fps, 1)]
+	_label.text += "\nmem static %.1f MB   orphans %d" % [
+			Performance.get_monitor(Performance.MEMORY_STATIC) / 1048576.0,
+			Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT)]
+	_label.text += "\nnodes %d   objects %d   draws %d" % [
+			Performance.get_monitor(Performance.OBJECT_NODE_COUNT),
+			Performance.get_monitor(Performance.OBJECT_COUNT),
+			Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)]
+	_label.text += "\nenemies %d%s" % [enemies.size(), states]
+	_label.text += "\nparticles in flight %d   time_scale %.2f" % [Fx._bursts_alive, Engine.time_scale]
+	_label.text += "\nlog: %s" % ProjectSettings.globalize_path("user://barehands.log")

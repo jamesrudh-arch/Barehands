@@ -2,27 +2,54 @@ extends Node
 ## Impact timing and effects for combat. Autoloaded as "Fx" (see project.godot).
 ## Layer order on every landed hit, applied by the hero: hit-stop FIRST, then
 ## the enemy's flash and a particle burst, and only LAST a subtle camera shake.
-## Sound is not implemented yet: connect to the hit_landed signal in Batch 4.
+## Sound is not implemented yet: connect to the hit_landed signal in Series 2.
 
 signal hit_landed(kind: String, pos: Vector3)
 
+const STUCK_LIMIT_MSEC := 5000  # real time; a hit-stop/slow-mo never lasts this long
+
 var _scale_until := 0  # real-time msec when Engine.time_scale returns to 1.0
+var _scale_since := 0  # real-time msec when the current scale-down started
 var _mats: Dictionary = {}  # color -> ready-made burst material
+var _bursts_alive := 0  # for the debug panel / stress test leak check
+
+
+func _ready() -> void:
+	# Restore time even while the tree is paused: a stuck hit-stop is a
+	# guaranteed "mid-play stop" bug otherwise.
+	process_mode = Node.PROCESS_MODE_ALWAYS
 
 
 func hit_stop(duration := 0.07, scale := 0.05) -> void:
-	Engine.time_scale = scale
-	_scale_until = Time.get_ticks_msec() + int(duration * 1000.0)
+	_apply_scale(duration, scale)
 
 
 func slow_mo(duration := 0.7, scale := 0.35) -> void:
+	_apply_scale(duration, scale)
+
+
+## One call point for every landed impact: routes to the sound hook in Series 2.
+func emit_hit(kind: String, pos: Vector3) -> void:
+	hit_landed.emit(kind, pos)
+
+
+func _apply_scale(duration: float, scale: float) -> void:
+	if Engine.time_scale != 1.0:
+		Log.warn("Fx: scale %s requested while already at %s" % [scale, Engine.time_scale])
 	Engine.time_scale = scale
-	_scale_until = Time.get_ticks_msec() + int(duration * 1000.0)
+	_scale_since = Time.get_ticks_msec()
+	_scale_until = _scale_since + int(duration * 1000.0)
 
 
 func _process(_delta: float) -> void:
-	if Engine.time_scale != 1.0 and Time.get_ticks_msec() >= _scale_until:
-		Engine.time_scale = 1.0
+	if Engine.time_scale != 1.0:
+		var now := Time.get_ticks_msec()
+		if now >= _scale_until:
+			Engine.time_scale = 1.0
+		elif now - _scale_since > STUCK_LIMIT_MSEC:
+			# Watchdog: never leave the game frozen in slow motion.
+			Engine.time_scale = 1.0
+			Log.warn("Fx watchdog: force-restored a stuck time scale (was down %d ms)" % (now - _scale_since))
 
 
 func _exit_tree() -> void:
@@ -31,6 +58,9 @@ func _exit_tree() -> void:
 
 ## One-shot CPU particle spark at a hit point. Cheap: 10 tiny emissive boxes.
 func burst(pos: Vector3, color: Color) -> void:
+	var scene := get_tree().current_scene
+	if scene == null:
+		return
 	var p := CPUParticles3D.new()
 	p.one_shot = true
 	p.explosiveness = 1.0
@@ -44,10 +74,12 @@ func burst(pos: Vector3, color: Color) -> void:
 	p.gravity = Vector3(0.0, -7.0, 0.0)
 	p.scale_amount_min = 0.6
 	p.scale_amount_max = 1.3
-	get_tree().current_scene.add_child(p)
+	scene.add_child(p)
 	p.global_position = pos
 	p.emitting = true
-	var t := get_tree().create_timer(1.0, true, false, true)
+	_bursts_alive += 1
+	p.tree_exited.connect(func() -> void: _bursts_alive -= 1)
+	var t := get_tree().create_timer(1.0, true, false, true)  # ignores time scale
 	t.timeout.connect(p.queue_free)
 
 

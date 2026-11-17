@@ -2,7 +2,9 @@
 
 A stylized noir, open-world crime game set in **Cinder City**.
 Engine: **Godot 4.7**, 3D, **Mobile** renderer, landscape, touch-first.
-The whole project is plain text (`.gd`, `.tscn`, `project.godot`) plus one CC0 asset pack, so it can be built and edited without a desktop editor.
+The whole project is plain text (`.gd`, `.tscn`, `project.godot`) plus CC0 asset packs, so it can be built and edited without a desktop editor.
+
+**SERIES 1: THE LOOK AND FEEL** — phase reports below (1 Stability · 2 Hero & Camera · 3 Wet Neon Night · 4 Punches That Hit).
 
 ## What's in the game (Batch 3, current state)
 
@@ -18,6 +20,26 @@ Everything from Batches 1-2 (night street block with neon, the pack's mannequin 
 - Player getting hit (no parry) = knockback plus a short `Hit_Chest` stagger. No health bar for the hero yet.
 
 No shops, missions, driving, guns or sound yet — later batches.
+
+## SERIES 1 · Phase 1 — Stability
+
+**What was built**
+
+- **Both load warnings fixed.** The unused `hit_landed` signal: the emits lived in player/enemy while the signal belonged to the Fx autoload, so its own class never used it — every impact now goes through `Fx.emit_hit(kind, pos)`, which emits the signal internally (still the Series 2 sound hook). The integer-as-enum warning does not fire on desktop Godot 4.7.2 at error level, so it came from Xogot's parser or an older import cache; to be safe both state machines now use **named enums** (`Player.State`, `Enemy.State`) and every raw `state == 3` literal in code and tests was replaced with the named value — the pattern that causes that warning no longer exists anywhere.
+- **File logger** (autoload `Log`, `scripts/log.gd`): writes `user://barehands.log`, one fresh file per launch with a boot header (Godot version, OS, device model). `Log.info/warn/error` print and persist; the last 400 lines are kept in memory for the debug panel.
+- **Debug panel** (`scripts/debug_panel.gd`, built entirely in code): tap the small **DBG** button top-left (or F3 on a keyboard) for FPS, frame time, static memory, orphan-node count, node/object/draw-call counts, each enemy's state and hp, particle bursts in flight, current time scale, and the on-device log path. It refreshes 4×/s and costs nothing when hidden.
+- **Mid-play-stop audit, fixes applied**: Fx now runs with `PROCESS_MODE_ALWAYS` and carries a **watchdog** — if a hit-stop or slow-mo somehow survives 5 s it is force-restored and logged; `burst()` no longer spawns into a null scene and tracks in-flight particles; input queues (jump/punch/dodge) **expire after 0.4 s of game time**, so a jump pressed mid-air can no longer fire seconds later on landing (and slow motion no longer eats a buffered counter); every scale-down logs a warning if it interrupts another.
+- **5-minute combat stress test** (`tests/stress_combat.tscn`): a bot cycles combo / parry / chaos / idle scenarios for 18,000 physics ticks (5 min at 60 fps) while watchdogs check for stuck states, stuck slow-motion, leaking particles and runaway node counts. Both smoke suites still pass unchanged.
+
+**How to test on a phone**
+
+1. Import and play as usual. Tap **DBG** (top-left) any time: watch FPS while idling, sprinting, and fighting; enemies list their live state; particles-in-flight should always fall back to 0 within a second of the last hit.
+2. Let a parry slow-mo play out fully, then confirm the panel's `time_scale` reads 1.00.
+3. The log file lives in the app sandbox: with Xogot on iOS it is inside the Xogot app's Documents folder (Files app → On My iPhone → Xogot); on an exported Android APK it is `Android/data/<package>/files/barehands.log`. The DBG panel prints the exact absolute path on your device.
+
+**Not verified on a real phone**: the panel's readability on the 13 mini's screen, actual FPS/memory numbers (headless Linux has no GPU — the numbers below are logic-side only), and whether Xogot still shows the integer-as-enum warning after re-import (if it does, tell me the exact file:line it names).
+
+**Added beyond the brief**: the orphan-node counter on the panel, the log-ring for the panel, and the input-queue expiry (the last one changes feel slightly: presses older than 0.4 s no longer count).
 
 ### The Universal Animation Library pack
 
@@ -78,16 +100,19 @@ bare-hands/              Godot project root
   scenes/main.tscn       street block, parkour props, dummy + thug, camera, HUD
   scenes/player.tscn     the hero: capsule body + scaled, 180-degree-fixed mannequin
   scenes/enemy.tscn      shared enemy rig (mode 0 dummy / mode 1 thug)
-  scripts/input_bus.gd   shared touch-input bus (autoload "InputBus")
+  scripts/input_bus.gd   shared touch-input bus with expiring queues (autoload "InputBus")
+  scripts/log.gd         file logger -> user://barehands.log (autoload "Log")
   scripts/fx.gd          hit-stop / slow-mo / particles / shake + sound hook (autoload "Fx")
   scripts/joystick.gd    the touch joystick
   scripts/touch_buttons.gd  JUMP/SPRINT/PUNCH/DODGE buttons + hint label
   scripts/style_meter.gd style rank, repetition penalty, cash points
+  scripts/debug_panel.gd toggleable DBG overlay (FPS, memory, nodes, enemies, particles)
   scripts/player.gd      movement, ledge grab, punch combo, dodge/parry, counters, slams
   scripts/enemy.gd       dummy reactions, thug AI with telegraph attack, parry resolution
   scripts/camera_follow.gd  follow camera with wall pull-in + impact shake
   tests/smoke.tscn       headless movement smoke test (not part of the game)
   tests/smoke_combat.tscn   headless combat smoke test (not part of the game)
+  tests/stress_combat.tscn  5-minute self-driving combat stress test (not part of the game)
 ```
 
 ## Performance notes (iPhone 13 mini)

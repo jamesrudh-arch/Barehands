@@ -5,13 +5,7 @@ extends Node
 ## materials, style repetition penalty, thug telegraph -> parry slow-mo ->
 ## counter knockdown, environmental slam into a crate, time_scale restored.
 
-# enemy.gd states
-const E_IDLE := 0
-const E_TELEGRAPH := 2
-const E_STAGGER := 6
-const E_DOWN := 7
-# player.gd states
-const P_DODGE := 4
+# states live in the named enums (scripts/enemy.gd, scripts/player.gd)
 
 var _main: Node3D
 var _player: CharacterBody3D
@@ -107,7 +101,7 @@ func _combo() -> void:
 		_check(_saw_punch_anim, "punch clips play (Punch_Jab / Punch_Cross)")
 		_check(hp == 2, "jab+cross landed, dummy hp 5->2 (got %d)" % hp)
 		_check(_dummy.global_position.x > -4.3, "dummy knocked back east (x %.2f)" % _dummy.global_position.x)
-		_check(_dummy.state != E_DOWN, "dummy flinched rather than died")
+		_check(_dummy.state != Enemy.State.DOWN, "dummy flinched rather than died")
 		_check(_style.cash >= 14, "style cash earned from the combo ($%d)" % _style.cash)
 		_check(_thug.get("_flash") == 0.0, "thug materials independent (no cross-flash)")
 		_check(Engine.time_scale == 1.0, "hit-stop restored time scale")
@@ -126,14 +120,14 @@ func _parry() -> void:
 	if _pf == 1:
 		_thug.global_position = Vector3(-13.0, 0.02, 0.0)
 		_thug.velocity = Vector3.ZERO
-		_thug.state = E_IDLE
+		_thug.state = Enemy.State.IDLE
 		_thug.set("_state_t", 0.0)
 		_player.global_position = Vector3(-11.5, 0.02, 0.0)
 		_player.velocity = Vector3.ZERO
 		_player.set("_yaw", PI / 2.0)  # face the thug (west)
 		_player.get_node("Body").rotation.y = PI / 2.0
 		_face_west()
-	if _tele_at < 0 and _thug.state == E_TELEGRAPH:
+	if _tele_at < 0 and _thug.state == Enemy.State.TELEGRAPH:
 		_tele_at = _pf
 	# thug: 0.6 s telegraph, then the fist lands 0.22 s into the strike
 	var impact_at := _tele_at + 36 + 13
@@ -146,16 +140,16 @@ func _parry() -> void:
 	if _tele_at > 0 and _pf > impact_at and _pf < impact_at + 200:
 		if Engine.time_scale < 1.0:
 			_saw_slowmo = true
-		if _thug.state == E_STAGGER and not _counter_punched:
+		if _thug.state == Enemy.State.STAGGER and not _counter_punched:
 			_counter_punched = true
 			InputBus.queue_punch()  # counter-hit inside the slow-mo window
 	# advance on success: the counter knockdown, not a fixed frame budget
-	if _counter_punched and _thug.state == E_DOWN:
+	if _counter_punched and _thug.state == Enemy.State.DOWN:
 		InputBus.move = Vector2.ZERO
 		var kind: String = _style.get("_last")
 		_check(_saw_slowmo, "well-timed dodge triggered slow motion")
 		_check(not _hitstunned, "parry evaded the strike (hero never flinched)")
-		_check(_thug.state == E_DOWN, "counter-hit knocked the thug down (state %d)" % _thug.state)
+		_check(_thug.state == Enemy.State.DOWN, "counter-hit knocked the thug down (state %d)" % _thug.state)
 		_check(kind == "counter", "style meter recorded the counter (got %s)" % kind)
 		_next()
 	elif _pf > 400:
@@ -166,16 +160,15 @@ func _parry() -> void:
 
 func _slam() -> void:
 	if _pf == 1:  # dummy right beside the street crate, player east of it
-		InputBus._punch_pending = false  # drop any input carried over
-		InputBus._dodge_pending = false
+		InputBus.clear_queues()  # drop any input carried over
 		InputBus.move = Vector2.ZERO
 		_dummy.global_position = Vector3(-1.4, 0.02, -4.5)
 		_dummy.velocity = Vector3.ZERO
-		_dummy.state = E_IDLE
+		_dummy.state = Enemy.State.IDLE
 		_dummy.set("hp", 5)
 		_player.global_position = Vector3(0.1, 0.05, -4.5)
 		_player.velocity = Vector3.ZERO
-		_player.state = 0  # GROUND
+		_player.state = Player.State.GROUND
 		_face_west()
 	InputBus.move = Vector2(0, -1)  # herd the dummy toward the crate
 	if _pf == 10:
@@ -185,7 +178,7 @@ func _slam() -> void:
 	if _pf >= 130:
 		InputBus.move = Vector2.ZERO
 		var kind: String = _style.get("_last")
-		_check(_dummy.state == E_DOWN, "cross slammed the dummy into the crate (state %d)" % _dummy.state)
+		_check(_dummy.state == Enemy.State.DOWN, "cross slammed the dummy into the crate (state %d)" % _dummy.state)
 		_check(kind == "slam", "style meter recorded the slam (got %s)" % kind)
 		_check(Engine.time_scale == 1.0, "time scale restored after the slam")
 		_next()

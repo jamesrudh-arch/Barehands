@@ -1,4 +1,4 @@
-[gd_scene load_steps=65 format=3]
+[gd_scene load_steps=66 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="1_player"]
 [ext_resource type="Script" path="res://scripts/camera_follow.gd" id="2_camera"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://scripts/touch_buttons.gd" id="4_buttons"]
 [ext_resource type="PackedScene" path="res://scenes/enemy.tscn" id="5_enemy"]
 [ext_resource type="Script" path="res://scripts/style_meter.gd" id="6_style"]
+[ext_resource type="Script" path="res://scripts/debug_panel.gd" id="7_debug"]
 
 [sub_resource type="StandardMaterial3D" id="mat_asphalt"]
 	albedo_color = Color(0.043, 0.047, 0.058, 1)
@@ -599,6 +600,9 @@ script = ExtResource("2_camera")
 
 [node name="UI" type="CanvasLayer" parent="." groups=["hud"]]
 script = ExtResource("4_buttons")
+
+[node name="DebugPanel" type="CanvasLayer" parent="."]
+script = ExtResource("7_debug")
 
 [node name="Joystick" type="Control" parent="UI"]
 anchor_left = 0.0
