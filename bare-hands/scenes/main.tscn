@@ -1,4 +1,4 @@
-[gd_scene load_steps=69 format=3]
+[gd_scene load_steps=76 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="1_player"]
 [ext_resource type="Script" path="res://scripts/camera_follow.gd" id="2_camera"]
@@ -8,6 +8,12 @@
 [ext_resource type="Script" path="res://scripts/style_meter.gd" id="6_style"]
 [ext_resource type="Script" path="res://scripts/debug_panel.gd" id="7_debug"]
 [ext_resource type="Script" path="res://scripts/opening_shot.gd" id="8_opening"]
+[ext_resource type="Script" path="res://scripts/neon.gd" id="9_neon"]
+[ext_resource type="Script" path="res://scripts/street_dress.gd" id="10_dress"]
+[ext_resource type="Script" path="res://scripts/rain.gd" id="11_rain"]
+[ext_resource type="Script" path="res://scripts/vignette.gd" id="12_vig"]
+[ext_resource type="Script" path="res://scripts/pause_menu.gd" id="13_pause"]
+[ext_resource type="Shader" path="res://shaders/road.gdshader" id="14_road"]
 
 [sub_resource type="StandardMaterial3D" id="mat_asphalt"]
 	albedo_color = Color(0.043, 0.047, 0.058, 1)
@@ -57,9 +63,20 @@
 	emission = Color(1, 0.16, 0.12, 1)
 	emission_energy_multiplier = 3.5
 
+[sub_resource type="ShaderMaterial" id="mat_road"]
+shader = ExtResource("14_road")
+shader_parameter/asphalt_col = Color(0.03, 0.035, 0.05, 1)
+shader_parameter/wet_gloss = 0.75
+shader_parameter/neon_a = Color(1, 0.58, 0.13, 1)
+shader_parameter/neon_b = Color(0.15, 0.9, 1, 1)
+shader_parameter/neon_c = Color(1, 0.16, 0.12, 1)
+shader_parameter/sign_a = Vector3(1.5, 3.4, -9.45)
+shader_parameter/sign_b = Vector3(-7, 2.8, 9.05)
+shader_parameter/sign_c = Vector3(13.95, 1.9, 0)
+
 [sub_resource type="BoxMesh" id="mesh_road"]
-	size = Vector3(40, 1, 40)
-	material = SubResource("mat_asphalt")
+size = Vector3(40, 1, 40)
+material = SubResource("mat_road")
 
 [sub_resource type="BoxMesh" id="mesh_sidewalk"]
 	size = Vector3(40, 0.04, 4.5)
@@ -135,16 +152,22 @@
 	size = Vector3(4, 3.5, 4)
 
 [sub_resource type="Environment" id="env_night"]
-	background_mode = 1
-	background_color = Color(0.012, 0.014, 0.025, 1)
-	ambient_light_source = 2
-	ambient_light_color = Color(0.05, 0.06, 0.1, 1)
-	tonemap_mode = 2
-	fog_enabled = true
-	fog_light_color = Color(0.03, 0.035, 0.06, 1)
-	fog_density = 0.012
-	glow_enabled = true
-	glow_intensity = 0.55
+background_mode = 1
+background_color = Color(0.012, 0.014, 0.025, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.045, 0.055, 0.095, 1)
+tonemap_mode = 2
+fog_enabled = true
+fog_light_color = Color(0.028, 0.034, 0.06, 1)
+fog_density = 0.014
+glow_enabled = true
+glow_intensity = 0.85
+glow_bloom = 0.1
+glow_hdr_threshold = 0.9
+adjustment_enabled = true
+adjustment_brightness = 1.0
+adjustment_contrast = 1.08
+adjustment_saturation = 1.06
 
 [sub_resource type="StandardMaterial3D" id="mat_crate"]
 	albedo_color = Color(0.16, 0.1, 0.06, 1)
@@ -478,6 +501,8 @@ mesh = SubResource("mesh_bldg_f")
 [node name="SignAmber" type="MeshInstance3D" parent="Neon"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 3.4, -9.45)
 mesh = SubResource("mesh_sign_amber")
+script = ExtResource("9_neon")
+style = "flicker"
 
 [node name="LightAmber" type="OmniLight3D" parent="Neon"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 3.4, -8.6)
@@ -492,6 +517,8 @@ mesh = SubResource("mesh_win")
 [node name="SignCyan" type="MeshInstance3D" parent="Neon"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 2.8, 9.05)
 mesh = SubResource("mesh_sign_cyan")
+script = ExtResource("9_neon")
+style = "buzz"
 
 [node name="LightCyan" type="OmniLight3D" parent="Neon"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 2.8, 8.3)
@@ -506,6 +533,8 @@ mesh = SubResource("mesh_win")
 [node name="SignRed" type="MeshInstance3D" parent="Neon"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.95, 1.9, 0)
 mesh = SubResource("mesh_sign_red")
+script = ExtResource("9_neon")
+style = "broken"
 
 [node name="LightRed" type="OmniLight3D" parent="Neon"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.2, 1.9, 0)
@@ -631,6 +660,18 @@ script = ExtResource("4_buttons")
 
 [node name="DebugPanel" type="CanvasLayer" parent="."]
 script = ExtResource("7_debug")
+
+[node name="StreetDress" type="Node3D" parent="."]
+script = ExtResource("10_dress")
+
+[node name="RainLayer" type="Node3D" parent="."]
+script = ExtResource("11_rain")
+
+[node name="Vignette" type="CanvasLayer" parent="."]
+script = ExtResource("12_vig")
+
+[node name="PauseMenu" type="CanvasLayer" parent="."]
+script = ExtResource("13_pause")
 
 [node name="Joystick" type="Control" parent="UI"]
 anchor_left = 0.0
