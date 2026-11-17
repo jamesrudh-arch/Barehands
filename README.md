@@ -36,8 +36,8 @@ bare-hands/            Godot project root
 
 ### 2. Get this project onto the phone
 
-- From GitHub: open this repo in the browser or GitHub app → **Code → Download ZIP** (you must be logged in if the repo is private), then extract the ZIP with your file manager (e.g. Files by Google or ZArchiver).
-- Or with Termux: `git clone <repo-url>`.
+- From GitHub: open <https://github.com/jamesrudh-arch/Barehands> in the browser or GitHub app → **Code → Download ZIP** (the repo is public, no login needed), then extract the ZIP with your file manager (e.g. Files by Google or ZArchiver).
+- Or with Termux: `git clone https://github.com/jamesrudh-arch/Barehands.git`.
 - You should end up with a folder that contains `bare-hands/project.godot`. A place like `Download/bare-hands` is fine. If the editor's file picker refuses a folder, copy the `bare-hands` folder into `Android/data/org.godotengine.editor.v4/files/` with a file manager and pick it from there.
 
 ### 3. Import and run
@@ -66,11 +66,10 @@ bare-hands/            Godot project root
 
 ## Sync this repo
 
-This sandbox has no GitHub remote configured yet. After creating the GitHub repo (e.g. `bare-hands`, private is fine), run once from the repo root:
+The remote is <https://github.com/jamesrudh-arch/Barehands> (branch `main`). From a machine with push access:
 
 ```
-git remote add origin git@github.com:<you>/bare-hands.git
-git push -u origin main
+git push origin main
 ```
 
 To pull the next batch onto the phone: `git pull` in Termux, or re-download the ZIP and replace the `bare-hands/` folder, then reopen the project in the Godot app (it re-imports changed files automatically).
@@ -81,5 +80,5 @@ Not in this batch. There is no Godot editor for iOS; testing on iPhone needs a M
 
 ## Verified / not verified
 
-- Verified headless with Godot 4.7 (this sandbox): project import, all scripts compile, the smoke test (`bare-hands/tests/`) runs the scene, walks the hero ~6 m with stick input, camera error < 0.5 m.
+- Verified headless with Godot 4.7.2 (this sandbox): project import, all scripts compile, the smoke test (`bare-hands/tests/`) runs the scene, walks the hero ~6.7 m with stick input, camera trails ≤ 1.1 m while walking and settles to ~0.1 m once the hero stops.
 - Not verified: how it actually looks and performs on your phone's screen (rendering, touch feel, framerate). Tell me what you see and Batch 2 will tune it.
