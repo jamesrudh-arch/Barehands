@@ -6,7 +6,7 @@ The whole project is plain text (`.gd`, `.tscn`, `project.godot`) plus CC0 asset
 
 **SERIES 1: THE LOOK AND FEEL** — phase reports below (1 Stability · 2 Hero & Camera · 3 Wet Neon Night · 4 Punches That Hit).
 
-## What's in the game (Batch 3, current state)
+## What's in the game (through Series 1 Phase 2)
 
 Everything from Batches 1-2 (night street block with neon, the pack's mannequin hero with analog run/sprint/jump, code-faked ledge climbing, parkour roofs and crates, wall-safe camera, one-time "Jump while moving to climb" hint, forgiving ledge grab) plus **Batch 3, combat feel**:
 
@@ -40,6 +40,29 @@ No shops, missions, driving, guns or sound yet — later batches.
 **Not verified on a real phone**: the panel's readability on the 13 mini's screen, actual FPS/memory numbers (headless Linux has no GPU — the numbers below are logic-side only), and whether Xogot still shows the integer-as-enum warning after re-import (if it does, tell me the exact file:line it names).
 
 **Added beyond the brief**: the orphan-node counter on the panel, the log-ring for the panel, and the input-queue expiry (the last one changes feel slightly: presses older than 0.4 s no longer count).
+
+## SERIES 1 · Phase 2 — The Hero and the Camera
+
+**What was built**
+
+- **A real noir hero replaces the grey mannequin** (`scenes/hero.tscn` + `scripts/hero_rig.gd`): Quaternius' Universal Base Character body (head, hands, beard) dressed in the Modular Outfits ranger set (torso, sleeves, trousers, boots), plus a **code-built fedora** (crown, band, brim, tilted) and a **swinging coat skirt** (two panels hung off the pelvis that swing with your speed). Every piece shares the pack's 65-bone rig, so all 43 UAL clips drive the six pieces in lockstep — the rig grafts the mannequin's animation library onto one AnimationPlayer per piece at load. Distinct silhouette: fedora, beard, long dark coat against the neon.
+- **Facing fixed and re-verified by bones**: the new pieces ship facing +Z like the mannequin did, so each carries the same 180° correction. The movement smoke still asserts `hand_l` sits west while running north, east while sprinting south, and that the climb pose faces the wall — now against the hero's skeleton.
+- **A cinematic camera** (`scripts/camera_follow.gd`): slight over-the-shoulder offset (hero sits left-of-center), fast horizontal catch-up with a softer vertical lag (reads like a crane), a **field-of-view kick to 77° while sprinting**, a **gentle push-in** (6.0 → 4.6 m) whenever an enemy is within 3.5 m, **lock-on** (LOCK button above the action cluster, or L on a keyboard) that frames the hero and target together and drops when the target falls, and the existing wall pull-in and impact shake.
+- **An opening shot** (`scripts/opening_shot.gd`): the camera sweeps from high over the east neon down the street and lands behind the hero's shoulder over ~7 s, with letterbox bars and a TAP TO SKIP corner label. Any tap/key skips. HUD and gameplay input are locked until it ends.
+- itch.io now requires an account even for free downloads, so the CC0 packs came from GitHub mirrors (see **CREDITS.md** for exact sources and licenses). Textures were downscaled to 1024/512 px for the phone; the 4K normals were dropped for flat noir shading.
+
+**How to test on a phone**
+
+1. Watch the opening: it should sweep the neon and land behind the hero. Tap anywhere — it should snap to gameplay instantly.
+2. Run and hold SPRINT: the view should widen slightly and snap back when you stop. Walk near the dummy: the camera should drift closer and step back out when you walk away.
+3. Face the dummy and tap **LOCK** (small button above JUMP): the camera should hold a framing with both of you in it; knock the dummy down and the lock releases.
+4. Run around: the coat should swing with speed; watch the fedora and beard follow the head during punches.
+
+**Not verified on a real phone**: how the layered hero reads on a small screen (six skinned pieces ≈ 12k verts total — well within an A15's budget, but unmeasured), the opening shot's framerate on Low tier, the fedora's fit during animations (tuned headless by bone positions), and the shoulder offset's comfort in the hand.
+
+**Added beyond the brief**: the fedora and swing coat (the brief asked for "a coat or jacket and a distinct silhouette" — the outfit pack is fantasy-only, so the long coat is code-built), the letterbox bars on the opening, and lock-on dropping automatically when the target goes down.
+
+**Missing on purpose (tell me if you want them)**: the true *Universal Outfits* casual line (trench coat, suits) is itch-only right now. If you want a tailored trench instead of the code-built coat: download "Universal Base Characters" + "Modular Character Outfits" from https://quaternius.com (or your itch library), and upload the zip to the repo — I'll retarget the rig in the next phase.
 
 ### The Universal Animation Library pack
 
@@ -109,8 +132,11 @@ bare-hands/              Godot project root
   scripts/debug_panel.gd toggleable DBG overlay (FPS, memory, nodes, enemies, particles)
   scripts/player.gd      movement, ledge grab, punch combo, dodge/parry, counters, slams
   scripts/enemy.gd       dummy reactions, thug AI with telegraph attack, parry resolution
-  scripts/camera_follow.gd  follow camera with wall pull-in + impact shake
-  tests/smoke.tscn       headless movement smoke test (not part of the game)
+  scripts/camera_follow.gd  cinematic follow camera: shoulder offset, lag, FOV kick, push-in, lock-on, shake
+  scripts/opening_shot.gd  the ~7 s skippable opening flyover with letterbox
+  scripts/hero_rig.gd      the noir hero: 6 UAL-rigged pieces in lockstep + fedora + swing coat
+  scenes/hero.tscn         hero piece composition (body, ranger outfit, beard)
+  tests/smoke.tscn       headless movement+camera smoke test (not part of the game)
   tests/smoke_combat.tscn   headless combat smoke test (not part of the game)
   tests/stress_combat.tscn  5-minute self-driving combat stress test (not part of the game)
 ```

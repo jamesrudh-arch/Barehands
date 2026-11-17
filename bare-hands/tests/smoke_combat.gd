@@ -28,6 +28,9 @@ var _hitstunned := false
 func _ready() -> void:
 	_main = load("res://scenes/main.tscn").instantiate()
 	add_child(_main)
+	var opening := get_tree().get_first_node_in_group("opening") as OpeningShot
+	if opening:
+		opening.skip()  # tests drive input themselves
 	_player = _main.get_node("Player") as CharacterBody3D
 	_camera = _main.get_node("Camera") as Camera3D
 	_dummy = _main.get_node("Dummy") as CharacterBody3D
@@ -92,7 +95,7 @@ func _combo() -> void:
 	if _pf == 28:
 		InputBus.queue_punch()  # buffered during the jab -> chains the cross
 	if _pf >= 20 and _pf <= 60:
-		var a: String = _player.get_node("Body/Mannequin/AnimationPlayer").current_animation
+		var a: String = (_player.get_node("Body/Hero") as HeroRig).current()
 		if a in ["Punch_Jab", "Punch_Cross"]:
 			_saw_punch_anim = true
 	if _pf >= 90:

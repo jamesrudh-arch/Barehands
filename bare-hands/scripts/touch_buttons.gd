@@ -12,6 +12,13 @@ func _ready() -> void:
 	$SprintBtn.button_up.connect(func() -> void: InputBus.sprint = false)
 	$PunchBtn.button_down.connect(func() -> void: InputBus.queue_punch())
 	$DodgeBtn.button_down.connect(func() -> void: InputBus.queue_dodge())
+	$LockBtn.button_down.connect(func() -> void: _toggle_lock())
+
+
+func _toggle_lock() -> void:
+	var cam := get_tree().get_first_node_in_group("camera")
+	if cam:
+		cam.toggle_lock()
 
 
 ## Called by the hero the first time the player stands near a climbable edge.

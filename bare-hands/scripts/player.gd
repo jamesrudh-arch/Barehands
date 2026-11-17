@@ -55,11 +55,12 @@ var _hitstun_until := 0.0
 var _counter_until := 0.0
 
 @onready var _body: Node3D = $Body
-@onready var _anim: AnimationPlayer = $Body/Mannequin/AnimationPlayer
+@onready var _rig: HeroRig = $Body/Hero
 
 
 func _ready() -> void:
 	add_to_group("player")
+	_rig._velocity_fn = func() -> Vector3: return velocity  # drives the coat sway
 
 
 func _physics_process(delta: float) -> void:
@@ -78,6 +79,9 @@ func _physics_process(delta: float) -> void:
 
 
 func _move_step(delta: float) -> void:
+	if InputBus.locked:  # opening shot: stand and breathe
+		InputBus.move = Vector2.ZERO
+		InputBus.clear_queues()
 	_combat_input()
 	if Input.is_action_just_pressed("ui_accept"):  # desktop fallback: Space
 		InputBus.queue_jump()
@@ -110,7 +114,7 @@ func _move_step(delta: float) -> void:
 	if InputBus.take_jump() and _since_floor <= COYOTE and not stunned:
 		velocity.y = JUMP_SPEED
 		_since_floor = COYOTE + 1.0  # spend the coyote window
-		_play("Jump_Start", 0.08)
+		_rig.play("Jump_Start", 0.08)
 
 	var was_air := not is_on_floor()
 	move_and_slide()
@@ -120,8 +124,8 @@ func _move_step(delta: float) -> void:
 
 	if is_on_floor():
 		if was_air and _air_time > 0.08:
-			_play("Jump_Land", 0.06)
-			_anim.speed_scale = 1.8
+			_rig.play("Jump_Land", 0.06)
+			_rig.set_speed(1.8)
 			_land_until = _t + 0.45
 		_air_time = 0.0
 		if state == State.GROUND or state == State.AIR:  # combat input may have taken over
@@ -197,7 +201,7 @@ func _start_punch(stage: int) -> void:
 	var fwd := -_body.global_transform.basis.z
 	velocity.x = fwd.x * lunge
 	velocity.z = fwd.z * lunge
-	_play("Punch_Jab" if stage == 1 else "Punch_Cross", 0.06, 1.7)
+	_rig.play("Punch_Jab" if stage == 1 else "Punch_Cross", 0.06, 1.7)
 
 
 func _punch_step(delta: float) -> void:
@@ -240,9 +244,9 @@ func _try_dodge() -> void:
 	velocity.z = dir.z * DODGE_SPEED
 	velocity.y = 0.0
 	if dir.dot(-_body.global_transform.basis.z) > 0.3:
-		_play("Roll", 0.06, 2.1)  # a roll roughly along the facing
+		_rig.play("Roll", 0.06, 2.1)  # a roll roughly along the facing
 	else:
-		_play("Jump", 0.06)  # side/back evade reads as a quick hop
+		_rig.play("Jump", 0.06)  # side/back evade reads as a quick hop
 
 
 func _dodge_step(delta: float) -> void:
@@ -278,7 +282,7 @@ func take_hit(dir: Vector3) -> void:
 	velocity.y = 1.5
 	_hitstun_until = _t + 0.45
 	state = State.GROUND
-	_play("Hit_Chest", 0.04, 1.6)
+	_rig.play("Hit_Chest", 0.04, 1.6)
 	Fx.shake(0.4)
 	Fx.emit_hit("player_hit", global_position + Vector3.UP * 1.2)
 
@@ -424,7 +428,7 @@ func _start_climb(wall_pos: Vector3, n: Vector3, ledge_y: float) -> void:
 	_climb_to = Vector3(wall_pos.x + into.x * 0.75, ledge_y + 0.02, wall_pos.z + into.z * 0.75)
 	_yaw = atan2(-into.x, -into.z)  # face the wall while climbing
 	_body.rotation.y = _yaw
-	_play("Jump", 0.12)  # tucked pose reads as reaching for the edge
+	_rig.play("Jump", 0.12)  # tucked pose reads as reaching for the edge
 
 
 func _climb_step(delta: float) -> void:
@@ -435,8 +439,8 @@ func _climb_step(delta: float) -> void:
 	if _climb_t >= 1.0:
 		state = State.GROUND
 		velocity = -_body.global_transform.basis.z * 1.8
-		_play("Jump_Land", 0.06)
-		_anim.speed_scale = 1.8
+		_rig.play("Jump_Land", 0.06)
+		_rig.set_speed(1.8)
 		_land_until = _t + 0.45
 
 
@@ -455,24 +459,17 @@ func _drive_anim() -> void:
 		return  # hit reaction plays out
 	var speed := Vector2(velocity.x, velocity.z).length()
 	if not is_on_floor():
-		if _anim.current_animation == "Jump_Start" and _anim.is_playing():
+		if _rig.current() == "Jump_Start" and _rig.is_playing():
 			return  # let the launch pose play out first
-		_play("Jump", 0.25)
+		_rig.play("Jump", 0.25)
 	elif _t < _land_until:
 		return  # brief landing recovery
 	elif speed < 0.35:
-		_play("Idle", 0.25)
+		_rig.play("Idle", 0.25)
 	elif speed < 3.3:
-		_play("Walk", 0.25)
-		_anim.speed_scale = clampf(speed / 2.2, 0.7, 1.7)
+		_rig.play("Walk", 0.25)
+		_rig.set_speed(clampf(speed / 2.2, 0.7, 1.7))
 	else:
-		_play("Sprint", 0.25)
-		_anim.speed_scale = clampf(speed / 5.6, 0.75, 1.5)
+		_rig.play("Sprint", 0.25)
+		_rig.set_speed(clampf(speed / 5.6, 0.75, 1.5))
 
-
-
-func _play(anim_name: String, blend: float = 0.25, speed := 1.0) -> void:
-	if _anim.current_animation != anim_name:
-		_anim.speed_scale = 1.0
-		_anim.play(anim_name, blend)
-		_anim.speed_scale = speed

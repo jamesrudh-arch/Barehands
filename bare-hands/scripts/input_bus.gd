@@ -11,6 +11,7 @@ const QUEUE_LIFE_MSEC := 400.0
 var move := Vector2.ZERO  # x = strafe, y = forward/back, magnitude 0..1
 var sprint := false
 var camera_yaw := 0.0  # yaw of the camera's look direction on the ground plane
+var locked := false  # true during the opening shot: the hero ignores input
 
 var _game_msec := 0.0
 var _jump_at := -99999.0

@@ -1,0 +1,30 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/hero_rig.gd" id="1_rig"]
+[ext_resource type="PackedScene" path="res://assets/hero/Superhero_Male_FullBody.gltf" id="2_body"]
+[ext_resource type="PackedScene" path="res://assets/hero/Male_Ranger_Body.gltf" id="3_torso"]
+[ext_resource type="PackedScene" path="res://assets/hero/Male_Ranger_Arms.gltf" id="4_arms"]
+[ext_resource type="PackedScene" path="res://assets/hero/Male_Ranger_Legs.gltf" id="5_legs"]
+[ext_resource type="PackedScene" path="res://assets/hero/Male_Ranger_Feet_Boots.gltf" id="6_boots"]
+[ext_resource type="PackedScene" path="res://assets/hero/Hair_Beard.gltf" id="7_beard"]
+
+[node name="Hero" type="Node3D"]
+script = ExtResource("1_rig")
+
+[node name="Body" parent="." instance=ExtResource("2_body")]
+rotation = Vector3(0, 3.141593, 0)
+
+[node name="Torso" parent="." instance=ExtResource("3_torso")]
+rotation = Vector3(0, 3.141593, 0)
+
+[node name="Arms" parent="." instance=ExtResource("4_arms")]
+rotation = Vector3(0, 3.141593, 0)
+
+[node name="Legs" parent="." instance=ExtResource("5_legs")]
+rotation = Vector3(0, 3.141593, 0)
+
+[node name="Boots" parent="." instance=ExtResource("6_boots")]
+rotation = Vector3(0, 3.141593, 0)
+
+[node name="Beard" parent="." instance=ExtResource("7_beard")]
+rotation = Vector3(0, 3.141593, 0)

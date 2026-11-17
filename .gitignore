@@ -4,3 +4,4 @@ node_modules/
 # chat deliverable snapshots, not repo content
 download/*.zip
 .git-auth
+downloads_check/

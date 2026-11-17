@@ -28,6 +28,7 @@ var _l_sum := 0.0  # hand bone X samples, for facing checks
 var _r_sum := 0.0
 var _face_n := 0
 var _climb_face_ok := false
+var _max_fov := 70.0
 const CLIMB_START := Vector3(9.0, 0.02, -4.8)
 const JUMP_AT := [6, 10, 14, 18]  # deliberately imperfect timings: tests forgiveness
 
@@ -35,10 +36,13 @@ const JUMP_AT := [6, 10, 14, 18]  # deliberately imperfect timings: tests forgiv
 func _ready() -> void:
 	_main = load("res://scenes/main.tscn").instantiate()
 	add_child(_main)
+	var opening := get_tree().get_first_node_in_group("opening") as OpeningShot
+	if opening:
+		opening.skip()  # tests drive input themselves
 	_player = _main.get_node("Player") as CharacterBody3D
 	_camera = _main.get_node("Camera") as Camera3D
-	_anim = _player.get_node("Body/Mannequin/AnimationPlayer")
-	_skel = _player.get_node("Body/Mannequin/Armature/Skeleton3D") as Skeleton3D
+	_anim = (_player.get_node("Body/Hero") as HeroRig).main_player()
+	_skel = _player.get_node("Body/Hero/Body/Armature/Skeleton3D") as Skeleton3D
 	_hand_l = _skel.find_bone("hand_l")
 	_hand_r = _skel.find_bone("hand_r")
 
@@ -84,6 +88,10 @@ func _physics_process(_delta: float) -> void:
 			_hint()
 		7:
 			_camera_wall()
+		8:
+			_fov_kick()
+		9:
+			_pushin_lock()
 		_:
 			_finish()
 
@@ -95,10 +103,11 @@ func _next() -> void:
 
 func _settle() -> void:
 	if _pf == 40:
-		var mi := _player.get_node("Body/Mannequin/Armature/Skeleton3D/Mannequin") as MeshInstance3D
-		var h := (mi.global_transform * mi.mesh.get_aabb()).size.y if mi and mi.mesh else 0.0
-		_check(h > 1.55 and h < 1.85, "mannequin world height ~1.7 (got %.2f)" % h)
+		var head := _skel.get_bone_global_pose(_skel.find_bone("Head")).origin.y
+		var h: float = head + 0.12  # head bone sits just under the crown
+		_check(h > 1.55 and h < 1.85, "hero world height ~1.7 (got %.2f)" % h)
 		_check(_anim.current_animation == "Idle", "idles with the pack's Idle clip (got %s)" % _anim.current_animation)
+		_check(not InputBus.locked, "opening shot skipped, input unlocked")
 		_next()
 
 
@@ -235,6 +244,38 @@ func _camera_wall() -> void:
 		var cam_d := _camera.global_position.distance_to(pivot)
 		_check(_camera.global_position.z > -10.2, "camera pulled out of the building wall (z %.2f)" % _camera.global_position.z)
 		_check(cam_d < 6.2, "boom shortened against the wall (%.2f m)" % cam_d)
+		_next()
+
+
+func _fov_kick() -> void:
+	if _pf == 1:
+		_player.velocity = Vector3.ZERO
+		_player.global_position = Vector3(0.0, 0.02, 8.0)
+		_camera.global_position = _player.global_position + Vector3(0, 3, 6)
+	InputBus.move = Vector2(0, -1)
+	InputBus.sprint = true
+	_max_fov = maxf(_max_fov, _camera.fov)
+	if _pf >= 90:
+		InputBus.move = Vector2.ZERO
+		InputBus.sprint = false
+		_check(_max_fov > 73.0, "sprint kicks the field of view out (fov %.1f)" % _max_fov)
+		_next()
+
+
+func _pushin_lock() -> void:
+	if _pf == 1:
+		_player.velocity = Vector3.ZERO
+		_player.global_position = Vector3(-2.6, 0.02, -4.5)  # beside the dummy
+		_camera.global_position = _player.global_position + Vector3(0, 3, 6)
+	if _pf == 100:
+		var cam_d := _camera.global_position.distance_to(_player.global_position + Vector3.UP * 1.5)
+		_check(cam_d < 5.3, "camera pushes in near an enemy (%.2f m)" % cam_d)
+		(_camera as FollowCamera).toggle_lock()
+		_check((_camera as FollowCamera).lock_target() != null, "lock-on grabs the nearest enemy")
+	if _pf == 130:
+		_check((_camera as FollowCamera).lock_target() != null, "lock-on holds while the enemy stands")
+		(_camera as FollowCamera).toggle_lock()
+		_check((_camera as FollowCamera).lock_target() == null, "lock-on toggles off")
 		_next()
 
 

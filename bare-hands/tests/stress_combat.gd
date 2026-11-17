@@ -28,15 +28,20 @@ var _max_bursts := 0
 var _last_scale_ok_tick := 0  # last tick where time_scale was 1.0
 var _tele_at := -1
 var _countered := false
+var _hits := 0  # landed impacts (Fx.hit_landed), proves punches connect
 
 
 func _ready() -> void:
 	_main = load("res://scenes/main.tscn").instantiate()
 	add_child(_main)
+	var opening := get_tree().get_first_node_in_group("opening") as OpeningShot
+	if opening:
+		opening.skip()  # the bot drives input itself
 	_player = _main.get_node("Player") as CharacterBody3D
 	_dummy = _main.get_node("Dummy") as CharacterBody3D
 	_thug = _main.get_node("Thug") as CharacterBody3D
 	_style = get_tree().get_first_node_in_group("style") as Control
+	Fx.hit_landed.connect(func(_kind: String, _pos: Vector3) -> void: _hits += 1)
 	_node_baseline = get_tree().get_node_count()
 	_node_max = _node_baseline
 	Log.info("stress: begin, baseline nodes %d" % _node_baseline)
@@ -205,8 +210,9 @@ func _finish() -> void:
 	_check(Engine.time_scale == 1.0, "time_scale back to 1.0 at exit")
 	_check(_slowmo_seen, "parry slow-mo actually exercised")
 	_check(_punches > 50 and _dodges > 20, "bot actually fought (%d punches, %d dodges)" % [_punches, _dodges])
-	print("STRESS summary: ticks %d | punches %d | dodges %d | slowmo %s | style $%d | max bursts %d | nodes %d/%d"
-			% [_tick, _punches, _dodges, _slowmo_seen, _style.cash, _max_bursts, _node_baseline, _node_max])
+	_check(_hits > 20, "punches actually landed (%d impacts)" % _hits)
+	print("STRESS summary: ticks %d | punches %d | dodges %d | hits %d | slowmo %s | style $%d | max bursts %d | nodes %d/%d"
+			% [_tick, _punches, _dodges, _hits, _slowmo_seen, _style.cash, _max_bursts, _node_baseline, _node_max])
 	Log.info("stress: done, %d fails" % _fails)
 	if _fails == 0:
 		print("STRESS PASS")
