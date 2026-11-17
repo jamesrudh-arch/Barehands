@@ -14,6 +14,7 @@ const MULT := [1.0, 1.2, 1.5, 2.0, 3.0]
 var value := 0.0  # 0..500
 var cash := 0
 var _last := ""
+var _rank_shown := -1
 var _repeats := 0
 var _chain_until := -99.0
 
@@ -61,7 +62,12 @@ func rank_mult() -> float:
 
 
 func _refresh() -> void:
-	_rank.text = "STYLE %s" % RANKS[rank()]
+	var r := rank()
+	_rank.text = "STYLE %s" % RANKS[r]
+	if r != _rank_shown:  # rank pop-up: scale punch on change
+		_rank_shown = r
+		_rank.scale = Vector2(1.7, 1.7)
+	_rank.scale = _rank.scale.lerp(Vector2.ONE, 0.2)
 	_bar.value = value
 	_cash.text = "$ %d   (x%.1f)" % [cash, rank_mult()]
 

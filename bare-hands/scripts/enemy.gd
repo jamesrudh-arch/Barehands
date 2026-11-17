@@ -27,6 +27,7 @@ var _mats: Array[StandardMaterial3D] = []
 var _flash := 0.0
 var _flash_color := Color(1, 1, 1)
 var _struck := false  # has the current swing been resolved?
+var _topple := 0.0  # ragdoll-lite: 0..1 fall tilt while DOWN
 
 @onready var _body: Node3D = $Body
 @onready var _anim: AnimationPlayer = $Body/Mannequin/AnimationPlayer
@@ -98,6 +99,10 @@ func _physics_process(delta: float) -> void:
 				_enter(State.RECOVER)
 		State.DOWN:
 			_brake(delta)
+			if _topple < 1.0:  # ragdoll-lite: keel over
+				_topple = minf(_topple + delta * 2.4, 1.0)
+				_body.rotation.x = -_topple * 1.45
+				_body.position.y = _topple * 0.25
 			if _state_t > RESPAWN_TIME:
 				_respawn()
 	_apply_flash(delta)
@@ -147,6 +152,8 @@ func _resolve_strike() -> void:
 		Fx.burst(p.global_position + Vector3.UP * 1.3, Color(0.3, 0.95, 1.0))
 		if _style():
 			_style().add("parry")
+		Fx.camera_punch(-6.0)  # zoom in on the perfect parry
+		Fx.screen_flash(Color(0.35, 0.9, 1.0))
 		Fx.emit_hit("parry", global_position)
 	elif age < 0.38:  # late dodge, just evaded
 		if _style():
@@ -190,6 +197,8 @@ func take_hit(dir: Vector3, kind: String) -> void:
 func _die(cause: String) -> void:
 	_enter(State.DOWN)
 	_play("Death01", 0.08, 1.3)
+	if cause == "counter" or cause == "slam":
+		Fx.slow_mo(0.4, 0.45)  # short cinematic finisher beat
 	if _style():
 		if cause == "slam":
 			_style().add("slam")
@@ -198,6 +207,9 @@ func _die(cause: String) -> void:
 
 
 func _respawn() -> void:
+	_topple = 0.0
+	_body.rotation.x = 0.0
+	_body.position.y = 0.0
 	global_position = _spawn
 	velocity = Vector3.ZERO
 	hp = max_hp

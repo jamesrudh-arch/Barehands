@@ -303,6 +303,7 @@ func _land_punch() -> void:
 		target.take_hit(dir, "slam")  # layer 2a: flash + knockdown
 		Fx.burst(hit_pos, Color(1.0, 0.55, 0.2))  # layer 2b: particles
 		Fx.shake(0.9)  # layer 3: subtle shake last
+		Fx.camera_punch(6.0)  # layer 4: FOV kick
 		Fx.emit_hit("slam", hit_pos)
 		return
 	var counter: bool = _t < _counter_until and target.state == Enemy.State.STAGGER
@@ -311,6 +312,7 @@ func _land_punch() -> void:
 	target.take_hit(dir, kind)
 	Fx.burst(hit_pos, Color(0.3, 0.95, 1.0) if counter else Color(1.0, 0.75, 0.3))
 	Fx.shake(0.2 if kind == "jab" else 0.35)
+	Fx.camera_punch(1.5 if kind == "jab" else (4.0 if counter else 3.0))
 	Fx.emit_hit(kind, hit_pos)
 	if _style():
 		_style().add(kind)

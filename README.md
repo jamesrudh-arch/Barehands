@@ -64,6 +64,37 @@ No shops, missions, driving, guns or sound yet — later batches.
 
 **Missing on purpose (tell me if you want them)**: the true *Universal Outfits* casual line (trench coat, suits) is itch-only right now. If you want a tailored trench instead of the code-built coat: download "Universal Base Characters" + "Modular Character Outfits" from https://quaternius.com (or your itch library), and upload the zip to the repo — I'll retarget the rig in the next phase.
 
+## SERIES 1 · Phase 3 — The Wet Neon Night
+
+**What was built**
+
+- **Wet asphalt + puddles** (`shaders/road.gdshader`): the road is a shader now — a procedural puddle mask makes blobs mirror-smooth (metallic, roughness 0.05) while the rest stays rain-damp, with an animated ripple shimmer, and **fake neon reflections**: colored patches around each real sign's position, riding the puddles, lifted by fresnel. No screen-space reflections anywhere. Five extra mirror puddles (`street_dress.gd`) catch real specular pops from the neon lights as characters move.
+- **Neon with life** (`scripts/neon.gd`): the amber sign flickers, the cyan one buzzes, the red one is broken — dark with dying strobes. Each duplicates its material so signs flicker independently. Four individually lit windows (warm/cool mix) + AC units + fire escapes (zigzag platforms, railings, stairs) + hanging wires + grates + bins, bags and a hydrant make the street read lived-in (`scripts/street_dress.gd`, all code-built, bins and hydrant have collision).
+- **Atmosphere**: deeper blue fog and ambient, bloom up with a threshold, contrast/saturation grade, a **fullscreen vignette** shader (`shaders/vignette.gdshader`), three additive **light shafts** (amber kiosk, cyan window, red thug street), **steam** rising from three grates, and **rain** (`scripts/rain.gd`): 700 world-aligned streaks falling past the camera plus ground splash sparks around the hero.
+- **Quality tiers** (`scripts/quality.gd`, autoload): **High** = full 3D resolution, MSAA 2x, splashes, shafts; **Low** = 0.62 resolution scale, no MSAA, no splashes, no shafts, half rain. Auto-picks after ~3 s of measured gameplay FPS (starts conservative on phones, promotes if it holds 50+), override any time in the **pause menu** (II button top-left): RESUME, Quality Auto/Low/High, live fps.
+
+**How to test on a phone**: watch the opening — wet reflections should shimmer under the neon; walk past the amber sign and watch its color ride the puddles; the red sign should stay dark and strobe. Pause (II), switch Quality Low, watch the resolution drop and shafts/splashes vanish; switch High and they return; Auto re-measures.
+
+**Not verified on a real phone**: everything visual — shader cost on the A15, whether the fake reflections read at 60 fps, shaft/steam/rain fill rates on Low tier, and the auto-tier threshold. This sandbox has no GPU; the tier logic is verified headless, the look is not. Tell me how it runs with DBG open.
+
+**Added beyond the brief**: individually lit windows, AC units, the hydrant/bin collision, the II pause button styling, and rain following the camera rather than a fixed box.
+
+## SERIES 1 · Phase 4 — Punches That Hit
+
+**What was built**
+
+- **Impact stack, in order** (now four layers): hit-stop (0.07–0.13 s at 5%) → enemy flash + particle spark → subtle camera shake → **new: FOV punch** (jab +1.5°, cross +3°, counter +4°, slam +6° — a fast kick-out that decays in ~0.1 s).
+- **Perfect parry**: the 0.7 s slow-mo now also **zooms in** (a −6° FOV pull on top of the kick system) and fires a brief **cyan colour wash** over the screen (`vignette.flash`), so a parry reads as a moment, not just slow physics.
+- **Enemies with weight**: on a kill they now **keel over ragdoll-lite** (body tilts back and drops over ~0.4 s) instead of playing the death clip standing, and counter/slam kills add a **0.4 s cinematic slow-mo beat**.
+- **Rank pop-ups**: the STYLE label scale-punches (1.7→1.0) every time the rank changes.
+- **Sound hooks, ready for Series 2**: every impact routes through one signal — `Fx.hit_landed(kind, pos)` with kinds `jab`, `cross`, `counter`, `slam`, `parry`, `player_hit` (plus `Fx.emit_hit` for anything new). Connect one player and the whole combat bed is done.
+
+**How to test on a phone**: jab the dummy — small stop, small spark, small kick; cross — bigger everything; parry the thug — slow-mo + zoom + cyan wash; counter or slam — slow-mo finisher and the body topples; keep the style varied and watch the rank label pop.
+
+**Not verified on a real phone**: whether the FOV punch frequency reads as punchy or nauseating at 60 fps, the topple's look against the death clip, and the colour wash intensity on OLED (tuned blind).
+
+**Added beyond the brief**: the parry FOV zoom on top of the brief's camera punch, and the finisher slow-mo applying to environmental slams too.
+
 ### The Universal Animation Library pack
 
 `bare-hands/assets/` holds `UAL1_Standard.glb` (the Godot-ready, root-motion-disabled variant), the pack's `License.txt` (**CC0 1.0 / public domain, models by @Quaternius**) and its `README.txt`. The `_RM` (root-motion) variant and the Unity `.fbx` files stay in the original zip at the repo root; this game moves the character in code.
@@ -165,5 +196,5 @@ To pull the next batch onto the phone: re-download the ZIP and replace the `bare
 
 ## Verified / not verified
 
-- Verified headless with Godot 4.7.2 (this sandbox): the project imports with no errors and both smoke suites pass. Movement (`tests/smoke.tscn`): mannequin 1.70 m, **faces its travel direction (hand bones checked against the movement vector, north and south, plus the climb pose facing the wall)**, analog speeds, sprint, jump clips, ledge climb onto the 3.4 m annex, the one-time climb hint near a grabbable edge, camera follow and wall pull-in. Combat (`tests/smoke_combat.tscn`): jab→cross lands with buffering (dummy 5→2 hp) and knockback, punch clips play, per-enemy materials don't cross-flash, repeating a move earns less, a well-timed dodge triggers slow motion and the parry counter knocks the thug down, a cross with the crate behind the dummy slams it (takedown), and `Engine.time_scale` always returns to 1.0.
+- Verified headless with Godot 4.7.2 (this sandbox): the project imports clean; movement+camera smoke (27 checks incl. FOV kick, push-in, lock-on, opening skip), combat smoke (17 checks incl. parry slow-mo, counter knockdown, crate slam), and the 5-minute stress test (18,000 ticks, flat node count, time_scale always recovers, 53 landed impacts) all pass after every phase. Movement (`tests/smoke.tscn`): mannequin 1.70 m, **faces its travel direction (hand bones checked against the movement vector, north and south, plus the climb pose facing the wall)**, analog speeds, sprint, jump clips, ledge climb onto the 3.4 m annex, the one-time climb hint near a grabbable edge, camera follow and wall pull-in. Combat (`tests/smoke_combat.tscn`): jab→cross lands with buffering (dummy 5→2 hp) and knockback, punch clips play, per-enemy materials don't cross-flash, repeating a move earns less, a well-timed dodge triggers slow motion and the parry counter knocks the thug down, a cross with the crate behind the dummy slams it (takedown), and `Engine.time_scale` always returns to 1.0.
 - Not verified on a real phone (no device here): touch feel of the stick and the four buttons, hit-stop/slow-mo/shake actually *feeling* right (timings were tuned headless, by numbers), framerate and thermals on the iPhone 13 mini, enemy telegraph readability, and Xogot's import flow on iOS. Tell me what feels off and the next batch tunes it.

@@ -23,6 +23,7 @@ var _dist_now := 6.0
 var _height_now := 2.8
 var _combat := 0.0  # 0..1 blend into the close combat framing
 var _frozen := false  # the opening shot drives the camera while true
+var _fov_punch := 0.0  # impact FOV kick, decays fast (negative = zoom in)
 
 @onready var _target: CharacterBody3D = get_node(target_path) as CharacterBody3D
 
@@ -40,6 +41,13 @@ func _ready() -> void:
 ## Impact shake: 0.2 jab, 0.35 cross, 0.9 slam.
 func shake(amount: float) -> void:
 	_shake = maxf(_shake, amount)
+
+
+## Impact FOV punch in degrees; negative zooms in (parry).
+func fov_punch(amount: float) -> void:
+	_fov_punch = maxf(absf(_fov_punch) * signf(_fov_punch), 0.0)
+	if signf(amount) == signf(_fov_punch) or _fov_punch == 0.0:
+		_fov_punch = amount if absf(amount) > absf(_fov_punch) else _fov_punch
 
 
 ## Toggle lock-on to the nearest standing enemy in front of the hero.
@@ -101,7 +109,8 @@ func _physics_process(delta: float) -> void:
 	var speed := flat.length()
 	var want_fov := lerpf(base_fov, sprint_fov, clampf((speed - 5.4) / 2.0, 0.0, 1.0))
 	_fov_now = lerpf(_fov_now, want_fov, 1.0 - exp(-4.0 * delta))
-	fov = _fov_now
+	_fov_punch = move_toward(_fov_punch, 0.0, 90.0 * delta)
+	fov = _fov_now + _fov_punch
 
 	_dist_now = lerpf(_dist_now, lerpf(distance, combat_distance, _combat), 1.0 - exp(-3.0 * delta))
 	_height_now = lerpf(_height_now, lerpf(height, combat_height, _combat), 1.0 - exp(-3.0 * delta))

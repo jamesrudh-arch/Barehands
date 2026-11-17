@@ -89,6 +89,20 @@ func shake(amount: float) -> void:
 		cam.shake(amount)
 
 
+## FOV punch in degrees (negative = zoom in). jab 1.5 / cross 3 / parry -6.
+func camera_punch(amount: float) -> void:
+	var cam := get_tree().get_first_node_in_group("camera")
+	if cam:
+		cam.fov_punch(amount)
+
+
+## Brief colour wash over the screen (perfect parry).
+func screen_flash(color: Color, dur := 0.35) -> void:
+	var vig := get_tree().get_first_node_in_group("vignette")
+	if vig:
+		vig.flash(color, dur)
+
+
 func _burst_mesh(color: Color) -> Mesh:
 	var key := color.to_html()
 	if not _mats.has(key):
