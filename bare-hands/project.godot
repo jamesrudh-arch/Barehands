@@ -1,0 +1,33 @@
+; Engine configuration file for Bare Hands 3D — Batch 1.
+config_version=5
+
+[application]
+
+config/name="Bare Hands 3D"
+config/description="Stylized noir open-world crime game set in Cinder City. Batch 1: one lit night street block and a walking placeholder hero."
+run/main_scene="res://scenes/main.tscn"
+config/features=PackedStringArray("4.7", "Mobile")
+config/icon="res://icon.svg"
+
+[autoload]
+
+InputBus="*res://scripts/input_bus.gd"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=0
+
+[input_devices]
+
+pointing/emulate_touch_from_mouse=true
+
+[rendering]
+
+renderer/rendering_method="mobile"
+renderer/rendering_method.mobile="mobile"
+textures/vram_compression/import_etc2_astc=true
+anti_aliasing/quality/msaa_3d=1

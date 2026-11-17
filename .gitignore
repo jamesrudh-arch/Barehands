@@ -1,2 +1,5 @@
 skills/
 node_modules/
+
+# chat deliverable snapshots, not repo content
+download/*.zip
