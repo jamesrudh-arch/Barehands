@@ -12,6 +12,12 @@ uniform vec3 sign_a = vec3(9.0, 3.5, -4.5);
 uniform vec3 sign_b = vec3(-9.0, 3.0, -12.4);
 uniform vec3 sign_c = vec3(14.0, 3.5, 8.0);
 
+varying vec3 world_pos;
+
+void vertex() {
+	world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+}
+
 float hash(vec2 p) {
 	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
 }
@@ -25,22 +31,22 @@ float noise(vec2 p) {
 }
 
 void fragment() {
-	float n = noise(WORLD_VERTEX_COORDS.xz * 0.55) * 0.6 + noise(WORLD_VERTEX_COORDS.xz * 2.1) * 0.4;
+	float n = noise(world_pos.xz * 0.55) * 0.6 + noise(world_pos.xz * 2.1) * 0.4;
 	float pud = smoothstep(0.60, 0.78, n);          // standing puddles
 	float damp = 0.35 + pud * wet_gloss;             // the whole street is rain-wet
 
 	ALBEDO = asphalt_col * (0.8 + 0.2 * n);
 	// rain ripple shimmer on the puddles
-	float ripple = 0.04 * sin(WORLD_VERTEX_COORDS.x * 9.0 + TIME * 3.1)
-			* sin(WORLD_VERTEX_COORDS.z * 7.0 - TIME * 2.3) * pud;
+	float ripple = 0.04 * sin(world_pos.x * 9.0 + TIME * 3.1)
+			* sin(world_pos.z * 7.0 - TIME * 2.3) * pud;
 	ROUGHNESS = clamp(mix(0.72, 0.05, pud) * (1.0 - 0.15 * damp) + ripple, 0.04, 1.0);
 	METALLIC = pud * 0.6;
 
 	// Fake neon reflections: soft colored blobs around each sign's ground
 	// shadow, riding the puddles, brighter at grazing view angles.
-	vec2 ta = WORLD_VERTEX_COORDS.xz - sign_a.xz;
-	vec2 tb = WORLD_VERTEX_COORDS.xz - sign_b.xz;
-	vec2 tc = WORLD_VERTEX_COORDS.xz - sign_c.xz;
+	vec2 ta = world_pos.xz - sign_a.xz;
+	vec2 tb = world_pos.xz - sign_b.xz;
+	vec2 tc = world_pos.xz - sign_c.xz;
 	vec3 refl = neon_a * exp(-dot(ta, ta) * 0.018)
 			+ neon_b * exp(-dot(tb, tb) * 0.025)
 			+ neon_c * exp(-dot(tc, tc) * 0.022);

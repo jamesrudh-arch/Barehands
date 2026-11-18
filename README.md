@@ -5,6 +5,7 @@ Engine: **Godot 4.7**, 3D, **Mobile** renderer, landscape, touch-first.
 The whole project is plain text (`.gd`, `.tscn`, `project.godot`) plus CC0 asset packs, so it can be built and edited without a desktop editor.
 
 **SERIES 1: THE LOOK AND FEEL** — phase reports below (1 Stability · 2 Hero & Camera · 3 Wet Neon Night · 4 Punches That Hit).
+**SERIES 2: SOUND, SOUL AND DEPTH** — reports continue below (1 Audio · 2 Music · 3 Combat · 4 Ledger · 5 Economy · 6 City · 7 Cast · 8 Opening). Design docs: docs/VISION.md, docs/WOW_GATE.md (reconstructed — originals never arrived).
 
 ## What's in the game (through Series 1 Phase 2)
 
@@ -94,6 +95,32 @@ No shops, missions, driving, guns or sound yet — later batches.
 **Not verified on a real phone**: whether the FOV punch frequency reads as punchy or nauseating at 60 fps, the topple's look against the death clip, and the colour wash intensity on OLED (tuned blind).
 
 **Added beyond the brief**: the parry FOV zoom on top of the brief's camera punch, and the finisher slow-mo applying to environmental slams too.
+
+## SERIES 2 · Phase 1 — Audio Foundation
+
+**What was built**
+
+- **Five audio buses** (`default_bus_layout.tres`: Master → Music, SFX, Ambience, Voice; Master carries a limiter so layered hits never clip) with **volume sliders in the pause menu** for all five, persisted to `user://settings.cfg`.
+- **63 CC0 / generated clips** in `assets/audio/`: real Kenney punch impacts (medium/heavy variations), body thuds, metal/wood/glass, cloth, doors, coins, knife slices, UI clicks — plus code-synthesized rain-on-asphalt, rain-on-metal, distant traffic, neon hum, distant sirens and puddle splashes (sources and licenses in CREDITS.md; total ~3.4 MB).
+- **Layered impacts with weight** (`scripts/sound.gd`, autoload "Sound"): every `Fx.hit_landed` kind maps to a stack — jab = punch + body, cross = punch + body + sub-bass, counter adds a metal ring, finisher adds a bell, parry is metal ring + latch, player-hit is thud + cloth. Every one-shot has random pitch jitter so nothing sounds mechanical.
+- **Surface footsteps**: the hero's steps are distance-driven; a downward ray reads `metadata/surface` off the ground (road = asphalt, crates = wood, annexes/garages = metal, safehouse later = carpet) and puddle proximity (the five street puddles) overrides to a splash. Metal is wood pitched down plus a metal click layer.
+- **Spatial audio**: a looping neon hum sits at each of the three neon lights as a positional `AudioStreamPlayer3D` — walk past a sign and it hums by. Rain, traffic and a distant siren (random 45–110 s) run on the Ambience bus.
+- **Fixed a real Series-1 bug found by this phase's test**: the wet-road shader never compiled on device (`WORLD_VERTEX_COORDS` is not a Godot 4.7 identifier — the road has been rendering with a fallback material since Phase 3 of Series 1). Replaced with a proper world-position varying; zero shader errors now.
+
+**How to test on a phone**
+
+1. Start the game: rain bed, traffic and hum should be there at once; walk near the amber sign — the hum should pan and fade with distance.
+2. Fight the dummy: jab vs cross should clearly differ in weight (cross has the sub layer); a parry should ring.
+3. Walk along the street and step into a puddle — the step should splash; climb onto a crate — the step changes to wood; onto the annex — metal.
+4. Pause (II): drag the SFX slider down to 0 while walking — footsteps and hits go silent while rain stays; set Master to 0 — everything stops. Close and reopen the game: the sliders remember.
+
+**Not verified on a real phone**: actual speaker mix and levels (tuned by construction, not by ear — I cannot hear this sandbox), hum audibility distance on a phone speaker vs headphones, and whether the puddle splash reads over the rain bed on the 13 mini's speaker.
+
+**Added beyond the brief**: the distant-siren timer, the limiter on Master, pitch jitter on all one-shots, and settings persistence for the sliders. The road-shader fix was unscheduled but necessary.
+
+**Numbers**: 63 clips (≈700 KB Kenney OGG + 2.7 MB generated WAV), static memory with the whole bank loaded **56.1 MB** (vs ~53 MB before audio), zero allocations per hit (player pool reuse). Headless dummy driver, so no runtime audio cost was measurable here.
+
+**GATE (docs/WOW_GATE.md, Phase 1)**: every machine-checkable line passes — `tests/smoke_audio.tscn` verifies buses, bank, layers per kind, all five footstep surfaces, puddle/wood/asphalt detection by position, 3 spatial hums, sliders, mute, persistence. Phone-only lines (mix, weight, audibility) await your test. **GATE: PASS (headless).**
 
 ### The Universal Animation Library pack
 

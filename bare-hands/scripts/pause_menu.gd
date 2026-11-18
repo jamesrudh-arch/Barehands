@@ -44,7 +44,7 @@ func _build_panel() -> void:
 	_panel.offset_left = -150.0
 	_panel.offset_right = 150.0
 	_panel.offset_top = -170.0
-	_panel.offset_bottom = 130.0
+	_panel.offset_bottom = 330.0
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(0.02, 0.03, 0.05, 0.92)
 	sb.border_color = Color(1, 0.58, 0.13, 0.6)
@@ -94,6 +94,25 @@ func _build_panel() -> void:
 			Quality.set_override(mode_name)
 			_refresh_quality())
 		col.add_child(b)
+
+	for bus_name in ["Master", "Music", "SFX", "Ambience", "Voice"]:
+		var row := HBoxContainer.new()
+		var lbl := Label.new()
+		lbl.text = bus_name
+		lbl.custom_minimum_size = Vector2(92, 0)
+		lbl.add_theme_font_size_override("font_size", 13)
+		var sl := HSlider.new()
+		sl.min_value = 0.0
+		sl.max_value = 1.0
+		sl.step = 0.01
+		sl.value = Sound.get_bus_vol(bus_name)
+		sl.custom_minimum_size = Vector2(140, 32)
+		sl.focus_mode = Control.FOCUS_NONE
+		var bn: String = bus_name
+		sl.value_changed.connect(func(v: float) -> void: Sound.set_bus_vol(bn, v))
+		row.add_child(lbl)
+		row.add_child(sl)
+		col.add_child(row)
 
 	var resume := Button.new()
 	resume.text = "RESUME"

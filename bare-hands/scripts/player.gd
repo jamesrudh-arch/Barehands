@@ -53,6 +53,7 @@ var _punch_buffered_at := -99.0
 var _dodge_t := 0.0
 var _hitstun_until := 0.0
 var _counter_until := 0.0
+var _step_acc := 0.0  # distance walked since the last footstep
 
 @onready var _body: Node3D = $Body
 @onready var _rig: HeroRig = $Body/Hero
@@ -104,6 +105,13 @@ func _move_step(delta: float) -> void:
 		rate = AIR_ACCEL
 	velocity.x = move_toward(velocity.x, goal.x, rate * delta)
 	velocity.z = move_toward(velocity.z, goal.z, rate * delta)
+
+	# footsteps: distance-driven, surface-aware (Sound picks the clip)
+	if is_on_floor() and Vector2(velocity.x, velocity.z).length() > 0.6:
+		_step_acc += Vector2(velocity.x, velocity.z).length() * delta
+		if _step_acc > 0.58:
+			_step_acc = 0.0
+			Sound.step(Sound.surface_at(global_position))
 
 	if is_on_floor():
 		_since_floor = 0.0

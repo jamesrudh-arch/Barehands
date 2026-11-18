@@ -158,6 +158,7 @@ func _puddles() -> void:
 		mi.position = p
 		mi.rotation.x = -PI / 2.0
 		add_child(mi)
+		mi.add_to_group("puddle")
 
 
 # --- additive light shafts (Quality tier toggles these) ---------------------------

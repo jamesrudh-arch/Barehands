@@ -1,0 +1,4 @@
+Audio from Kenney audio packs (kenney.nl), License: Creative Commons Zero (CC0),
+https://creativecommons.org/publicdomain/zero/1.0/
+Downloaded from the GitHub mirror series-ai/jam-ready-assets (unpacked copies).
+Renamed for this project; files unmodified otherwise.

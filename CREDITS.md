@@ -28,6 +28,21 @@ All third-party assets in this project are free for commercial use. Nothing here
 - **Downloaded from**: GitHub mirror (git-lfs media restored): https://github.com/slopwarefactory/terra (art/characters/quaternius/modular-outfits-fantasy/)
 - **Used for**: the hero's clothes; textures downscaled to 1024/512 px for mobile
 
+## bare-hands/assets/audio/ (Kenney sound effects)
+
+- **What**: punches, body impacts, metal/wood/glass, footsteps (concrete, wood, carpet), cloth, doors, coins, knives, UI clicks, lasers (test weapon), low-frequency hits
+- **By**: Kenney (https://kenney.nl)
+- **Packs**: Impact Sounds, RPG Audio, Sci-Fi Sounds, Interface Sounds
+- **License**: CC0 1.0 Universal - https://creativecommons.org/publicdomain/zero/1.0/
+- **Downloaded from**: the GitHub mirror series-ai/jam-ready-assets (unpacked copies of the packs, fetched via git-lfs media CDN); files renamed for this project, otherwise unmodified
+- **Proof of license**: bare-hands/assets/audio/KENNEY_AUDIO_LICENSE.txt
+
+## bare-hands/assets/audio/ (ambience + music stems)
+
+- **What**: rain on asphalt and metal, distant traffic, neon hum, distant siren, puddle splashes, and the five music stems (bed, tension, combat, heartbeat, resolve)
+- **Made by**: this project - generated entirely in code (scripts/synth_audio.py in the repo). No third-party audio, no license restrictions.
+- **Note**: the music stems are deliberate placeholders built so each can be swapped for a recorded stem of the same name and length.
+
 ## Built in code (no external assets)
 
 The fedora and the swinging coat panels (scripts/hero_rig.gd), all level geometry, UI and the entire codebase.

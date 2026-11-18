@@ -16,6 +16,7 @@ InputBus="*res://scripts/input_bus.gd"
 Log="*res://scripts/log.gd"
 Quality="*res://scripts/quality.gd"
 Fx="*res://scripts/fx.gd"
+Sound="*res://scripts/sound.gd"
 
 [display]
 
