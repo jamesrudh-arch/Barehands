@@ -501,9 +501,12 @@ session ran out of budget. Next session starts there, then the full
 battery + stress re-run.
 
 ### Pass verification status
-smoke_face 31, smoke_combos 39, smoke_progression 23 PASS; smoke,
-smoke_combat, smoke_depth, smoke_a4, smoke_controls, smoke_stick re-run
-green after each part. The FULL battery + 5-minute stress have NOT been
+smoke_face 31, smoke_progression 23 PASS. smoke_combos' 39 checks were
+green at Part 2 (a56dcc8); the Part 3 re-run was killed by a 400 s
+timeout MID-SUITE with 0 failures so far (all 16 sequence checks,
+buffer, gating and named-combo sections green) - the complete PASS must
+be re-confirmed next session. smoke, smoke_combat, smoke_depth, smoke_a4,
+smoke_controls, smoke_stick were green after Parts 1 and 2. The FULL battery + 5-minute stress have NOT been
 re-run as a complete set this pass (they were green at Stage A; the next
 session must re-run them with Parts 1-3 in). Phone-only: the feel of the
 diamond under real thumbs, the kick's read, the banner's legibility,
