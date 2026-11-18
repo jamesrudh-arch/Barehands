@@ -259,15 +259,92 @@ out while debugging the cast smoke test. What is in this commit:
   `velvet_01..03.wav`, `pilsner_01..02.wav`, `marrow_01..02.wav`,
   `duchess_01..02.wav` in `bare-hands/assets/voice/`.
 
-**What is NOT verified — the cast smoke test fails on**: the "is animated"
-check (certainly a wrong hardcoded path in the test — the rig plays through
-per-piece players, not `Rig/Body/Clips`), Pilsner's glasses and the Duchess's
-circlet not found by the test's mesh search, and **GRAB near Velvet not
-starting dialogue** (either the interaction zone or the input handoff — a
-real bug candidate, unfixed). Everything else in the suite (cast exists,
-four members, names, colours, Velvet's counter hand-off group, clean voice
-hook) passes. **GATE: FAIL (incomplete) — do not phone-test this phase as
-"done".**
+**Fixed in the phone-fix session** (see the next section): the frozen NPC
+outfit skeletons (the visible T-pose), the GRAB-to-dialogue input race, and
+the NPC players that never played. The cast suite now passes in full
+(30 checks) alongside the new pose suite that proves the bones move.
+**GATE: PASS (headless) — after the fix session.**
+
+## FIX SESSION — Phone Report 1: T-pose, wet ground, polish
+
+**Problem 1 — T-POSE (blocker). ROOT CAUSE (three faults, one symptom):**
+
+1. **The library load was a runtime string `load()`** of
+   `res://assets/UAL1_Standard.glb` in `hero_rig.gd` and `npc_rig.gd`. In an
+   exported phone build that remap can be missing — the load fails, no
+   AnimationPlayer ever gets a library, the character stands at rest and
+   "slides around" while `is_playing()` checks still passed in the editor.
+   The enemy mannequin — the one character the phone report did *not* name —
+   references the same glb **statically** in its scene and was spared.
+2. **NPC outfits never animated at all**: `npc_rig.play()` returned after the
+   first player, so the visible clothing pieces (ranger body/legs, peasant
+   top, knight armour) stayed frozen at the rest pose on top of an animating
+   base body — reading as a T-posed character.
+3. **Track paths used scene-unique names** (`^"Armature/Skeleton3D:pelvis"`),
+   which depend on unique-name flags surviving import — fragile across
+   export/import pipelines. Bone names themselves were IDENTICAL (all 65,
+   verified), so no bone-map retarget was needed.
+
+**The fix** — `scripts/ual_bind.gd`, one shared binder for every character:
+the UAL scene is a **`preload`** (a compile-time dependency no exporter can
+strip), the library is rebuilt **once** with every track path rewritten to
+the plain relative `Armature/Skeleton3D:<bone>` form, and `play_all()` plays
+on **every** piece's player in lockstep. `hero_rig` and `npc_rig` now use
+it; the enemy mannequin (native binding) is untouched.
+
+**The real pose test** (`tests/smoke_pose.gd`, replaces the old
+"was playing" checks): for each character — hero (6 skeletons), enemy
+mannequin, Velvet, Pilsner, Marrow, the Duchess — each clip
+(Idle/Walk/Sprint/Jump/Punch_Jab) runs 60 frames while the **global poses of
+shoulder, elbow, hip and knee on every skeleton** (base AND outfit pieces)
+are sampled; a clip fails if the joints stay within 4 mm of rest. The hero
+is driven through its real control path (velocity bands, queued jump/punch).
+**90 checks PASS.** Sample numbers (max joint travel, metres):
+hero Walk shoulder 0.099 / elbow 0.365 / hip 0.092 / knee 0.107 on the
+base, and 0.093–0.101 / 0.349–0.367 on every outfit piece; hero Jump
+0.632/0.851/0.535/0.278; Punch_Jab 0.189/0.509/0.149/0.267; enemy Punch_Jab
+0.171/0.541/0.129/0.373; Duchess Sprint 0.316/0.490/0.136/0.486. (The
+detector also caught a test artifact: Punch_Jab is the one non-looping clip
+— 0.87 s — so the sampler now restarts it per skeleton.)
+
+**Problem 1b — GRAB-to-dialogue.** Root cause: an input race. Cast, shops,
+safehouse and the player each consumed `InputBus.take_grab()` in their own
+`_physics_process`; despite `process_priority`, the player's tick won and
+the grab vanished into the hero's (empty-handed) grab attempt. Fix: the hero
+is now the **single consumer** — `_try_grab_action()` first offers the grab
+to people (Cast), then counters (shops), then doors (safehouse), then fights.
+Probe-verified: GRAB near Velvet activates dialogue.
+
+**Problem 2 — wet ground.** The camouflage was a value-noise threshold
+puddle mask; the "pixelated white blocks" were the five **mirror-puddle
+quads** — perfect-metallic squares floating over the road with hard edges
+(decal quads, exactly as suspected). The road shader is rewritten: smooth
+dark asphalt with a fine low-contrast grain, **five explicit puddles** with
+soft feathered edges and organically wobbled rims (same positions and radii
+as before), a damp halo around each, **stretched neon streaks** that run
+from each sign's ground point toward the camera across the water (fed by
+`camera_follow` every frame), broken by a slow animated ripple shimmer, plus
+a faint city glow so dark water never reads as a hole. The mirror quads are
+gone — replaced by invisible markers that keep the surface-aware footstep
+splash system working (audio suite verifies the puddle spots). Lane stripes
+dimmed to worn-paint levels; graffiti Label3D forced to linear filtering.
+
+**Problem 3 — polish audit vs the wow gate.** Fixed in code: the hero's coat
+rebuilt from two flat slabs into a five-panel fanned skirt (sways with
+speed, reads as cloth at distance). Remaining items that still read as
+prototype (honest list): the block stance is a slowed Hit_Chest pose (the
+UAL pack ships no guard animation); shop counters are stylized boxes with
+sign slabs; Pilsner/Marrow/the Duchess stand in plain Idle (no bespoke
+idle personality clips in the CC0 library); the Duchess watches from the
+annex roof without an arrival/departure moment (that is Phase 8's cutscene
+work). Phone-only checks from the gate: 30+ FPS on the 13 mini with DBG
+open, the actual look of the new puddles/streaks, haptics (iOS still needs
+a plugin), and the audio mix.
+
+**Verification**: all TEN suites green (movement, combat, depth, ledger,
+economy, city, audio, music, cast, pose) — 90 pose checks + 30 cast checks
++ the existing 200+; the 5-minute stress re-run on the new code; zero
+shader errors on import. **Phase 7's gate moves to PASS (headless).**
 
 ### The Universal Animation Library pack
 

@@ -9,6 +9,7 @@ var _inside := false
 
 
 func _ready() -> void:
+	add_to_group("safehouse")
 	body_entered.connect(_on_enter)
 	body_exited.connect(_on_exit)
 
@@ -26,9 +27,12 @@ func _on_exit(body: Node3D) -> void:
 		_inside = false
 
 
-func _physics_process(_delta: float) -> void:
-	if _inside and _panel == null and InputBus.take_grab():
+## The player asks: is this door worth a GRAB? (single GRAB consumer)
+func try_use(_player: Node3D) -> bool:
+	if _inside and _panel == null:
 		_open()
+		return true
+	return false
 
 
 func _open() -> void:

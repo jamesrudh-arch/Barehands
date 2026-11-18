@@ -35,6 +35,7 @@ var _inside := false
 
 func _ready() -> void:
 	monitoring = true
+	add_to_group("shop")
 	body_entered.connect(_on_enter)
 	body_exited.connect(_on_exit)
 
@@ -52,12 +53,12 @@ func _on_exit(body: Node3D) -> void:
 		_inside = false
 
 
-func _physics_process(_delta: float) -> void:
-	if _inside and InputBus.take_grab():
+## The player asks: is this counter worth a GRAB? (single GRAB consumer)
+func try_browse(_player: Node3D) -> bool:
+	if _inside and _panel == null:
 		_open()
-	elif _panel == null:
-		pass
-	# the panel handles its own closing
+		return true
+	return false
 
 
 func _open() -> void:

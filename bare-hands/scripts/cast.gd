@@ -16,7 +16,7 @@ var npcs: Array[Dictionary] = []
 
 
 func _ready() -> void:
-	process_priority = -1  # cast consumes GRAB before the shops do
+	add_to_group("cast")
 	_spawn("Velvet", VELVET, "velvet",
 			Vector3(11.8, 0.0, 4.6), PI * 0.75, 1.0,
 			["res://assets/cast/Superhero_Female_FullBody.gltf",
@@ -84,14 +84,16 @@ func _set_inside(display: String, inside: bool) -> void:
 			n.inside = inside
 
 
-func _physics_process(_delta: float) -> void:
+## The player asks: is there someone here to talk to? (single GRAB consumer)
+func try_talk(player: Node3D) -> bool:
 	if Dialogue.is_active():
-		return
-	if InputBus.take_grab():
-		for n in npcs:
-			if n.inside:
-				_talk(n)
-				return
+		return true
+	for n in npcs:
+		if n.inside and player.global_position.distance_to(
+				(n.node as Node3D).global_position) < 2.6:
+			_talk(n)
+			return true
+	return false
 
 
 func _talk(n: Dictionary) -> void:

@@ -4,8 +4,6 @@ extends Node3D
 ## shared UAL 65-bone rig), recoloured to a colour identity and dressed by
 ## code accessories (glasses, circlets). Plays one idle clip in a loop.
 
-const UAL := "res://assets/UAL1_Standard.glb"
-
 var _players: Array[AnimationPlayer] = []
 
 
@@ -42,26 +40,20 @@ func build(pieces: Array, tint: Color, accent: Color, idle_clip := "Idle",
 		p.name = "Clips"
 		piece.add_child(p)
 		_players.append(p)
-	# graft the UAL library onto each piece
-	var tmp: Node = load(UAL).instantiate()
-	var lib: AnimationLibrary = tmp.get_node("AnimationPlayer").get_animation_library("")
+	# UalBind grafts the shared, plain-path library (the T-pose fix)
 	for p in _players:
-		p.add_animation_library("", lib)
-	tmp.free()
+		UalBind.attach(p)
 	play(idle_clip, idle_speed)
 
 
-func play(clip: String, speed := 1.0) -> void:
+## Play the clip on EVERY piece (base body and outfits) in lockstep.
+func play(clip: String, _blend := 0.25, speed := 1.0) -> void:
+	UalBind.play_all(_players, clip, 0.25, speed)
+
+
+func set_speed(speed: float) -> void:
 	for p in _players:
-		if p.has_animation(clip):
-			p.play(clip, 0.25)
-			p.speed_scale = speed
-			return
-	for p in _players:  # fallback for clips a piece may not carry
-		if p.has_animation("Idle"):
-			p.play("Idle", 0.25)
-			p.speed_scale = speed
-			return
+		p.speed_scale = speed
 
 
 ## Code-built round glasses on the head (Pilsner's hacker look).

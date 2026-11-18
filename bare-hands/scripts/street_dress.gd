@@ -140,14 +140,14 @@ func _ac_units() -> void:
 		add_child(mi)
 
 
-# --- mirror puddles (real specular pop under the neon lights) --------------------
+# --- puddles ------------------------------------------------------------------------
+# The water itself is painted by the road shader (soft-edged, same spots);
+# these markers are invisible and only carry position + radius for the
+# surface-aware footsteps. The old mirror quads read as pixelated blocks on
+# the phone and are gone.
 
 
 func _puddles() -> void:
-	var puddle := StandardMaterial3D.new()
-	puddle.albedo_color = Color(0.015, 0.02, 0.035)
-	puddle.roughness = 0.03
-	puddle.metallic = 1.0
 	for spec in [
 		{"p": Vector3(7.0, 0.012, -6.0), "r": 1.5},
 		{"p": Vector3(-4.0, 0.012, 3.2), "r": 1.1},
@@ -160,10 +160,10 @@ func _puddles() -> void:
 		var mi := MeshInstance3D.new()
 		var cm := QuadMesh.new()
 		cm.size = Vector2(r * 2.0, r * 2.0)
-		cm.material = puddle
 		mi.mesh = cm
 		mi.position = p
 		mi.rotation.x = -PI / 2.0
+		mi.visible = false
 		add_child(mi)
 		mi.add_to_group("puddle")
 

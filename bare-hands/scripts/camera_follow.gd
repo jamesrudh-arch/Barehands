@@ -79,9 +79,19 @@ func set_frozen(frozen: bool) -> void:
 	_frozen = frozen
 
 
+var _road_mat: ShaderMaterial
+
+
 func _physics_process(delta: float) -> void:
 	if _frozen:
 		return
+	# the wet-street reflections stretch toward the camera; feed it our spot
+	if _road_mat == null:
+		var road := get_tree().get_first_node_in_group("road") as MeshInstance3D
+		if road and road.mesh and road.mesh.material is ShaderMaterial:
+			_road_mat = road.mesh.material
+	if _road_mat:
+		_road_mat.set_shader_parameter("cam_pos", global_position)
 	if InputMap.has_action("lock") and Input.is_action_just_pressed("lock"):
 		toggle_lock()
 	_retarget_lock()

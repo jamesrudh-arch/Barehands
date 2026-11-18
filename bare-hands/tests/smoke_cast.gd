@@ -111,12 +111,23 @@ func _talking() -> void:
 	Dialogue._advance()  # close (2 base lines)
 	await _wait(0.1)
 	_check(not Dialogue.is_active(), "dialogue closes after the lines")
-	_check(not InputBus.locked, "input unlocks after dialogue")
+	# her talk hands off to the pawn counter, which locks input while
+	# browsing - close it, then input must be free again
+	_close_pawn_if_open()
+	await _wait(0.1)
+	_check(not InputBus.locked, "input unlocks after dialogue (counter closed)")
+
+
+func _close_pawn_if_open() -> void:
+	for s in get_tree().get_nodes_in_group("pawn_counter"):
+		if s._panel != null:
+			s._close()
 
 
 func _velvet_handoff() -> void:
 	# high rep in her district adds a third, warmer line
 	City.rep["foundry"] = 45.0
+	_close_pawn_if_open()
 	InputBus.queue_grab()
 	await _wait(0.2)
 	_check(Dialogue.is_active(), "Velvet talks again")
@@ -125,7 +136,16 @@ func _velvet_handoff() -> void:
 		await _wait(0.05)
 	Dialogue._advance()
 	await _wait(0.2)
-	# talking to Velvet ends by opening her gun counter
+	# talking to Velvet ends by opening her gun counter (any earlier panel
+	# from the first talk is already closed, so this one is the handoff)
+	_close_pawn_if_open()
+	await _wait(0.05)
+	InputBus.queue_grab()
+	await _wait(0.2)
+	for i in 5:
+		Dialogue._advance()
+		await _wait(0.03)
+	await _wait(0.2)
 	var pawn := get_tree().get_nodes_in_group("pawn_counter")
 	_check(pawn.size() == 1, "Velvet's counter is found")
 	if pawn.size() == 1:

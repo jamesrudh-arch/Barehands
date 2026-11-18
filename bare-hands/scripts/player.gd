@@ -605,6 +605,17 @@ func _try_grab_action() -> void:
 		return
 	if state != State.GROUND or _t < _hitstun_until:
 		return
+	# the hero is the single GRAB consumer: people first, then counters and
+	# doors, then the fight (this replaced a lost input race between nodes)
+	var cast_node := get_tree().get_first_node_in_group("cast")
+	if cast_node and cast_node.has_method("try_talk") and cast_node.try_talk(self):
+		return
+	for shop in get_tree().get_nodes_in_group("shop"):
+		if shop.has_method("try_browse") and shop.try_browse(self):
+			return
+	for door in get_tree().get_nodes_in_group("safehouse"):
+		if door.has_method("try_use") and door.try_use(self):
+			return
 	# seize an enemy in reach
 	var target := _punch_target(-0.6, 0.35)
 	if target and target.state not in [Enemy.State.DOWN, Enemy.State.GRABBED,

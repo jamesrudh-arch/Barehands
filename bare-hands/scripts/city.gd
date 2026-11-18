@@ -177,6 +177,7 @@ func _spawn_graffiti(d: String, text: String) -> void:
 	var g := Label3D.new()
 	g.text = text
 	g.font_size = 96
+	g.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	g.modulate = Color(0.85, 0.2, 0.15)
 	g.billboard = BaseMaterial3D.BILLBOARD_DISABLED
 	g.no_depth_test = false

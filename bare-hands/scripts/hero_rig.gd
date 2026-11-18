@@ -5,8 +5,6 @@ extends Node3D
 ## swing coat. Every piece shares the UAL 65-bone rig, so the pack's clips
 ## play on all of them in lockstep - this node fans the play() calls out.
 
-const UAL := "res://assets/UAL1_Standard.glb"
-
 var _players: Array[AnimationPlayer] = []
 var _current := ""
 var _hat: Node3D
@@ -18,19 +16,17 @@ var _velocity_fn: Callable  # set by the hero: reads current velocity for coat s
 
 func _ready() -> void:
 	# The pieces ship animation-less, so the rig owns one AnimationPlayer per
-	# piece (root_node = the piece node, so the UAL "Armature/Skeleton3D:x"
-	# track paths resolve on each of them).
-	var tmp: Node = load(UAL).instantiate()
-	var lib: AnimationLibrary = tmp.get_node("AnimationPlayer").get_animation_library("")
+	# piece; UalBind grafts the shared, plain-path library on each of them so
+	# the clips drive every skeleton in lockstep (see scripts/ual_bind.gd -
+	# the T-pose fix).
 	for piece in get_children():
 		if piece is not Node3D:
 			continue
 		var p := AnimationPlayer.new()
 		p.name = "Clips"
 		piece.add_child(p)
-		p.add_animation_library("", lib)
+		UalBind.attach(p)
 		_players.append(p)
-	tmp.free()
 	_build_hat()
 	_build_coat()
 
@@ -75,7 +71,8 @@ func _physics_process(delta: float) -> void:
 		var t := Time.get_ticks_msec() / 1000.0
 		var sway := sin(t * 9.0) * 0.06 * _coat_swing
 		for i in _coat.size():
-			_coat[i].rotation.x = -0.25 * _coat_swing + sway * (1.0 if i == 0 else -1.0)
+			_coat[i].rotation.x = -0.08 - 0.25 * _coat_swing \
+					+ sway * (1.0 if i % 2 == 0 else -0.6)
 
 
 ## Recolour the coat panels and the hat felt (the tailor's work).
@@ -179,7 +176,9 @@ func _make_hat_meshes() -> Node3D:
 	return holder
 
 
-## Long coat skirt: two light panels hung from the pelvis that swing with speed.
+## Long coat skirt: five panels fanned around the pelvis that swing with
+## speed. (Two flat slabs read as placeholder cards from behind; a fanned
+## skirt reads as cloth at phone distance.)
 func _build_coat() -> void:
 	var skel := _find_skel()
 	if skel == null:
@@ -187,16 +186,19 @@ func _build_coat() -> void:
 	var cloth := StandardMaterial3D.new()
 	cloth.albedo_color = Color(0.13, 0.12, 0.145)
 	cloth.roughness = 0.9
-	for x in [-0.09, 0.09]:
+	var attach := BoneAttachment3D.new()
+	attach.bone_name = "pelvis"
+	skel.add_child(attach)
+	for deg in [-72.0, -36.0, 0.0, 36.0, 72.0]:
 		var panel := MeshInstance3D.new()
 		var bm := BoxMesh.new()
-		bm.size = Vector3(0.19, 0.52, 0.03)
+		bm.size = Vector3(0.20, 0.55, 0.035)
 		panel.mesh = bm
 		panel.material_override = cloth
-		panel.position = Vector3(x, -0.28, 0.10)
-		var attach := BoneAttachment3D.new()
-		attach.bone_name = "pelvis"
-		skel.add_child(attach)
+		var ang := deg_to_rad(deg)
+		panel.position = Vector3(sin(ang) * 0.17, -0.30, cos(ang) * 0.15)
+		panel.rotation.y = ang
+		panel.rotation.x = -0.08  # flares out a touch
 		attach.add_child(panel)
 		_coat.append(panel)
 
