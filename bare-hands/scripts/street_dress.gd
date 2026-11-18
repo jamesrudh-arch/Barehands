@@ -18,6 +18,10 @@ func _ready() -> void:
 	_shafts()
 	_grates_and_steam()
 	_props()
+	_car()
+	_shutter()
+	_rails()
+	_pipe_prop()
 
 
 # --- fire escapes ------------------------------------------------------------
@@ -310,3 +314,120 @@ func _props() -> void:
 	cap.mesh = capm
 	cap.position = Vector3.UP * 0.62
 	hydrant.add_child(cap)
+
+
+# --- Phase 3: takedown surfaces + the pipe -------------------------------------
+
+
+## A parked noir sedan at the east curb - the heaviest takedown surface.
+func _car() -> void:
+	var paint := StandardMaterial3D.new()
+	paint.albedo_color = Color(0.05, 0.10, 0.07)
+	paint.roughness = 0.3
+	paint.metallic = 0.5
+	var glass := StandardMaterial3D.new()
+	glass.albedo_color = Color(0.02, 0.03, 0.05)
+	glass.roughness = 0.1
+	var tire := StandardMaterial3D.new()
+	tire.albedo_color = Color(0.02, 0.02, 0.025)
+	tire.roughness = 0.95
+	var car := StaticBody3D.new()
+	car.position = Vector3(12.5, 0.0, -2.6)
+	car.rotation.y = -0.12
+	add_child(car)
+	var shape := CollisionShape3D.new()
+	var cs := BoxShape3D.new()
+	cs.size = Vector3(4.2, 1.0, 1.8)
+	shape.shape = cs
+	shape.position = Vector3.UP * 0.5
+	car.add_child(shape)
+	var lower := _box(Vector3(4.2, 0.52, 1.75), paint)
+	lower.position = Vector3.UP * 0.52
+	car.add_child(lower)
+	var cabin := _box(Vector3(2.1, 0.5, 1.6), glass)
+	cabin.position = Vector3(-0.25, 1.02, 0)
+	car.add_child(cabin)
+	for wx in [-1.4, 1.4]:
+		for wz in [-0.85, 0.85]:
+			var wheel := MeshInstance3D.new()
+			var wm := CylinderMesh.new()
+			wm.top_radius = 0.32
+			wm.bottom_radius = 0.32
+			wm.height = 0.22
+			wm.material = tire
+			wheel.mesh = wm
+			wheel.rotation.z = PI / 2.0
+			wheel.position = Vector3(wx, 0.32, wz)
+			car.add_child(wheel)
+	car.set_meta("slam_surface", "car")
+
+
+## A roll-down shop shutter under the amber sign (BuildingB's face).
+func _shutter() -> void:
+	var metal := StandardMaterial3D.new()
+	metal.albedo_color = Color(0.10, 0.105, 0.12)
+	metal.roughness = 0.4
+	metal.metallic = 0.7
+	var body := StaticBody3D.new()
+	body.position = Vector3(3.0, 1.3, -9.44)
+	add_child(body)
+	var shape := CollisionShape3D.new()
+	var cs := BoxShape3D.new()
+	cs.size = Vector3(3.2, 2.5, 0.12)
+	shape.shape = cs
+	body.add_child(shape)
+	var front := _box(Vector3(3.2, 2.5, 0.10), metal)
+	body.add_child(front)
+	# corrugation: thin horizontal ridges
+	for i in range(6):
+		var ridge := _box(Vector3(3.2, 0.05, 0.14), metal)
+		ridge.position = Vector3(0, -1.0 + i * 0.4, 0.02)
+		body.add_child(ridge)
+	body.set_meta("slam_surface", "shutter")
+
+
+## A steel railing run along the north sidewalk (throw enemies over it).
+func _rails() -> void:
+	var metal := StandardMaterial3D.new()
+	metal.albedo_color = Color(0.08, 0.085, 0.10)
+	metal.roughness = 0.5
+	metal.metallic = 0.6
+	for i in range(11):
+		var post := _box(Vector3(0.06, 1.0, 0.06), metal)
+		post.position = Vector3(-12.0 + i * 1.0, 0.5, 8.85)
+		add_child(post)
+	var top := _box(Vector3(10.2, 0.07, 0.09), metal)
+	top.position = Vector3(-7.0, 1.0, 8.85)
+	add_child(top)
+	var mid := _box(Vector3(10.2, 0.05, 0.07), metal)
+	mid.position = Vector3(-7.0, 0.55, 8.85)
+	add_child(mid)
+	# a thin invisible body tags the whole run as a rail takedown surface
+	var body := StaticBody3D.new()
+	body.position = Vector3(-7.0, 0.5, 8.85)
+	add_child(body)
+	var shape := CollisionShape3D.new()
+	var cs := BoxShape3D.new()
+	cs.size = Vector3(10.2, 1.0, 0.1)
+	shape.shape = cs
+	body.add_child(shape)
+	body.set_meta("slam_surface", "rail")
+
+
+## The steel pipe, lying by the street crates, waiting to be picked up.
+func _pipe_prop() -> void:
+	var mi := MeshInstance3D.new()
+	var cyl := CylinderMesh.new()
+	cyl.top_radius = 0.028
+	cyl.bottom_radius = 0.028
+	cyl.height = 0.85
+	var m := StandardMaterial3D.new()
+	m.albedo_color = Color(0.24, 0.25, 0.28)
+	m.roughness = 0.35
+	m.metallic = 0.8
+	cyl.material = m
+	mi.mesh = cyl
+	mi.rotation.z = PI / 2.0
+	mi.position = Vector3(6.3, 0.05, -7.6)
+	add_child(mi)
+	mi.add_to_group("pipe_prop")

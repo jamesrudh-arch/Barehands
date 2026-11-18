@@ -10,8 +10,11 @@ func _ready() -> void:
 	$JumpBtn.button_down.connect(func() -> void: InputBus.queue_jump())
 	$SprintBtn.button_down.connect(func() -> void: InputBus.sprint = true)
 	$SprintBtn.button_up.connect(func() -> void: InputBus.sprint = false)
-	$PunchBtn.button_down.connect(func() -> void: InputBus.queue_punch())
-	$DodgeBtn.button_down.connect(func() -> void: InputBus.queue_dodge())
+	$PunchBtn.button_down.connect(func() -> void: InputBus.punch_press())
+	$PunchBtn.button_up.connect(func() -> void: InputBus.punch_release())
+	$DodgeBtn.button_down.connect(func() -> void: InputBus.dodge_press())
+	$DodgeBtn.button_up.connect(func() -> void: InputBus.dodge_release())
+	$GrabBtn.button_down.connect(func() -> void: InputBus.queue_grab())
 	$LockBtn.button_down.connect(func() -> void: _toggle_lock())
 
 

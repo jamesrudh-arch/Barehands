@@ -11,6 +11,7 @@ var _players: Array[AnimationPlayer] = []
 var _current := ""
 var _hat: Node3D
 var _coat: Array[Node3D] = []
+var _pipe: MeshInstance3D = null
 var _coat_swing := 0.0
 var _velocity_fn: Callable  # set by the hero: reads current velocity for coat sway
 
@@ -75,6 +76,34 @@ func _physics_process(delta: float) -> void:
 		var sway := sin(t * 9.0) * 0.06 * _coat_swing
 		for i in _coat.size():
 			_coat[i].rotation.x = -0.25 * _coat_swing + sway * (1.0 if i == 0 else -1.0)
+
+
+## The steel pipe rides the right hand when equipped.
+func equip_pipe(on: bool) -> void:
+	if on and _pipe == null:
+		var skel := _find_skel()
+		if skel == null:
+			return
+		var attach := BoneAttachment3D.new()
+		attach.bone_name = "hand_r"
+		skel.add_child(attach)
+		_pipe = MeshInstance3D.new()
+		var cyl := CylinderMesh.new()
+		cyl.top_radius = 0.028
+		cyl.bottom_radius = 0.028
+		cyl.height = 0.85
+		var m := StandardMaterial3D.new()
+		m.albedo_color = Color(0.24, 0.25, 0.28)
+		m.roughness = 0.35
+		m.metallic = 0.8
+		cyl.material = m
+		_pipe.mesh = cyl
+		attach.add_child(_pipe)
+		_pipe.rotation = Vector3(1.2, 0.0, 0.35)
+		_pipe.position = Vector3(0.0, 0.08, 0.05)
+	elif not on and _pipe != null:
+		_pipe.get_parent().queue_free()  # frees the attachment + pipe
+		_pipe = null
 
 
 ## Fedora: crown + brim, tilted, riding the Head bone.

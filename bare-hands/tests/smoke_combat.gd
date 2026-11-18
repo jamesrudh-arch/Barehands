@@ -182,7 +182,7 @@ func _slam() -> void:
 		InputBus.move = Vector2.ZERO
 		var kind: String = _style.get("_last")
 		_check(_dummy.state == Enemy.State.DOWN, "cross slammed the dummy into the crate (state %d)" % _dummy.state)
-		_check(kind == "slam", "style meter recorded the slam (got %s)" % kind)
+		_check(kind.begins_with("slam"), "style meter recorded the slam (got %s)" % kind)
 		_check(Engine.time_scale == 1.0, "time scale restored after the slam")
 		_next()
 

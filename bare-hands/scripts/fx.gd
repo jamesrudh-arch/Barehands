@@ -96,6 +96,17 @@ func camera_punch(amount: float) -> void:
 		cam.fov_punch(amount)
 
 
+var last_haptic_ms := 0  # test hook
+
+
+## Haptic buzz on heavy moments. Works on Android; iOS needs a plugin (Godot
+## 4.7 has no iOS vibration API) - phones only feel this once one is added.
+func haptic(duration_ms: int) -> void:
+	last_haptic_ms = duration_ms
+	if OS.has_feature("android"):
+		Input.vibrate_handheld(duration_ms)
+
+
 ## Brief colour wash over the screen (perfect parry).
 func screen_flash(color: Color, dur := 0.35) -> void:
 	var vig := get_tree().get_first_node_in_group("vignette")

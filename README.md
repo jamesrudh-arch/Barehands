@@ -143,6 +143,32 @@ No shops, missions, driving, guns or sound yet — later batches.
 
 **GATE (Phase 2)**: `tests/smoke_music.tscn` — 18 checks green: layers, bar-clock phase, bed/tension/combat crossfades with distinct levels per state, rank D vs S combat levels, heartbeat 1.55× at heat 5, resolve triggers and bed returns, duck dips/restores. Phone-only lines (the actual sound) await your test. **GATE: PASS (headless).**
 
+## SERIES 2 · Phase 3 — Combat Depth
+
+**What was built**
+
+- **The combo tree** (`scripts/player.gd`, rewritten): tap PUNCH for the light chain **jab → cross → hook** (1/2/2 damage, buffered chaining as before). **HOLD PUNCH ≥ 0.3 s for a heavy** (3 damage, bigger stop, haptic 60 ms). The heavy is context-aware: on a **staggered/flinching enemy it launches** them (ragdoll-lite airtime, lands to a long stagger), on an enemy at **≤ 2 HP it executes a finisher** — 0.5 s slow-motion, punch-in zoom, 160 ms haptic, bell layer.
+- **Block and perfect parry**: **HOLD DODGE ≥ 0.25 s** to guard (braced pose, slowed). A strike into a mature block is absorbed (pushback, blue spark, haptic 30 ms, attacker resets); a block **younger than 0.15 s is a perfect parry** — the same freeze/counter window as a perfect dodge, now reachable two ways.
+- **Grab and throw**: new **GRAB** button (G key). Near an enemy: seize them for 1.2 s — **PUNCH knees** (1 damage each), **DODGE/GRAB throws**. A throw into a **tagged surface is an environmental takedown with its own kind and sound**: `slam_car` (the new parked sedan), `slam_shutter` (the new shop shutter under the amber sign), `slam_rail` (the new sidewalk railing), `slam_wall` for everything solid. All are haptic 120 ms.
+- **The steel pipe**: lying by the street crates. **GRAB near it picks it up** — it rides the right hand (bone-attached), swings slower and heavier (light 2, heavy 4 damage, -8% move speed, metal impact layers). **GRAB with the pipe and no enemy in reach throws it** as a 4-damage projectile along your facing; it drops back on the street for re-use.
+- **Four enemy types** (`scripts/enemy.gd`, rewritten; `kind` replaces `mode`): **brawler** (the classic thug rhythm, unchanged), **armoured bruiser** (gunmetal, 12 HP, armour 3 — damage below 3 chips HP but never staggers: heavies, the pipe, launchers and finishers are the answer), **knife attacker** (wiry, 2.6 m/s, 0.32 s orange telegraph, lunging strike with knife-slice audio), **boss** (blood-red, 1.28× scale, 30 HP, armour 4, three-hit combos with fast links, periodic green-telegraph grab that lands with slow-mo).
+- **Group tactics** (`scripts/tactics.gd`, autoload): with 2+ enemies engaged, each takes a **surround slot** on a slowly rotating ring around you (constant flanking), and an **attack token** guarantees only one enemy swings at a time — the token is held through the whole swing animation. The boss ignores slots and always has the token.
+- **Haptic hooks**: `Fx.haptic(ms)` fires on heavies (60), pipe heavies (60), slams (120), parries (40), finishers (160), blocks (30). It calls `Input.vibrate_handheld` — **this works on Android only; Godot 4.7 has no iOS vibration API**, so iPhone haptics need a plugin later (the hooks are all in place and tested).
+
+**How to test on a phone**
+
+1. On the dummy: tap-tap-tap PUNCH = jab, cross, hook. Hold PUNCH = the heavy; heavy on a staggered dummy launches them up; heavy on a ≤ 2 HP dummy executes the finisher (slow-mo + zoom + buzz).
+2. Hold DODGE against the thug: strike absorbed. Try pressing the hold so the block starts just before his swing lands — parry flash and counter window.
+3. GRAB the dummy: knee him twice, then throw toward the parked car east of spawn — car-door takedown. Throw into the railing north side, the shutter under the amber sign.
+4. Walk to the crates east: GRAB picks up the pipe — slower, heavier swings with metal sounds. GRAB again with no one in reach hurls the pipe.
+5. Spawn a street brawl (P5 adds spawning; for now the thug + any debug spawns): enemies circle instead of queueing and attack one at a time. Fight the boss at the west end: his combo chains and the green-telegraph grab hits like a truck.
+
+**Not verified on a real phone**: haptics on iOS (needs a plugin — hooks verified headless on Android's API), the readability of the block stance (a slowed Hit_Chest pose — no dedicated guard animation exists in the UAL pack), knife-attack fairness at 60 fps, and boss difficulty (tuned by numbers, not by feel).
+
+**Added beyond the brief**: tap-vs-hold input semantics (a quick PUNCH release is a light; the hold itself swings the heavy), the knee as a grab option, surface-specific slam kinds feeding the style meter's variety bonus, and enemies backing off while you hold one of their own.
+
+**GATE (Phase 3)**: `tests/smoke_depth.tscn` — **30 checks green**: chain math, heavy, launcher (airborne y 1.02), finisher (slow-mo + 160 ms haptic), mature block, perfect-block parry, grab/knee/throw, pipe pickup + light (−2) + heavy (−4), bruiser armour (jab −1, no stagger; heavy staggers), knife (20-tick telegraph, 2.6 m/s), boss (armour, 84 strike hits in 4 s of chains), tactics (max 1 attacker, surround active), 3 tagged surfaces. All four existing suites still pass (one assertion updated: wall slams now record as `slam_wall`). **GATE: PASS (headless).**
+
 ### The Universal Animation Library pack
 
 `bare-hands/assets/` holds `UAL1_Standard.glb` (the Godot-ready, root-motion-disabled variant), the pack's `License.txt` (**CC0 1.0 / public domain, models by @Quaternius**) and its `README.txt`. The `_RM` (root-motion) variant and the Unity `.fbx` files stay in the original zip at the repo root; this game moves the character in code.

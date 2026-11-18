@@ -1,48 +1,84 @@
 class_name Enemy
 extends CharacterBody3D
-## Batch-3 enemies, both use the pack's mannequin. mode 0 = a passive training
-## dummy that only reacts to hits; mode 1 = a thug that shambles at the hero,
-## telegraphs (red pulse) and swings, so the parry timing can be learned.
+## Series-2 enemies on the pack's mannequin. kind 0 = training dummy (reacts
+## only), 1 = brawler (the classic thug rhythm), 2 = armoured bruiser (light
+## hits bounce off: force heavies, pipes and finishers), 3 = knife attacker
+## (fast, short telegraph, lunging strike), 4 = boss (big, armoured, three-
+## hit combos). Group behaviour comes from the Tactics autoload: enemies
+## take surround slots around the hero and only one attacks at a time.
 
 const GRAVITY := 22.0
-const WALK_SPEED := 1.3
-const ATTACK_RANGE := 2.0
 const STRIKE_RANGE := 1.7
-const TELEGRAPH_TIME := 0.6
-const STRIKE_TIME := 0.22  # when the fist would land
 const RECOVER_TIME := 1.3
 const RESPAWN_TIME := 2.6
 
-enum State { IDLE, WALK, TELEGRAPH, STRIKE, RECOVER, FLINCH, STAGGER, DOWN }
+enum State { IDLE, WALK, TELEGRAPH, STRIKE, RECOVER, FLINCH, STAGGER, DOWN, GRABBED, LAUNCHED }
 
-@export var mode := 0  # 0 training dummy, 1 thug
+@export var kind := 0  # 0 dummy, 1 brawler, 2 bruiser, 3 knife, 4 boss
 @export var max_hp := 5
 
 var state: State = State.IDLE
 var hp := 1
-var _t := 0.0  # game-time clock (stretches with slow-mo, unlike wall time)
+var _t := 0.0
 var _state_t := 0.0
 var _spawn := Vector3.ZERO
 var _mats: Array[StandardMaterial3D] = []
 var _flash := 0.0
 var _flash_color := Color(1, 1, 1)
-var _struck := false  # has the current swing been resolved?
-var _topple := 0.0  # ragdoll-lite: 0..1 fall tilt while DOWN
+var _struck := false
+var _topple := 0.0
+var _combo_step := 0  # boss: where in the 3-hit combo we are
+var _next_is_grab := false  # boss: every third attack cycle is a grab
+var _cycle := 0
 
-@onready var _body: Node3D = $Body
-@onready var _anim: AnimationPlayer = $Body/Mannequin/AnimationPlayer
-@onready var _mi: MeshInstance3D = $Body/Mannequin/Armature/Skeleton3D/Mannequin
+# per-kind tuning: [walk speed, attack range, telegraph time, strike time, armour]
+const TUNING := {
+	0: [0.0, 2.0, 0.6, 0.22, 0],
+	1: [1.3, 2.0, 0.6, 0.22, 0],
+	2: [1.0, 2.2, 0.8, 0.28, 3],
+	3: [2.6, 2.6, 0.32, 0.20, 0],
+	4: [1.6, 2.4, 0.7, 0.24, 4],
+}
+# per-kind identity: body tint + emission edge so silhouettes read at a glance
+const LOOK := {
+	0: [Color(0.55, 0.55, 0.6), 0.0],
+	1: [Color(0.42, 0.30, 0.24), 0.0],
+	2: [Color(0.16, 0.17, 0.20), 0.06],  # gunmetal + faint edge
+	3: [Color(0.20, 0.16, 0.12), 0.0],   # wiry, dark leathers
+	4: [Color(0.28, 0.08, 0.10), 0.10],  # blood-red boss
+}
 
 
 func _ready() -> void:
 	add_to_group("enemy")
 	hp = max_hp
 	_spawn = global_position
-	_own_materials()  # per-instance copies so flash/telegraph don't tint everyone
-	if mode == 0:
+	_own_materials()
+	var tun: Array = TUNING[kind]
+	_apply_look()
+	if kind == 0:
 		var p := _player()
 		if p:
-			_face_dir(p.global_position - global_position)  # dummy faces the street
+			_face_dir(p.global_position - global_position)
+	if kind == 4:
+		_body.scale = Vector3(1.28, 1.28, 1.28)
+		max_hp = maxf(max_hp, 30)
+		hp = max_hp
+	elif kind == 2:
+		_body.scale = Vector3(1.18, 1.18, 1.18)
+		max_hp = maxf(max_hp, 12)
+		hp = max_hp
+
+
+func _apply_look() -> void:
+	var look: Array = LOOK[kind]
+	var tint: Color = look[0]
+	var edge: float = look[1]
+	for m in _mats:
+		m.albedo_color = m.albedo_color.lerp(tint, 0.55)
+		if edge > 0.0:
+			m.emission = tint * 2.5
+			m.emission_energy_multiplier = edge
 
 
 func _own_materials() -> void:
@@ -58,6 +94,24 @@ func _own_materials() -> void:
 			_mats.append(d)
 
 
+func _walk_speed() -> float:
+	return TUNING[kind][0]
+
+
+func _attack_range() -> float:
+	return TUNING[kind][1]
+
+
+func _telegraph_time() -> float:
+	if kind == 4 and _combo_step > 0:
+		return 0.25  # the combo links fast
+	return TUNING[kind][2]
+
+
+func _armour() -> int:
+	return TUNING[kind][4]
+
+
 func _physics_process(delta: float) -> void:
 	_t += delta
 	_state_t += delta
@@ -67,7 +121,7 @@ func _physics_process(delta: float) -> void:
 	match state:
 		State.IDLE, State.RECOVER:
 			_brake(delta)
-			if mode == 1:
+			if kind > 0:
 				_think()
 			elif state == State.RECOVER and _state_t > 0.5:
 				_enter(State.IDLE)
@@ -77,22 +131,37 @@ func _physics_process(delta: float) -> void:
 		State.TELEGRAPH:
 			_brake(delta)
 			_face_player(delta)
-			_pulse(Color(1.0, 0.1, 0.08), 0.8 + 0.5 * sin(_state_t * 25.0))
-			if _state_t >= TELEGRAPH_TIME:
+			var pulse := Color(1.0, 0.1, 0.08)
+			if kind == 3:
+				pulse = Color(1.0, 0.55, 0.1)  # the knife telegraphs fast and orange
+			elif kind == 4 and _next_is_grab:
+				pulse = Color(0.2, 0.9, 0.3)  # the boss grab telegraphs green
+			_pulse(pulse, 0.8 + 0.5 * sin(_state_t * (30.0 if kind == 3 else 25.0)))
+			if _state_t >= _telegraph_time():
 				_enter(State.STRIKE)
-				_play("Punch_Jab", 0.05, 2.2)
+				_play("Punch_Jab", 0.05, 2.4 if kind != 2 else 1.6)
 				_struck = false
+				if kind == 3:  # the knife lunges in
+					var p0 := _player()
+					if p0:
+						var lunge := (p0.global_position - global_position)
+						lunge.y = 0.0
+						lunge = lunge.normalized()
+						velocity.x = lunge.x * 5.0
+						velocity.z = lunge.z * 5.0
+						Sound.play_v("knife", 2, -6.0, 1.0, 0.06)
 		State.STRIKE:
 			_brake(delta)
-			if not _struck and _state_t >= STRIKE_TIME:
+			if not _struck and _state_t >= TUNING[kind][3]:
 				_struck = true
 				_resolve_strike()
 			if _state_t >= 0.45:
 				_enter(State.RECOVER)
+				Tactics.release(self)  # token held through the whole swing
 		State.FLINCH:
 			_brake(delta)
 			if _state_t > 0.35:
-				_enter(State.IDLE if mode == 0 else State.WALK)
+				_enter(State.IDLE if kind == 0 else State.WALK)
 		State.STAGGER:
 			_brake(delta)
 			if _state_t > 1.4:
@@ -105,6 +174,14 @@ func _physics_process(delta: float) -> void:
 				_body.position.y = _topple * 0.25
 			if _state_t > RESPAWN_TIME:
 				_respawn()
+		State.GRABBED:
+			_brake(delta)  # position is driven by the hero; just settle
+		State.LAUNCHED:
+			# airborne, no control: flailing until the ground stops it
+			if is_on_floor() and _state_t > 0.2:
+				Fx.burst(global_position + Vector3.UP * 0.5, Color(0.6, 0.65, 0.75))
+				Sound.play("body_heavy_0", -8.0)
+				_enter(State.STAGGER)
 	_apply_flash(delta)
 	move_and_slide()
 
@@ -113,23 +190,60 @@ func _think() -> void:
 	var p := _player()
 	if p == null:
 		return
+	if p.state == Player.State.GRAB:
+		# someone is being held: circle at a distance
+		_keep_range(p, 2.6)
+		return
 	var to := p.global_position - global_position
 	to.y = 0.0
 	var dist := to.length()
 	_face_player(get_physics_process_delta_time())
-	if dist <= ATTACK_RANGE:
-		_enter(State.TELEGRAPH)
-		_play("Idle", 0.1)
-	elif dist < 9.0:
+
+	var goal: Vector3 = to / maxf(dist, 0.1)  # default: straight at the hero
+	# group tactics: walk to the surround slot instead when others are near
+	if kind != 4 and Tactics.slots_active(p):
+		var slot: Vector3 = Tactics.slot_for(self, p)
+		var to_slot := slot - global_position
+		to_slot.y = 0.0
+		if to_slot.length() > 0.4:
+			goal = to_slot / maxf(to_slot.length(), 0.1)
+		if dist <= _attack_range():
+			if not Tactics.can_attack(self):
+				_brake(get_physics_process_delta_time())  # wait for the token
+				if state == State.WALK:
+					_play("Idle", 0.2)
+				return
+	if dist <= _attack_range():
+		if Tactics.can_attack(self) or kind == 4:
+			Tactics.attack(self)
+			_enter(State.TELEGRAPH)
+			_play("Idle", 0.1)
+		else:
+			_brake(get_physics_process_delta_time())
+			if state == State.WALK:
+				_play("Idle", 0.2)
+	elif dist < 10.0:
 		if state != State.WALK:
 			_enter(State.WALK)
-			_play("Walk", 0.2, 1.1)
-		velocity.x = to.x / dist * WALK_SPEED
-		velocity.z = to.z / dist * WALK_SPEED
+			_play("Walk", 0.2, 1.1 * (_walk_speed() / 1.3))
+		velocity.x = goal.x * _walk_speed()
+		velocity.z = goal.z * _walk_speed()
 	else:
 		if state == State.WALK:
 			_enter(State.IDLE)
 			_play("Idle", 0.2)
+			Tactics.release(self)
+
+
+func _keep_range(p: Node3D, want: float) -> void:
+	var to := global_position - p.global_position
+	to.y = 0.0
+	var dist := to.length()
+	if dist < want - 0.4:
+		velocity.x = to.x / dist * _walk_speed() * 0.6
+		velocity.z = to.z / dist * _walk_speed() * 0.6
+	else:
+		_brake(get_physics_process_delta_time())
 
 
 func _resolve_strike() -> void:
@@ -140,70 +254,148 @@ func _resolve_strike() -> void:
 	to.y = 0.0
 	var dist := to.length()
 	var fwd := -_body.global_transform.basis.z
-	if dist > STRIKE_RANGE or Vector2(fwd.x, fwd.z).dot(Vector2(to.x, to.z).normalized()) < 0.3:
-		return  # whiffed, out of arc
+	if dist > STRIKE_RANGE + (0.9 if kind == 3 else 0.0) or \
+			Vector2(fwd.x, fwd.z).dot(Vector2(to.x, to.z).normalized()) < 0.3:
+		return  # whiffed (token released when the swing ends)
 	var age: float = p.dodge_age()
-	if age < 0.22:  # perfect dodge = parry
-		Fx.slow_mo(0.7, 0.35)
-		p.open_counter(1.3)
-		_enter(State.STAGGER)
-		_play("Hit_Head", 0.05, 1.5)
-		_flash_white(Color(0.4, 1.0, 1.0), 2.2)
-		Fx.burst(p.global_position + Vector3.UP * 1.3, Color(0.3, 0.95, 1.0))
-		if _style():
-			_style().add("parry")
-		Fx.camera_punch(-6.0)  # zoom in on the perfect parry
-		Fx.screen_flash(Color(0.35, 0.9, 1.0))
-		Fx.emit_hit("parry", global_position)
-	elif age < 0.38:  # late dodge, just evaded
+	var block: float = p.block_age()
+	if age < 0.22 or block <= 0.15:  # perfect dodge or perfect block = parry
+		parried()
+	elif age < 0.38:
 		if _style():
 			_style().add("dodge")
 	else:
-		p.take_hit(to / dist)
+		var result: String = p.take_hit(to / dist, self)
+		if result == "blocked":
+			_enter(State.RECOVER)  # the guard held: back off and reset
+		# boss combo: chain up to three hits, then a grab cycle
+		if kind == 4:
+			_combo_step += 1
+			if _combo_step >= 3:
+				_combo_step = 0
+				_cycle += 1
+				_next_is_grab = _cycle % 3 == 0
+	if kind == 4 and _next_is_grab and state == State.STRIKE:
+		var result2: String = p.take_hit(to / dist + Vector3.UP * 0.5, self)
+		if result2 == "hit":
+			Fx.slow_mo(0.35, 0.5)  # the boss grab lands heavy
 
 
-## Called by the hero when a punch connects. kind: jab / cross / counter / slam.
-func take_hit(dir: Vector3, kind: String) -> void:
-	if state == State.DOWN:
+## Shared parry flow: the attacker is staggered, the counter window opens.
+func parried() -> void:
+	Fx.slow_mo(0.7, 0.35)
+	var p := _player()
+	if p:
+		p.open_counter(1.3)
+	_enter(State.STAGGER)
+	_play("Hit_Head", 0.05, 1.5)
+	_flash_white(Color(0.4, 1.0, 1.0), 2.2)
+	if p:
+		Fx.burst(p.global_position + Vector3.UP * 1.3, Color(0.3, 0.95, 1.0))
+	if _style():
+		_style().add("parry")
+	Fx.camera_punch(-6.0)
+	Fx.screen_flash(Color(0.35, 0.9, 1.0))
+	Fx.haptic(40)
+	Fx.emit_hit("parry", global_position)
+	Tactics.release(self)
+
+
+## Called by the hero when a hit connects. kind: jab/cross/hook/heavy/pipe/
+## pipe_heavy/knee/counter/slam_*/launcher/finisher.
+func take_hit(dir: Vector3, hit_kind: String) -> void:
+	if state == State.DOWN or state == State.GRABBED:
+		if state == State.GRABBED and hit_kind == "knee":
+			hp -= 1
+			_flash_white(Color(1, 1, 1), 1.4)
+			velocity = dir * 0.5
+			if hp <= 0:
+				_die(hit_kind)
+			return
 		return
 	dir.y = 0.0
 	dir = dir.normalized()
-	match kind:
+	var dmg := _damage_of(hit_kind)
+	var knock := 3.0
+	match hit_kind:
 		"jab":
-			hp -= 1
-			velocity = dir * 3.0
 			_play("Hit_Chest", 0.04, 1.5)
 			_flash_white(Color(1, 1, 1), 1.6)
-		"cross":
-			hp -= 2
-			velocity = dir * 5.0
+		"cross", "hook":
+			knock = 5.0
 			_play("Hit_Head", 0.04, 1.5)
 			_flash_white(Color(1, 1, 1), 2.0)
-		"counter":  # a counter-hit always knocks the enemy down
-			hp = 0
-			velocity = dir * 6.0
+		"heavy", "pipe_heavy":
+			knock = 6.5
+			_play("Hit_Head", 0.04, 1.2)
+			_flash_white(Color(1, 0.9, 0.7), 2.4)
+		"pipe":
+			knock = 4.5
+			_play("Hit_Chest", 0.04, 1.3)
+			_flash_white(Color(0.8, 0.85, 1.0), 2.0)
+		"launcher":
+			hp -= dmg
+			velocity = dir * 2.5 + Vector3.UP * 6.5
+			_enter(State.LAUNCHED)
+			_play("Hit_Head", 0.04, 1.0)
+			_flash_white(Color(0.5, 0.85, 1.0), 2.4)
+			return
+		"counter":
+			dmg = 99
+			knock = 6.0
 			_play("Hit_Head", 0.03, 1.8)
 			_flash_white(Color(0.4, 1.0, 1.0), 2.4)
-		"slam":
-			hp = 0
-			velocity = dir * 7.5 + Vector3.UP * 2.0
-			_flash_white(Color(1.0, 0.5, 0.2), 2.6)
+		"finisher":
+			dmg = 99
+			knock = 3.0
+			_play("Hit_Head", 0.03, 0.9)
+			_flash_white(Color(1.0, 0.3, 0.25), 3.0)
+		"knee":
+			knock = 0.5
+			_play("Hit_Chest", 0.04, 1.8)
+			_flash_white(Color(1, 1, 1), 1.4)
+		_:
+			if hit_kind.begins_with("slam"):
+				dmg = 99
+				knock = 7.5
+				_flash_white(Color(1.0, 0.5, 0.2), 2.6)
+	hp -= dmg
+	# armour: light hits chip hp but never stagger the big ones
+	var armoured_hit: bool = dmg < _armour() and \
+			not hit_kind in ["counter", "finisher"] and not hit_kind.begins_with("slam")
+	if armoured_hit:
+		_flash_white(Color(0.7, 0.75, 0.85), 1.1)  # a dull clang, no reaction
+		Sound.play("metal_click_0", -6.0, 1.3)
+		velocity = dir * 1.2
+		if hp <= 0:
+			_die(hit_kind)
+		return
+	velocity = dir * knock
 	if hp <= 0:
-		_die(kind)
-	else:
+		_die(hit_kind)
+	elif hit_kind != "knee":
 		_enter(State.FLINCH)
+
+
+func _damage_of(hit_kind: String) -> int:
+	return {"jab": 1, "cross": 2, "hook": 2, "heavy": 3, "counter": 99,
+			"pipe": 2, "pipe_heavy": 4, "knee": 1, "launcher": 1}.get(hit_kind, 1)
 
 
 func _die(cause: String) -> void:
 	_enter(State.DOWN)
 	_play("Death01", 0.08, 1.3)
-	if cause == "counter" or cause == "slam":
+	if cause in ["counter", "slam", "slam_wall", "slam_car", "slam_shutter", "slam_rail",
+			"finisher"] or cause.begins_with("slam"):
 		Fx.slow_mo(0.4, 0.45)  # short cinematic finisher beat
 	if _style():
-		if cause == "slam":
-			_style().add("slam")
-		elif cause != "counter":  # the hero already scored the counter itself
+		if cause.begins_with("slam"):
+			_style().add(cause)
+		elif cause == "finisher":
+			_style().add("finisher")
+		elif cause != "counter":
 			_style().add("takedown")
+	Tactics.release(self)
 
 
 func _respawn() -> void:
@@ -215,6 +407,29 @@ func _respawn() -> void:
 	hp = max_hp
 	_enter(State.IDLE)
 	_play("Idle", 0.15)
+	Tactics.release(self)
+
+
+# --- grabbed by the hero --------------------------------------------------------
+
+
+func grabbed_by(holder: CharacterBody3D) -> void:
+	_enter(State.GRABBED)
+	velocity = Vector3.ZERO
+	_play("Hit_Chest", 0.05, 0.7)
+	_face_dir(holder.global_position - global_position)
+	Tactics.release(self)
+
+
+## The hero releases: a throw sends us flying, a timeout just lets go.
+func release_grab(dir: Vector3, speed: float) -> void:
+	if speed > 0.0:
+		velocity = dir * speed + Vector3.UP * 1.5
+		_enter(State.LAUNCHED)
+		_play("Hit_Head", 0.05, 1.2)
+		Sound.play("cloth_0", -6.0)
+	else:
+		_enter(State.RECOVER)
 
 
 func _enter(s: int) -> void:
@@ -252,7 +467,7 @@ func _pulse(color: Color, energy: float) -> void:
 
 
 func _apply_flash(delta: float) -> void:
-	if state != State.TELEGRAPH:  # the telegraph pulse drives the brightness
+	if state != State.TELEGRAPH:
 		_flash = maxf(_flash - 6.0 * delta, 0.0)
 	for m in _mats:
 		m.emission = _flash_color
@@ -272,3 +487,8 @@ func _player() -> Node3D:
 
 func _style() -> Node:
 	return get_tree().get_first_node_in_group("style")
+
+
+@onready var _body: Node3D = $Body
+@onready var _anim: AnimationPlayer = $Body/Mannequin/AnimationPlayer
+@onready var _mi: MeshInstance3D = $Body/Mannequin/Armature/Skeleton3D/Mannequin

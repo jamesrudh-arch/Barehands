@@ -152,7 +152,7 @@ material = SubResource("mat_road")
 	size = Vector3(4, 3.5, 4)
 
 [sub_resource type="Environment" id="env_night"]
-background_mode = 1
+background_kind = 1
 background_color = Color(0.012, 0.014, 0.025, 1)
 ambient_light_source = 2
 ambient_light_color = Color(0.045, 0.055, 0.095, 1)
@@ -654,7 +654,7 @@ max_hp = 5
 
 [node name="Thug" parent="." instance=ExtResource("5_enemy")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 0.02, 0)
-mode = 1
+kind = 1
 max_hp = 8
 
 [node name="Camera" type="Camera3D" parent="."]
@@ -758,6 +758,23 @@ text = "DODGE"
 theme_override_colors/font_color = Color(0.9, 0.95, 0.9, 0.9)
 theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("style_dodge")
+theme_override_styles/pressed = SubResource("style_dodge_down")
+
+[node name="GrabBtn" type="Button" parent="UI"]
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -404.0
+offset_top = -152.0
+offset_right = -300.0
+offset_bottom = -64.0
+focus_mode = 0
+text = "GRAB"
+theme_override_colors/font_color = Color(0.85, 0.95, 0.9, 0.9)
+theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 16
 theme_override_styles/normal = SubResource("style_dodge")
 theme_override_styles/pressed = SubResource("style_dodge_down")
 
