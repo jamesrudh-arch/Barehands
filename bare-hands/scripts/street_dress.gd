@@ -479,6 +479,8 @@ func _kiosk(id: String, pos: Vector3, tint: Color) -> void:
 	shop.shop_id = id
 	shop.position = pos
 	add_child(shop)
+	if id == "pawn":
+		shop.add_to_group("pawn_counter")
 	var shape := CollisionShape3D.new()
 	var cs := BoxShape3D.new()
 	cs.size = Vector3(2.2, 2.0, 1.6)

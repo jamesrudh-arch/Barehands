@@ -1,4 +1,4 @@
-[gd_scene load_steps=78 format=3]
+[gd_scene load_steps=79 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="1_player"]
 [ext_resource type="Script" path="res://scripts/camera_follow.gd" id="2_camera"]
@@ -16,6 +16,7 @@
 [ext_resource type="Shader" path="res://shaders/road.gdshader" id="14_road"]
 [ext_resource type="Script" path="res://scripts/cash_hud.gd" id="15_cash"]
 [ext_resource type="Script" path="res://scripts/ledger_ui.gd" id="16_ledger"]
+[ext_resource type="Script" path="res://scripts/cast.gd" id="17_cast"]
 
 [sub_resource type="StandardMaterial3D" id="mat_asphalt"]
 	albedo_color = Color(0.043, 0.047, 0.058, 1)
@@ -689,6 +690,9 @@ script = ExtResource("15_cash")
 
 [node name="Ledger" type="CanvasLayer" parent="." groups=["ledger"]]
 script = ExtResource("16_ledger")
+
+[node name="Cast" type="Node3D" parent="."]
+script = ExtResource("17_cast")
 
 [node name="Joystick" type="Control" parent="UI"]
 anchor_left = 0.0

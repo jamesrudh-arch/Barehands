@@ -238,6 +238,37 @@ No shops, missions, driving, guns or sound yet — later batches.
 
 **GATE (Phase 6)**: `tests/smoke_city.tscn` — **27 checks green**: district math, rep costs per event in the right district only, stylish-win recovery, hostility threshold + muscle summoned while present + stood down when leaving + buy-back, graffiti tiers at 40/80 (real Label3D on walls), toast with district and mood, price tiers (0.85×/1.15×/heat +10%), greetings by rep with witness recall, and rep/hostility/witness/nickname persistence through save. Economy, ledger and combat suites still green (the economy suite now resets city state — its own violence was, correctly, repriced). **GATE: PASS (headless).**
 
+## SERIES 2 · Phase 7 — Characters with Faces (IN PROGRESS, UNVERIFIED)
+
+**Status: code pushed, wow gate NOT passed.** The session's time budget ran
+out while debugging the cast smoke test. What is in this commit:
+
+- **Four cast members** (`scripts/cast.gd` + `scripts/npc_rig.gd`), each built
+  from real rigged UBC pieces recoloured to a colour identity: **Velvet**
+  (crimson, at her gun counter, rep-aware lines, her talk hands off to the
+  pawn counter), **Pilsner** (teal, the hacker, code-built glowing glasses),
+  **Marrow** (dried-blood, the Knuckle Room boss — name is a placeholder: the
+  original design notes never arrived, so anything beyond the brief's names
+  is flagged), **The Duchess** (gold + circlet, watching from the annex roof).
+- **The noir dialogue system** (`scripts/dialogue.gd`): portrait block with
+  the speaker's colour and initial, typed text, tap to finish/advance,
+  gameplay input locked, music ducked, and a **clean voice hook** per line
+  (`Dialogue.line_started` + a Voice-bus player that plays
+  `assets/voice/<id>_<n>.wav` when a recording exists).
+- **Recordings to supply** (mono WAV 44.1 kHz, named exactly):
+  `velvet_01..03.wav`, `pilsner_01..02.wav`, `marrow_01..02.wav`,
+  `duchess_01..02.wav` in `bare-hands/assets/voice/`.
+
+**What is NOT verified — the cast smoke test fails on**: the "is animated"
+check (certainly a wrong hardcoded path in the test — the rig plays through
+per-piece players, not `Rig/Body/Clips`), Pilsner's glasses and the Duchess's
+circlet not found by the test's mesh search, and **GRAB near Velvet not
+starting dialogue** (either the interaction zone or the input handoff — a
+real bug candidate, unfixed). Everything else in the suite (cast exists,
+four members, names, colours, Velvet's counter hand-off group, clean voice
+hook) passes. **GATE: FAIL (incomplete) — do not phone-test this phase as
+"done".**
+
 ### The Universal Animation Library pack
 
 `bare-hands/assets/` holds `UAL1_Standard.glb` (the Godot-ready, root-motion-disabled variant), the pack's `License.txt` (**CC0 1.0 / public domain, models by @Quaternius**) and its `README.txt`. The `_RM` (root-motion) variant and the Unity `.fbx` files stay in the original zip at the repo root; this game moves the character in code.

@@ -23,6 +23,7 @@ Wallet="*res://scripts/wallet.gd"
 Heat="*res://scripts/heat.gd"
 City="*res://scripts/city.gd"
 SaveGame="*res://scripts/save_game.gd"
+Dialogue="*res://scripts/dialogue.gd"
 
 [display]
 
