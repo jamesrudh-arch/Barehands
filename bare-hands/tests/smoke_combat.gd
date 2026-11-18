@@ -25,9 +25,19 @@ var _counter_punched := false
 var _hitstunned := false
 
 
+var _stick: StickInput
+
+
+## Drive movement through the REAL stick (its anti-drift loop owns move).
+func _set_move(v: Vector2) -> void:
+	if _stick:
+		_stick.debug_set_move(v)
+
+
 func _ready() -> void:
 	_main = load("res://scenes/main.tscn").instantiate()
 	add_child(_main)
+	_stick = _main.get_node("UI/Joystick")
 	var opening := get_tree().get_first_node_in_group("opening") as OpeningShot
 	if opening:
 		opening.skip()  # tests drive input themselves
@@ -89,7 +99,7 @@ func _combo() -> void:
 		_player.global_position = Vector3(-5.6, 0.05, 0.5)
 		_player.velocity = Vector3.ZERO
 		_face_east()
-	InputBus.move = Vector2(0, -1)  # walk east toward the dummy
+	_set_move(Vector2(0, -1))  # walk east toward the dummy
 	if _pf == 10:
 		InputBus.queue_punch()  # jab
 	if _pf == 28:
@@ -99,7 +109,7 @@ func _combo() -> void:
 		if a in ["Punch_Jab", "Punch_Cross"]:
 			_saw_punch_anim = true
 	if _pf >= 90:
-		InputBus.move = Vector2.ZERO
+		_set_move(Vector2.ZERO)
 		var hp: int = _dummy.get("hp")
 		_check(_saw_punch_anim, "punch clips play (Punch_Jab / Punch_Cross)")
 		_check(hp == 2, "jab+cross landed, dummy hp 5->2 (got %d)" % hp)
@@ -136,10 +146,10 @@ func _parry() -> void:
 	var impact_at := _tele_at + 36 + 13
 	if _tele_at > 0 and _pf == impact_at - 9 and not _dodged:
 		_dodged = true
-		InputBus.move = Vector2(0, -1)  # dodge forward, into the swing
+		_set_move(Vector2(0, -1))  # dodge forward, into the swing
 		InputBus.queue_dodge()
 	elif _dodged and _pf == impact_at + 5:
-		InputBus.move = Vector2.ZERO
+		_set_move(Vector2.ZERO)
 	if _tele_at > 0 and _pf > impact_at and _pf < impact_at + 200:
 		if Engine.time_scale < 1.0:
 			_saw_slowmo = true
@@ -148,7 +158,7 @@ func _parry() -> void:
 			InputBus.queue_punch()  # counter-hit inside the slow-mo window
 	# advance on success: the counter knockdown, not a fixed frame budget
 	if _counter_punched and _thug.state == Enemy.State.DOWN:
-		InputBus.move = Vector2.ZERO
+		_set_move(Vector2.ZERO)
 		var kind: String = _style.get("_last")
 		_check(_saw_slowmo, "well-timed dodge triggered slow motion")
 		_check(not _hitstunned, "parry evaded the strike (hero never flinched)")
@@ -156,7 +166,7 @@ func _parry() -> void:
 		_check(kind == "counter", "style meter recorded the counter (got %s)" % kind)
 		_next()
 	elif _pf > 400:
-		InputBus.move = Vector2.ZERO
+		_set_move(Vector2.ZERO)
 		_check(false, "parry sequence never completed (thug state %d)" % _thug.state)
 		_next()
 
@@ -164,7 +174,7 @@ func _parry() -> void:
 func _slam() -> void:
 	if _pf == 1:  # dummy right beside the street crate, player east of it
 		InputBus.clear_queues()  # drop any input carried over
-		InputBus.move = Vector2.ZERO
+		_set_move(Vector2.ZERO)
 		_dummy.global_position = Vector3(-1.4, 0.02, -4.5)
 		_dummy.velocity = Vector3.ZERO
 		_dummy.state = Enemy.State.IDLE
@@ -173,13 +183,13 @@ func _slam() -> void:
 		_player.velocity = Vector3.ZERO
 		_player.state = Player.State.GROUND
 		_face_west()
-	InputBus.move = Vector2(0, -1)  # herd the dummy toward the crate
+	_set_move(Vector2(0, -1))  # herd the dummy toward the crate
 	if _pf == 10:
 		InputBus.queue_punch()  # jab (light: no slam yet)
 	if _pf == 30:
 		InputBus.queue_punch()  # buffered cross (heavy) -> slam into the crate
 	if _pf >= 130:
-		InputBus.move = Vector2.ZERO
+		_set_move(Vector2.ZERO)
 		var kind: String = _style.get("_last")
 		_check(_dummy.state == Enemy.State.DOWN, "cross slammed the dummy into the crate (state %d)" % _dummy.state)
 		_check(kind.begins_with("slam"), "style meter recorded the slam (got %s)" % kind)

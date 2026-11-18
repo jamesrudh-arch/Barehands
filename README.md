@@ -346,6 +346,108 @@ economy, city, audio, music, cast, pose) — 90 pose checks + 30 cast checks
 + the existing 200+; the 5-minute stress re-run on the new code; zero
 shader errors on import. **Phase 7's gate moves to PASS (headless).**
 
+## STAGE A — CONTROLS AND FEEL (Master Queue, session 1)
+
+The owner's master queue (Stages A-F) begins with controls. **Missing
+input**: `upload/BARE-HANDS-master-design.txt` did not survive into this
+sandbox - Stage B's real names/dialogue (and the "Marrow" rename) wait for
+it to be re-uploaded. Stage A does not need it.
+
+### A1 - The analog stick
+`scripts/stick_input.gd` replaces the old fixed joystick. Raw pull now goes
+through **dead zone (15% default) -> rescale -> response curve (expo 1.7) ->
+sensitivity -> exponential smoothing (70 ms, instant to zero on release)**,
+with a larger travel radius (150 px). Drift/stuck fixes: the stick owns ONE
+touch index and ignores every other finger; releasing happens on touch-up,
+on `InputBus.locked` (the setter now RESETS input - cutscenes, dialogue,
+shops, panels), on window focus loss, on pause, and through a **5-second
+stale-finger timeout**. The camera half (right-side drag) only writes yaw
+DELTAS, so an idle screen can never turn the camera. Sensitivity, dead zone
+and curve are sliders in Settings (persisted in `user://settings.json`).
+**`tests/smoke_stick.gd` - 31 checks PASS.** Numbers: 70 px push = 0.187
+deflection (slow precise walk), 150 px = 1.000 (full speed); thumb jitter
+spread 0.235 (smoothed); **10 s idle: max stick drift 0.00000, camera yaw
+drift 0.00000 rad**. Second-finger, mashing, focus-loss, pause-mid-hold and
+index-reuse all release clean.
+
+### A2 - Schemes the player chooses
+First-run picker (four cards, shows once) and a full Settings screen:
+**floating stick / fixed stick / 8-way D-pad / drag-to-move**, right-side
+camera drag with a speed slider, optional **auto-sprint at the stick edge**,
+optional **8-direction snap**, stick size, HUD opacity, layout presets
+(**Classic / Compact / Left-handed** - left-handed mirrors the cluster AND
+flips the movement half of the screen) and a **visual layout editor** (drag
+any button, +/- size, opacity slider, saved per button). Everything
+persists. **`tests/smoke_controls.gd` - 32 checks PASS** (picker, settings,
+presets, editor persistence across reload, scheme switching).
+
+### A3 - Buttons you can feel
+`scripts/action_button.gd`: buttons are code-built now. Fire on
+**touch-DOWN**, hit areas larger than the drawn disc (visual 80% of the
+rect), press animation (scale + brighten), a soft **ui_click** tick,
+**per-action haptics** through the new `Haptics` autoload (light jab /
+heavy / parry double-tick / long super rumble, with strength slider and
+master switch - `Input.vibrate_handheld`, Android only; **iOS needs a
+plugin, all hooks route through haptics.gd**), **cooldown rings** on
+PUNCH/DODGE that drain as the swing completes, input buffering (the 400 ms
+queues) and the dodge cancel window kept. **Measured touch-to-action
+latency: 13.4 ms** (simulated at 60 Hz physics; the debug panel can show it
+live via `InputBus.latency_msec`).
+
+### A4 - Combos and super strikes
+Direction + PUNCH now picks the move: **forward lunge cross** (stick
+forward + tap), **backfist counter** (stick back + tap - counts as a
+counter on an attacking enemy), **uppercut launcher** (stick back + hold -
+charges back, then rises INTO the enemy; launches for juggles). Fist list:
+jab->cross->hook chain, heavy hook, lunge, backfist, uppercut, finisher,
+wall slam. Pipe list: swing, backhand, overhead slam. A soft-lock
+**engage-range** fix makes every lunge close toward the nearest enemy
+(even from out of punch range). On-screen **combo counter** (hits, decay,
+move name). **SUPER meter**: +4 per landed hit, +14 per parry, +10 per
+takedown; when full the SUPER button breathes - the strike spends the
+whole bar for slow motion, a screen flash, a camera punch, a long haptic
+rumble and a **2.6 m shockwave** that flattens everyone in reach.
+**MOVES screen** in the pause menu (from `scripts/moves.gd`), the training
+dummy is staged by the suite, and **first-time prompts** fire once per
+move (persisted). **`tests/smoke_a4.gd` - 25 checks PASS.**
+
+### A5 - Visual bugs
+The white pixelated blocks were the mirror-puddle quads (removed in the
+fix session). This pass audited every remaining emissive slab: **lit
+windows dimmed to 55% and given a soft additive spill** (light blooming
+down the wall), **kiosk signs dimmed and given a lit-awning glow**, **bloom
+halos behind all three neon signs** - no hard emissive rectangle remains.
+The enemies' orange glow: **not a stuck flash** - the hit-flash decays
+correctly (6x/s); what glows orange-red is the *intended* attack telegraph
+(pulsing during wind-up). The audit did find a real bug: the flash loop
+overwrote the intended per-kind silhouette edges (gunmetal/boss), so they
+never showed - now the faint edge survives (emission energy = flash +
+edge). **Pose suite re-run: PASS** after every change (90 checks).
+
+### How to test Stage A on a phone
+1. First launch: the four scheme cards appear - pick one, play, force-quit,
+   relaunch: the picker must NOT return (Settings > first_run_done).
+2. Move: small pushes walk slowly, full edge sprints (or Settings >
+   auto-sprint). Rest a thumb on the stick 10 s: zero drift, camera still.
+3. Multi-touch: hold the stick, mash PUNCH/DODGE with other fingers, drop
+   a second finger on the stick - no stuck movement. Open the pause menu
+   or answer dialogue mid-hold: the hero must stop dead.
+4. Settings: try every scheme; drag buttons in EDIT LAYOUT, resize, set
+   opacity, force-quit, relaunch - the layout must persist. Left-handed
+   preset flips stick and buttons.
+5. Combos: forward+PUNCH lunges; back+PUNCH backfist; back+hold uppercut
+   (watch the dummy fly); fill the SUPER ring and press SUPER.
+6. Feel: every button ticks and buzzes (Android); cooldown rings drain;
+   the MOVES screen lists everything.
+
+### Stage A gate
+All **thirteen** suites green (movement, combat, depth, ledger, economy,
+city, audio, music, cast, pose, stick, controls, A4 - 88 NEW checks this
+stage on top of the existing battery) plus the 5-minute stress re-run.
+**GATE: PASS (headless).** Phone-only: the actual feel of the curve and
+haptics, real finger latency (the 13.4 ms number is simulated at 60 Hz),
+iOS vibration (needs a plugin), and whether the glows read well on OLED.
+
 ### The Universal Animation Library pack
 
 `bare-hands/assets/` holds `UAL1_Standard.glb` (the Godot-ready, root-motion-disabled variant), the pack's `License.txt` (**CC0 1.0 / public domain, models by @Quaternius**) and its `README.txt`. The `_RM` (root-motion) variant and the Unity `.fbx` files stay in the original zip at the repo root; this game moves the character in code.

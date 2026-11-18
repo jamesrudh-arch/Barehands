@@ -95,6 +95,8 @@ func _physics_process(delta: float) -> void:
 	if InputMap.has_action("lock") and Input.is_action_just_pressed("lock"):
 		toggle_lock()
 	_retarget_lock()
+	# right-side touch drag turns the camera (only deltas - no idle drift)
+	_yaw += InputBus.take_cam_yaw_delta()
 	var flat := Vector2(_target.velocity.x, _target.velocity.z)
 	var facing := Vector3(-sin(_yaw), 0.0, -cos(_yaw))
 	# Re-center only while the hero travels away from the camera. Running at

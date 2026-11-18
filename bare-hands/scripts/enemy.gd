@@ -25,6 +25,8 @@ var _spawn := Vector3.ZERO
 var _mats: Array[StandardMaterial3D] = []
 var _flash := 0.0
 var _flash_color := Color(1, 1, 1)
+var _edge := 0.0          # the intended per-kind silhouette glow
+var _edge_color := Color(1, 1, 1)
 var _struck := false
 var _topple := 0.0
 var _combo_step := 0  # boss: where in the 3-hit combo we are
@@ -74,6 +76,8 @@ func _apply_look() -> void:
 	var look: Array = LOOK[kind]
 	var tint: Color = look[0]
 	var edge: float = look[1]
+	_edge = edge
+	_edge_color = tint * 2.5
 	for m in _mats:
 		m.albedo_color = m.albedo_color.lerp(tint, 0.55)
 		if edge > 0.0:
@@ -345,6 +349,25 @@ func take_hit(dir: Vector3, hit_kind: String) -> void:
 			knock = 6.0
 			_play("Hit_Head", 0.03, 1.8)
 			_flash_white(Color(0.4, 1.0, 1.0), 2.4)
+		"backfist":
+			knock = 4.0
+			_play("Hit_Head", 0.04, 1.9)
+			_flash_white(Color(1.0, 0.85, 0.55), 2.0)
+		"backfist_counter":
+			knock = 7.0
+			_play("Hit_Head", 0.03, 1.6)
+			_flash_white(Color(0.4, 1.0, 1.0), 2.6)
+		"super":
+			dmg = 99
+			hp -= dmg
+			velocity = dir * 7.5 + Vector3.UP * 5.5
+			_play("Death01", 0.04, 1.1)
+			_flash_white(Color(1.0, 0.5, 0.2), 3.2)
+			if hp <= 0:
+				_die("super")
+				return
+			_enter(State.LAUNCHED)
+			return
 		"finisher":
 			dmg = 99
 			knock = 3.0
@@ -383,7 +406,8 @@ func take_hit(dir: Vector3, hit_kind: String) -> void:
 
 func _damage_of(hit_kind: String) -> int:
 	return {"jab": 1, "cross": 2, "hook": 2, "heavy": 3, "counter": 99,
-			"pipe": 2, "pipe_heavy": 4, "knee": 1, "launcher": 1, "shot": 6}.get(hit_kind, 1)
+			"pipe": 2, "pipe_heavy": 4, "knee": 1, "launcher": 1, "shot": 6,
+			"backfist": 2, "backfist_counter": 6, "super": 99}.get(hit_kind, 1)
 
 
 func _die(cause: String) -> void:
@@ -475,8 +499,11 @@ func _apply_flash(delta: float) -> void:
 	if state != State.TELEGRAPH:
 		_flash = maxf(_flash - 6.0 * delta, 0.0)
 	for m in _mats:
-		m.emission = _flash_color
-		m.emission_energy_multiplier = _flash
+		if _flash > 0.0:
+			m.emission = _flash_color
+		else:
+			m.emission = _edge_color  # the silhouette edge (faint, intended)
+		m.emission_energy_multiplier = _flash + _edge
 
 
 func _play(anim_name: String, blend: float = 0.25, speed := 1.0) -> void:

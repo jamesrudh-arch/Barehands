@@ -13,6 +13,9 @@ config/icon="res://icon.svg"
 [autoload]
 
 InputBus="*res://scripts/input_bus.gd"
+Settings="*res://scripts/settings.gd"
+Haptics="*res://scripts/haptics.gd"
+SuperMeter="*res://scripts/super_meter.gd"
 Log="*res://scripts/log.gd"
 Quality="*res://scripts/quality.gd"
 Fx="*res://scripts/fx.gd"

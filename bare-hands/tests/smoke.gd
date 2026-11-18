@@ -33,9 +33,19 @@ const CLIMB_START := Vector3(9.0, 0.02, -4.8)
 const JUMP_AT := [6, 10, 14, 18]  # deliberately imperfect timings: tests forgiveness
 
 
+var _stick: StickInput
+
+
+## Drive movement through the REAL stick (its anti-drift loop owns move).
+func _set_move(v: Vector2) -> void:
+	if _stick:
+		_stick.debug_set_move(v)
+
+
 func _ready() -> void:
 	_main = load("res://scenes/main.tscn").instantiate()
 	add_child(_main)
+	_stick = _main.get_node("UI/Joystick")
 	var opening := get_tree().get_first_node_in_group("opening") as OpeningShot
 	if opening:
 		opening.skip()  # tests drive input themselves
@@ -112,14 +122,14 @@ func _settle() -> void:
 
 
 func _run() -> void:
-	InputBus.move = Vector2(0, -1)
+	_set_move(Vector2(0, -1))
 	_max_speed = maxf(_max_speed, _flat_speed())
 	if _pf == 1:
 		_camera.global_position = _player.global_position + Vector3(0, 3, 6.5)
 	if _pf > 70:
 		_sample_hands()
 	if _pf >= 90:
-		InputBus.move = Vector2.ZERO
+		_set_move(Vector2.ZERO)
 		_check(_max_speed >= 5.0, "full push reaches run speed (max %.1f)" % _max_speed)
 		_check(_player.global_position.z < -2.0, "travelled north")
 		_check(_camera.global_position.distance_to(_player.global_position) < 9.5, "camera follows while running")
@@ -134,12 +144,12 @@ func _run() -> void:
 
 
 func _half_push() -> void:
-	InputBus.move = Vector2(0, -0.45)
+	_set_move(Vector2(0, -0.45))
 	if _pf > 40:
 		_speed_sum += _flat_speed()
 		_speed_n += 1
 	if _pf >= 70:
-		InputBus.move = Vector2.ZERO
+		_set_move(Vector2.ZERO)
 		var avg := _speed_sum / maxf(_speed_n, 1.0)
 		_check(avg > 2.0 and avg < 3.8, "half push paces between walk and run (%.1f)" % avg)
 		_check(_anim.current_animation == "Walk", "walk clip at half push")
@@ -148,14 +158,14 @@ func _half_push() -> void:
 
 func _sprint_south() -> void:
 	if _pf <= 80:
-		InputBus.move = Vector2(0, 1)
-		InputBus.sprint = true
+		_set_move(Vector2(0, 1))
+		InputBus.press_sprint()
 		_max_speed = maxf(_max_speed, _flat_speed())
 		if _pf > 60:
 			_sample_hands()
 	else:
-		InputBus.move = Vector2.ZERO
-		InputBus.sprint = false
+		_set_move(Vector2.ZERO)
+		InputBus.release_sprint()
 		if _pf == 90:
 			_check(_max_speed >= 6.2, "sprint button tops run speed (max %.1f)" % _max_speed)
 			_check(_anim.current_animation == "Sprint", "sprint clip at full sprint (got %s)" % _anim.current_animation)
@@ -202,21 +212,21 @@ func _climb() -> void:
 		_player.velocity = Vector3.ZERO
 		_camera.set("_yaw", 0.0)  # behind the run-up so "up" on the stick runs north
 		_camera.global_position = CLIMB_START + Vector3(0, 3, 6.5)
-	InputBus.move = Vector2(0, -1)
+	_set_move(Vector2(0, -1))
 	if _pf == JUMP_AT[_climb_try]:
 		InputBus.queue_jump()
 	if _player.state == Player.State.CLIMB:  # the body faces into the wall
 		_sample_hands()
 		_saw_climb = true
 	if _saw_climb and _player.is_on_floor() and _player.state == Player.State.GROUND:
-		InputBus.move = Vector2.ZERO
+		_set_move(Vector2.ZERO)
 		_check(_player.global_position.y > 3.0, "pulled up onto the 3.4 m annex roof (%.2f)" % _player.global_position.y)
 		var l := _l_sum / maxf(_face_n, 1.0)
 		var r := _r_sum / maxf(_face_n, 1.0)
 		_check(l < r, "climb pose faces the wall (left hand west of right, %.2f < %.2f)" % [l, r])
 		_next()
 	elif _pf > 140:
-		InputBus.move = Vector2.ZERO  # retry with a later jump
+		_set_move(Vector2.ZERO)  # retry with a later jump
 		_l_sum = 0.0
 		_r_sum = 0.0
 		_face_n = 0
@@ -252,12 +262,12 @@ func _fov_kick() -> void:
 		_player.velocity = Vector3.ZERO
 		_player.global_position = Vector3(0.0, 0.02, 8.0)
 		_camera.global_position = _player.global_position + Vector3(0, 3, 6)
-	InputBus.move = Vector2(0, -1)
-	InputBus.sprint = true
+	_set_move(Vector2(0, -1))
+	InputBus.press_sprint()
 	_max_fov = maxf(_max_fov, _camera.fov)
 	if _pf >= 90:
-		InputBus.move = Vector2.ZERO
-		InputBus.sprint = false
+		_set_move(Vector2.ZERO)
+		InputBus.release_sprint()
 		_check(_max_fov > 73.0, "sprint kicks the field of view out (fov %.1f)" % _max_fov)
 		_next()
 

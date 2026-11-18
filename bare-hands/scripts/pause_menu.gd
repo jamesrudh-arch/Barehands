@@ -11,6 +11,7 @@ var _quality_label: Label
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	layer = 15
+	add_to_group("pause")
 	_build_pause_button()
 	_build_panel()
 	get_tree().paused = false
@@ -131,6 +132,29 @@ func _build_panel() -> void:
 			ui.toggle())
 	col.add_child(ledger)
 
+	var moves := Button.new()
+	moves.text = "MOVES"
+	moves.focus_mode = Control.FOCUS_NONE
+	moves.custom_minimum_size = Vector2(240, 54)
+	moves.add_theme_font_size_override("font_size", 16)
+	moves.add_theme_stylebox_override("normal", _flat())
+	moves.pressed.connect(_open_moves)
+	col.add_child(moves)
+
+	var settings := Button.new()
+	settings.text = "SETTINGS"
+	settings.focus_mode = Control.FOCUS_NONE
+	settings.custom_minimum_size = Vector2(240, 54)
+	settings.add_theme_font_size_override("font_size", 16)
+	var tsb := StyleBoxFlat.new()
+	tsb.bg_color = Color(0.08, 0.09, 0.12, 0.8)
+	tsb.border_color = Color(1, 0.58, 0.13, 0.35)
+	tsb.set_border_width_all(1)
+	tsb.set_corner_radius_all(8)
+	settings.add_theme_stylebox_override("normal", tsb)
+	settings.pressed.connect(_open_settings)
+	col.add_child(settings)
+
 	var resume := Button.new()
 	resume.text = "RESUME"
 	resume.focus_mode = Control.FOCUS_NONE
@@ -142,6 +166,36 @@ func _build_panel() -> void:
 	resume.add_theme_stylebox_override("normal", rsb)
 	resume.pressed.connect(_toggle)
 	col.add_child(resume)
+
+
+func _flat() -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.08, 0.09, 0.12, 0.8)
+	sb.border_color = Color(1, 0.58, 0.13, 0.35)
+	sb.set_border_width_all(1)
+	sb.set_corner_radius_all(8)
+	return sb
+
+
+func _open_moves() -> void:
+	_panel.visible = false
+	var m := get_tree().get_first_node_in_group("moves")
+	if m:
+		m.open()
+
+
+func _open_settings() -> void:
+	_panel.visible = false
+	var s := get_tree().get_first_node_in_group("settings_ui") as SettingsUI
+	if s:
+		s.open()
+
+
+## SettingsUI calls this on DONE: bring the pause panel back.
+func show_menu() -> void:
+	if get_tree().paused:
+		_panel.visible = true
+		_refresh_quality()
 
 
 func _toggle() -> void:

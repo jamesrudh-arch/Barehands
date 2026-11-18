@@ -24,9 +24,19 @@ func _check(ok: bool, what: String) -> void:
 		print("SMOKE ok: ", what)
 
 
+var _stick: StickInput
+
+
+## Drive movement through the REAL stick (its anti-drift loop owns move).
+func _set_move(v: Vector2) -> void:
+	if _stick:
+		_stick.debug_set_move(v)
+
+
 func _ready() -> void:
 	_main = load("res://scenes/main.tscn").instantiate()
 	add_child(_main)
+	_stick = _main.get_node("UI/Joystick")
 	var opening := get_tree().get_first_node_in_group("opening") as OpeningShot
 	if opening:
 		opening.skip()
@@ -77,7 +87,7 @@ func _next() -> void:
 	_thug.state = Enemy.State.IDLE
 	_thug.set("_state_t", 0.0)
 	InputBus.clear_queues()
-	InputBus.move = Vector2.ZERO
+	_set_move(Vector2.ZERO)
 	InputBus.punch_release()
 	InputBus.dodge_release()
 

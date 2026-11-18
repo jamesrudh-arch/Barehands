@@ -15,6 +15,7 @@ func _ready() -> void:
 	_windows()
 	_ac_units()
 	_puddles()
+	_sign_glows()
 	_shafts()
 	_grates_and_steam()
 	_props()
@@ -25,6 +26,24 @@ func _ready() -> void:
 	_shutter()
 	_rails()
 	_pipe_prop()
+
+
+## A soft additive glow quad: light spilling out of a window or sign, so
+## no emissive slab reads as a hard pixelated rectangle on the phone.
+func _glow_quad(pos: Vector3, color: Color, size: Vector2, rot_y: float,
+		strength := 0.5) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	var qm := QuadMesh.new()
+	qm.size = size
+	var mat := ShaderMaterial.new()
+	mat.shader = ShaftShader
+	mat.set_shader_parameter("tint", Vector3(color.r, color.g, color.b))
+	mat.set_shader_parameter("strength", strength)
+	qm.material = mat
+	mi.mesh = qm
+	mi.position = pos
+	mi.rotation.y = rot_y
+	return mi
 
 
 # --- fire escapes ------------------------------------------------------------
@@ -117,16 +136,22 @@ func _windows() -> void:
 		mat.albedo_color = c * 0.25
 		mat.emission_enabled = true
 		mat.emission = c
-		mat.emission_energy_multiplier = e
+		mat.emission_energy_multiplier = e * 0.55  # the spill does the rest
 		var mi := MeshInstance3D.new()
 		var qm := QuadMesh.new()
 		qm.size = Vector2(0.9, 0.6)
 		qm.material = mat
 		mi.mesh = qm
 		mi.position = p
+		var rot := 0.0
 		if p.z > 0.0:
 			mi.rotation.y = PI  # face north-facing buildings south
+			rot = PI
 		add_child(mi)
+		# the soft spill: light blooming down the wall around the pane
+		var glow := _glow_quad(p + Vector3(0.0, -0.05, -0.06 if p.z < 0.0 else 0.06),
+				c, Vector2(2.0, 1.7), rot, 0.55 * e)
+		add_child(glow)
 
 
 func _ac_units() -> void:
@@ -145,6 +170,16 @@ func _ac_units() -> void:
 # these markers are invisible and only carry position + radius for the
 # surface-aware footsteps. The old mirror quads read as pixelated blocks on
 # the phone and are gone.
+
+
+## Bloom halos behind the three neon signs (positions from main.tscn).
+func _sign_glows() -> void:
+	add_child(_glow_quad(Vector3(1.5, 3.35, -9.36), Color(1.0, 0.58, 0.13),
+			Vector2(2.8, 1.5), 0.0, 0.8))
+	add_child(_glow_quad(Vector3(-7.0, 2.75, 8.96), Color(0.15, 0.9, 1.0),
+			Vector2(2.8, 1.5), PI, 0.8))
+	add_child(_glow_quad(Vector3(13.86, 1.85, 0.0), Color(1.0, 0.16, 0.12),
+			Vector2(2.8, 1.5), -PI / 2.0, 0.8))
 
 
 func _puddles() -> void:
@@ -500,10 +535,12 @@ func _kiosk(id: String, pos: Vector3, tint: Color) -> void:
 	sign_mat.albedo_color = tint * 0.25
 	sign_mat.emission_enabled = true
 	sign_mat.emission = tint
-	sign_mat.emission_energy_multiplier = 2.2
+	sign_mat.emission_energy_multiplier = 1.5  # the glow does the reading
 	var sign := _box(Vector3(1.9, 0.4, 0.06), sign_mat)
 	sign.position = Vector3.UP * 2.55
 	shop.add_child(sign)
+	shop.add_child(_glow_quad(pos + Vector3(0.0, 2.5, -0.12), tint,
+			Vector2(2.6, 1.1), PI, 0.7))
 
 
 func _shops() -> void:

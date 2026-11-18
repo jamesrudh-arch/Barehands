@@ -58,7 +58,10 @@ var _climb_t := 0.0
 var _climb_from := Vector3.ZERO
 var _climb_to := Vector3.ZERO
 var _hint_done := false
-var _punch_stage := 0  # 1 jab, 2 cross, 3 hook
+signal hit_landed(kind: String, damage: int)  # the combo counter listens
+
+var _punch_stage := 0  # 1 jab, 2 cross, 3 hook, 4 SUPER
+var _punch_variant := "neutral"  # stick direction at punch start (Stage A4)
 var _punch_heavy := false
 var _punch_t := 0.0
 var _punch_hit_done := false
@@ -203,7 +206,9 @@ func _combat_input() -> void:
 	if InputBus.dodge_held and InputBus.dodge_age() >= 0.25 and \
 			state == State.GROUND and _t >= _hitstun_until:
 		_enter_block()
-	if InputBus.take_dodge():
+	if InputBus.take_super():
+		_try_super()
+	elif InputBus.take_dodge():
 		_try_dodge()
 	elif InputBus.take_punch():
 		_try_punch()
@@ -248,24 +253,43 @@ func _try_punch() -> void:
 		_start_punch(1, false)
 
 
+## Stick direction at the moment of a punch: forward = lunge, back =
+## back-step moves, none = neutral chain.
+func _stick_variant() -> String:
+	var st := _stick()
+	if st.y > 0.45:
+		return "back"
+	if st.y < -0.55:
+		return "lunge"
+	return "neutral"
+
+
 func _start_punch(stage: int, heavy: bool) -> void:
 	if state == State.GRAB:
 		_grab_knee()
 		return
 	state = State.PUNCH
+	InputBus.stamp_fired("punch_down")
 	_punch_stage = stage
 	_punch_heavy = heavy
 	_punch_t = 0.0
 	_punch_hit_done = false
 	_punch_buffered_at = -99.0
+	_punch_variant = "super" if stage == 4 else _stick_variant()
 	# a heavy always starts its own swing; a light chains from where it is
-	if heavy:
-		_punch_stage = 3 if not has_pipe else 3
-	# Soft-lock: snap to the nearest enemy roughly in front.
+	if heavy and stage != 4:
+		_punch_stage = 3
+	# Soft-lock: snap to the nearest enemy roughly in front. Out of punch
+	# range, still face the nearest one within ENGAGE range so lunges
+	# (forward lunge, uppercut hop) close in the right direction.
 	var target := _punch_target(-0.5, 0.25)
+	if target == null:
+		target = _punch_target(-1.0, 2.1)  # any direction: the nearest threat
 	var lunge := 3.2 if stage == 1 else 3.8
 	if heavy:
 		lunge = 4.2
+	if _punch_variant == "lunge" and not heavy:
+		lunge += 2.2  # stick forward: a chasing lunge cross
 	if target:
 		var to := target.global_position - global_position
 		to.y = 0.0
@@ -274,6 +298,12 @@ func _start_punch(stage: int, heavy: bool) -> void:
 		if to.length() < 0.85:
 			lunge = 0.0  # point-blank: no lunge, just swing
 	var fwd := -_body.global_transform.basis.z
+	if _punch_variant == "back":
+		# the backfist hops away; the uppercut charges back, then rises
+		# INTO the enemy like a fighting-game uppercut
+		lunge = -2.6 if not heavy else 2.4
+	elif stage == 4:
+		lunge = 1.5
 	velocity.x = fwd.x * lunge
 	velocity.z = fwd.z * lunge
 	var speed := 1.7
@@ -281,6 +311,10 @@ func _start_punch(stage: int, heavy: bool) -> void:
 		speed = 0.85 if not heavy else 0.6  # the pipe swings slower
 	elif heavy:
 		speed = 0.75
+	if _punch_variant == "back" and not heavy:
+		speed = 2.1  # the backfist snaps
+	if stage == 4:
+		speed = 0.55  # the SUPER winds up slow on purpose
 	_rig.play("Punch_Jab" if stage == 1 else "Punch_Cross", 0.06, speed)
 
 
@@ -308,6 +342,8 @@ func _punch_step(delta: float) -> void:
 
 
 func _impact_time() -> float:
+	if _punch_stage == 4:
+		return 0.30
 	if _punch_heavy:
 		return HEAVY_TIME * (1.25 if has_pipe else 1.0)
 	match _punch_stage:
@@ -320,6 +356,8 @@ func _impact_time() -> float:
 
 
 func _lock_time() -> float:
+	if _punch_stage == 4:
+		return 0.9
 	if _punch_heavy:
 		return HEAVY_LOCK * (1.2 if has_pipe else 1.0)
 	match _punch_stage:
@@ -332,7 +370,12 @@ func _lock_time() -> float:
 
 
 func _land_punch() -> void:
-	var target := _punch_target(0.35, 0.0)
+	if _punch_stage == 4:
+		_land_super()
+		return
+	# the uppercut leans away first: it reaches a little further
+	var reach := 0.3 if (_punch_variant == "back" and _punch_heavy) else 0.0
+	var target := _punch_target(0.35, reach)
 	if target == null:
 		return  # whiffed: no style for spam
 	var dir: Vector3 = target.global_position - global_position
@@ -352,6 +395,8 @@ func _land_punch() -> void:
 		Fx.haptic(80)
 		Fx.emit_hit("launcher", hit_pos)
 		_style_add("launcher")
+		SuperMeter.gain(SuperMeter.GAIN_TAKEDOWN, "launcher")
+		hit_landed.emit("launcher", 1)
 		return
 	# finisher: a heavy on a nearly-done enemy executes
 	if kind == "finisher":
@@ -364,6 +409,8 @@ func _land_punch() -> void:
 		Fx.haptic(160)
 		Fx.emit_hit("finisher", hit_pos)
 		_style_add("finisher")
+		SuperMeter.gain(SuperMeter.GAIN_TAKEDOWN, "finisher")
+		hit_landed.emit("finisher", 99)
 		return
 	# environmental takedown: a heavy/cross with something solid behind them
 	if kind == "cross" or kind == "counter" or kind == "heavy" or kind == "pipe_heavy":
@@ -384,12 +431,62 @@ func _land_punch() -> void:
 	Fx.emit_hit(kind, hit_pos)
 	Heat.on_violence("hit", global_position)
 	_style_add(kind)
+	SuperMeter.gain(SuperMeter.GAIN_HIT, kind)
+	hit_landed.emit(kind, _swing_damage(kind))
+	if kind in ["backfist", "backfist_counter"]:
+		_hint_once("backfist", "BACKFIST")
 
 
-## What this swing is, given the target's condition.
+## The SUPER lands: everyone in reach takes the shockwave.
+func _land_super() -> void:
+	var hit_any := false
+	for e in get_tree().get_nodes_in_group("enemy"):
+		var enemy := e as Enemy
+		if enemy == null or enemy.state == Enemy.State.DOWN:
+			continue
+		if global_position.distance_to(enemy.global_position) <= 2.6:
+			var to := enemy.global_position - global_position
+			to.y = 0.0
+			to = to.normalized()
+			Fx.burst(enemy.global_position + Vector3.UP * 1.2, Color(1.0, 0.5, 0.2))
+			enemy.take_hit(to, "super")
+			hit_any = true
+	Fx.hit_stop(0.2)
+	Fx.shake(1.0)
+	Fx.camera_punch(6.0)
+	Sound.play("bell_heavy_0", -4.0, 0.9)
+	if hit_any:
+		Heat.on_violence("hit", global_position)
+		_style_add("super")
+		hit_landed.emit("super", 99)
+
+
+## One-time on-screen prompts (Stage A4): each fires once, ever.
+func _hint_once(id: String, text: String) -> void:
+	if Settings.hint_done(id):
+		return
+	Settings.set_hint_done(id)
+	var hud := get_tree().get_first_node_in_group("hud")
+	if hud and hud.has_method("show_hint"):
+		hud.show_hint(text, 2.2)
+
+
+## What this swing is, given the target's condition and the stick variant.
 func _swing_kind(target: CharacterBody3D, counter: bool) -> String:
+	if _punch_stage == 4:
+		return "super"
 	if counter:
 		return "counter"
+	if _punch_variant == "back":
+		# stick back + tap: the backfist reads as a counter on an attacker
+		if not _punch_heavy:
+			if target.state == Enemy.State.STRIKE:
+				_hint_once("backfist", "BACKFIST COUNTER")
+				return "backfist_counter"
+			return "backfist"
+		# stick back + hold: the uppercut, always a launcher
+		_hint_once("uppercut", "UPPERCUT LAUNCHER")
+		return "launcher"
 	if _punch_heavy:
 		if has_pipe:
 			return "pipe_heavy"
@@ -564,6 +661,7 @@ func _try_dodge() -> void:
 	else:
 		dir = _body.global_transform.basis.z  # no stick: hop backward
 	state = State.DODGE
+	InputBus.stamp_fired("dodge_down")
 	_dodge_t = 0.0
 	velocity.x = dir.x * DODGE_SPEED
 	velocity.z = dir.z * DODGE_SPEED
@@ -594,9 +692,43 @@ func dodge_age() -> float:
 ## Called by a parried enemy: the next punch inside the window counters.
 func open_counter(seconds: float) -> void:
 	_counter_until = _t + seconds
+	SuperMeter.gain(SuperMeter.GAIN_PARRY, "parry")
 
 
 # --- grab and throw -----------------------------------------------------------------
+
+
+## The SUPER strike: spends the full meter for a slow-mo shockwave that
+## flattens everyone in reach (Stage A4).
+func _try_super() -> void:
+	if state != State.GROUND or _t < _hitstun_until:
+		return
+	if not SuperMeter.consume():
+		Sound.play("ui_error_0", -8.0)
+		var hud := get_tree().get_first_node_in_group("hud")
+		if hud and hud.has_method("show_hint"):
+			hud.show_hint("SUPER not ready", 0.8)
+		return
+	_start_punch(4, false)
+	Fx.slow_mo(0.9, 0.28)
+	Fx.screen_flash(Color(1.0, 0.72, 0.3), 0.5)
+	Fx.camera_punch(-9.0)
+	Haptics.fire("super")
+	_hint_once("super_ready", "SUPER STRIKE!")
+
+
+## Cooldown fractions 0..1 for the HUD rings (Stage A3): drain while the
+## swing / evade is still in progress.
+func punch_cooldown_01() -> float:
+	if state != State.PUNCH:
+		return 0.0
+	return clampf(1.0 - _punch_t / _lock_time(), 0.0, 1.0)
+
+
+func dodge_cooldown_01() -> float:
+	if state != State.DODGE:
+		return 0.0
+	return clampf(1.0 - _dodge_t / DODGE_TIME, 0.0, 1.0)
 
 
 func _try_grab_action() -> void:

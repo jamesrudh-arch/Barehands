@@ -1,29 +1,66 @@
 extends Node
 ## Tiny shared bus between the touch UI and the hero. Autoloaded as "InputBus"
-## (see project.godot). The joystick writes `move`; the action buttons write
+## (see project.godot). The stick writes `move`; the action buttons write
 ## `sprint` and queue jump/grab presses; the camera publishes `camera_yaw`.
 ## PUNCH and DODGE distinguish taps from holds: a quick release queues the
 ## light action, holding past the threshold means heavy/block (the player
 ## polls punch_age()/dodge_age()). Queues expire after 0.4 s of GAME time so
 ## slow motion does not eat a buffered counter and a mid-air jump never
 ## fires on landing.
+##
+## `locked` doubles as the input reset: the moment ANY system locks input
+## (cutscene, dialogue, shop, pause-adjacent panels) the stick, held buttons
+## and queues are dropped, so a phone finger-state from before the lock can
+## never leak movement into the locked scene (the stuck-stick fix).
 
 const QUEUE_LIFE_MSEC := 400.0
 const PUNCH_HOLD_MSEC := 300.0
 const DODGE_HOLD_MSEC := 250.0
 
 var move := Vector2.ZERO  # x = strafe, y = forward/back, magnitude 0..1
-var sprint := false
 var camera_yaw := 0.0  # yaw of the camera's look direction on the ground plane
-var locked := false  # true during cutscenes: the hero ignores input
+
+## Sprint is the OR of the button hold and the stick's auto-sprint edge.
+var sprint := false:
+	get:
+		return _sprint_btn or _sprint_stick
+var _sprint_btn := false
+var _sprint_stick := false
+var _cam_yaw_delta := 0.0  # right-side drag accumulates here, camera consumes
 var punch_held := false
 var dodge_held := false
 
+var locked := false:
+	set(v):
+		if v and not locked:
+			reset_input()
+		locked = v
+
 var _game_msec := 0.0
+var _stamps := {}  # action id -> usec when the touch landed / the action fired
+
+
+## Latency measurement: the HUD stamps the touch, the player stamps the
+## action; the debug panel shows the difference.
+func stamp_action(id: String) -> void:
+	_stamps[id + "_touch"] = Time.get_ticks_usec()
+
+
+func stamp_fired(id: String) -> void:
+	_stamps[id + "_fired"] = Time.get_ticks_usec()
+
+
+func latency_msec(id: String) -> float:
+	var a: float = _stamps.get(id + "_touch", 0.0)
+	var b: float = _stamps.get(id + "_fired", 0.0)
+	if a <= 0.0 or b <= a:
+		return -1.0
+	return (b - a) / 1000.0
 var _jump_at := -99999.0
 var _punch_at := -99999.0
 var _dodge_at := -99999.0
 var _grab_at := -99999.0
+var _super_at := -99999.0
 var _punch_down_at := -99999.0
 var _dodge_down_at := -99999.0
 var _punch_hold_consumed := true
@@ -32,6 +69,45 @@ var _dodge_hold_consumed := true
 
 func _physics_process(delta: float) -> void:
 	_game_msec += delta * 1000.0  # scaled: stretches with Engine.time_scale
+
+
+## Drop EVERYTHING a finger might still be holding. Called on lock, on
+## focus loss, on pause, on scheme change - the stuck-stick fix.
+func reset_input() -> void:
+	move = Vector2.ZERO
+	_sprint_btn = false
+	_sprint_stick = false
+	punch_held = false
+	dodge_held = false
+	clear_queues()
+	stick_released.emit()
+
+
+func press_sprint() -> void:
+	_sprint_btn = true
+
+
+func release_sprint() -> void:
+	_sprint_btn = false
+
+
+func stick_sprint(active: bool) -> void:
+	_sprint_stick = active
+
+
+func add_cam_yaw_delta(d: float) -> void:
+	_cam_yaw_delta += d
+
+
+func take_cam_yaw_delta() -> float:
+	var d := _cam_yaw_delta
+	_cam_yaw_delta = 0.0
+	return d
+
+
+## The stick calls this when its finger is genuinely gone (or was never
+## there); the HUD re-centres its visuals.
+signal stick_released
 
 
 func queue_jump() -> void:
@@ -65,6 +141,14 @@ func queue_grab() -> void:
 
 func take_grab() -> bool:
 	return _take("_grab_at")
+
+
+func queue_super() -> void:
+	_super_at = _game_msec
+
+
+func take_super() -> bool:
+	return _take("_super_at")
 
 
 # --- press / release with tap-vs-hold ------------------------------------------
@@ -116,6 +200,7 @@ func clear_queues() -> void:
 	_punch_at = -99999.0
 	_dodge_at = -99999.0
 	_grab_at = -99999.0
+	_super_at = -99999.0
 
 
 func _take(prop: String) -> bool:

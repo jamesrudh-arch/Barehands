@@ -31,9 +31,19 @@ var _countered := false
 var _hits := 0  # landed impacts (Fx.hit_landed), proves punches connect
 
 
+var _stick: StickInput
+
+
+## Drive movement through the REAL stick (its anti-drift loop owns move).
+func _set_move(v: Vector2) -> void:
+	if _stick:
+		_stick.debug_set_move(v)
+
+
 func _ready() -> void:
 	_main = load("res://scenes/main.tscn").instantiate()
 	add_child(_main)
+	_stick = _main.get_node("UI/Joystick")
 	var opening := get_tree().get_first_node_in_group("opening") as OpeningShot
 	if opening:
 		opening.skip()  # the bot drives input itself
@@ -72,8 +82,8 @@ func _physics_process(_delta: float) -> void:
 
 func _phase_reset() -> void:
 	InputBus.clear_queues()
-	InputBus.move = Vector2.ZERO
-	InputBus.sprint = false
+	_set_move(Vector2.ZERO)
+	InputBus.release_sprint()
 	_tele_at = -1
 	_countered = false
 
@@ -95,7 +105,7 @@ func _drive_combo() -> void:
 		_player.get_node("Body").rotation.y = -PI / 2.0
 		var cam := _main.get_node("Camera") as Camera3D
 		cam.set("_yaw", -PI / 2.0)
-	InputBus.move = Vector2(0, -1)  # walk east toward the dummy
+	_set_move(Vector2(0, -1))  # walk east toward the dummy
 	var ph := _tick % CYCLE
 	if ph in [150, 310, 470]:
 		InputBus.queue_punch()
@@ -127,9 +137,9 @@ func _drive_parry() -> void:
 	if _tele_at > 0 and ph == _tele_at + 40 and not _countered:
 		InputBus.queue_dodge()
 		_dodges += 1
-		InputBus.move = Vector2(0, -1)
+		_set_move(Vector2(0, -1))
 	elif _tele_at > 0 and ph == _tele_at + 55:
-		InputBus.move = Vector2.ZERO
+		_set_move(Vector2.ZERO)
 	if _tele_at > 0 and ph == _tele_at + 60 and not _countered:
 		_countered = true
 		InputBus.queue_punch()
@@ -144,8 +154,8 @@ func _drive_chaos() -> void:
 		_player.global_position = Vector3(randf_range(-15, 15), 0.02, randf_range(-15, 15))
 		_player.velocity = Vector3.ZERO
 	if ph % 30 == 0:
-		InputBus.move = Vector2(randf_range(-1, 1), randf_range(-1, 1)).limit_length(1.0)
-		InputBus.sprint = randf() > 0.5
+		_set_move(Vector2(randf_range(-1, 1), randf_range(-1, 1)).limit_length(1.0))
+		InputBus.release_sprint() if randf() <= 0.5 else InputBus.press_sprint()
 	if ph % 45 == 0:
 		InputBus.queue_jump()
 	if ph % 60 == 10:
