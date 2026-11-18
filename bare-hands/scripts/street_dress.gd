@@ -20,6 +20,8 @@ func _ready() -> void:
 	_props()
 	_car()
 	_gun_prop()
+	_shops()
+	_safehouse()
 	_shutter()
 	_rails()
 	_pipe_prop()
@@ -463,3 +465,72 @@ func _gun_prop() -> void:
 	barrel.position = Vector3(0.24, 0.05, 0)
 	gun.add_child(barrel)
 	gun.add_to_group("gun_prop")
+
+
+# --- Phase 5: the shops and the safehouse ---------------------------------------
+
+const SHOP_SCRIPT := preload("res://scripts/shop.gd")
+const SAFEHOUSE_SCRIPT := preload("res://scripts/safehouse.gd")
+
+
+## A kiosk: counter, awning, an emissive sign, and an interaction zone.
+func _kiosk(id: String, pos: Vector3, tint: Color) -> void:
+	var shop: Area3D = SHOP_SCRIPT.new()
+	shop.shop_id = id
+	shop.position = pos
+	add_child(shop)
+	var shape := CollisionShape3D.new()
+	var cs := BoxShape3D.new()
+	cs.size = Vector3(2.2, 2.0, 1.6)
+	shape.shape = cs
+	shape.position = Vector3.UP * 1.0
+	shop.add_child(shape)
+	var wood := StandardMaterial3D.new()
+	wood.albedo_color = Color(0.09, 0.07, 0.06)
+	wood.roughness = 0.8
+	var counter := _box(Vector3(2.0, 1.0, 0.7), wood)
+	counter.position = Vector3.UP * 0.5
+	shop.add_child(counter)
+	var awn := _box(Vector3(2.4, 0.08, 1.3), wood)
+	awn.position = Vector3.UP * 2.2
+	shop.add_child(awn)
+	var sign_mat := StandardMaterial3D.new()
+	sign_mat.albedo_color = tint * 0.25
+	sign_mat.emission_enabled = true
+	sign_mat.emission = tint
+	sign_mat.emission_energy_multiplier = 2.2
+	var sign := _box(Vector3(1.9, 0.4, 0.06), sign_mat)
+	sign.position = Vector3.UP * 2.55
+	shop.add_child(sign)
+
+
+func _shops() -> void:
+	_kiosk("tailor", Vector3(-12.0, 0.0, -8.2), Color(0.6, 0.8, 1.0))
+	_kiosk("gear", Vector3(4.5, 0.0, 8.2), Color(1.0, 0.75, 0.35))
+	_kiosk("pawn", Vector3(12.8, 0.0, 3.6), Color(1.0, 0.4, 0.35))
+
+
+## The safehouse door on the north face, lit by a cold bulb.
+func _safehouse() -> void:
+	var door: Area3D = SAFEHOUSE_SCRIPT.new()
+	door.position = Vector3(-2.0, 0.0, 8.9)
+	add_child(door)
+	var shape := CollisionShape3D.new()
+	var cs := BoxShape3D.new()
+	cs.size = Vector3(1.6, 2.2, 1.2)
+	shape.shape = cs
+	shape.position = Vector3.UP * 1.1
+	door.add_child(shape)
+	var frame_mat := StandardMaterial3D.new()
+	frame_mat.albedo_color = Color(0.08, 0.07, 0.07)
+	var frame := _box(Vector3(1.2, 2.2, 0.12), frame_mat)
+	frame.position = Vector3.UP * 1.1
+	door.add_child(frame)
+	var panel_mat := StandardMaterial3D.new()
+	panel_mat.albedo_color = Color(0.05, 0.055, 0.07)
+	panel_mat.emission_enabled = true
+	panel_mat.emission = Color(0.45, 0.75, 0.9)
+	panel_mat.emission_energy_multiplier = 0.35
+	var panel := _box(Vector3(0.9, 1.9, 0.05), panel_mat)
+	panel.position = Vector3.UP * 1.1
+	door.add_child(panel)

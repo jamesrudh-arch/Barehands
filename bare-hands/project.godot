@@ -20,6 +20,9 @@ Sound="*res://scripts/sound.gd"
 Music="*res://scripts/music.gd"
 Tactics="*res://scripts/tactics.gd"
 Wallet="*res://scripts/wallet.gd"
+Heat="*res://scripts/heat.gd"
+City="*res://scripts/city.gd"
+SaveGame="*res://scripts/save_game.gd"
 
 [display]
 

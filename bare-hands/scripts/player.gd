@@ -47,6 +47,8 @@ var state: State = State.GROUND
 var has_pipe := false
 var has_gun := false  # the Ledger Iron: every shot costs cash
 var _gun_cd := 0.0
+var gear := {}  # owned gear: gloves / boots / jacket (from the gear shop)
+var look := "shadow"  # coat colour id (from the tailor)
 var _yaw := 0.0
 var _since_floor := 0.0
 var _air_time := 0.0
@@ -72,6 +74,13 @@ var _pipe_prop: Node3D = null
 
 @onready var _body: Node3D = $Body
 @onready var _rig: HeroRig = $Body/Hero
+
+
+const COAT_COLORS := {
+	"shadow": Color(0.13, 0.12, 0.145),
+	"midnight": Color(0.07, 0.10, 0.22),
+	"oxblood": Color(0.28, 0.06, 0.07),
+}
 
 
 func _ready() -> void:
@@ -127,7 +136,7 @@ func _move_step(delta: float) -> void:
 		wish = (right * stick.x + fwd * -stick.y).normalized()
 
 	var weight := 0.92 if has_pipe else 1.0  # the pipe is heavy
-	var goal := wish * lerpf(WALK_SPEED, RUN_SPEED, push) * (SPRINT_MULT if sprint else 1.0) * weight
+	var goal := wish * lerpf(WALK_SPEED, RUN_SPEED, push) * (SPRINT_MULT if sprint else 1.0) * weight * _gear_speed()
 	if stunned:
 		goal = Vector3.ZERO
 	var rate := BRAKE if (push <= 0.01 or stunned) else ACCEL
@@ -373,6 +382,7 @@ func _land_punch() -> void:
 		Fx.haptic(60)
 		Fx.camera_punch(5.0)
 	Fx.emit_hit(kind, hit_pos)
+	Heat.on_violence("hit")
 	_style_add(kind)
 
 
@@ -400,8 +410,45 @@ func _swing_kind(target: CharacterBody3D, counter: bool) -> String:
 
 
 func _swing_damage(kind: String) -> int:
-	return {"jab": 1, "cross": 2, "hook": 2, "heavy": 3, "counter": 99,
+	var base: int = {"jab": 1, "cross": 2, "hook": 2, "heavy": 3, "counter": 99,
 			"pipe": 2, "pipe_heavy": 4, "launcher": 1, "knee": 1}.get(kind, 1)
+	if base < 90 and not kind.begins_with("pipe"):
+		base += _gear_dmg()
+	return base
+
+
+# --- gear and looks (the shops) -------------------------------------------------
+
+
+func _gear_dmg() -> int:
+	return 1 if gear.has("gloves") else 0
+
+
+func _gear_speed() -> float:
+	return 1.08 if gear.has("boots") else 1.0
+
+
+func _gear_stun() -> float:
+	return 0.7 if gear.has("jacket") else 1.0
+
+
+## A shop purchase landed: apply it.
+func apply_purchase(apply: String) -> void:
+	if apply.begins_with("coat_"):
+		apply_look(apply.substr(5))
+		return
+	gear[apply] = true
+	Log.info("gear applied: %s" % apply)
+
+
+func apply_look(id: String) -> void:
+	look = id
+	_rig.set_coat_color(COAT_COLORS.get(id, COAT_COLORS.shadow))
+
+
+## After a load: re-derive everything gear and look affect.
+func reapply_gear() -> void:
+	apply_look(look)
 
 
 # --- environmental takedowns ----------------------------------------------------
@@ -431,6 +478,7 @@ func _env_takedown(target: CharacterBody3D, dir: Vector3, surface: String, hit_p
 	Fx.camera_punch(6.0)
 	Fx.haptic(120)
 	Fx.emit_hit(kind, hit_pos)
+	Heat.on_violence("knockdown")
 	_style_add(kind)
 
 
@@ -490,7 +538,7 @@ func take_hit(dir: Vector3, from: CharacterBody3D = null) -> String:
 	velocity.x = dir.x * 4.5
 	velocity.z = dir.z * 4.5
 	velocity.y = 1.5
-	_hitstun_until = _t + 0.45
+	_hitstun_until = _t + 0.45 * _gear_stun()
 	state = State.GROUND
 	_rig.play("Hit_Chest", 0.04, 1.6)
 	Fx.shake(0.4)
@@ -638,6 +686,7 @@ func _fire_gun() -> void:
 	if _t < _gun_cd:
 		return
 	_gun_cd = _t + 0.35
+	Heat.on_violence("shot")
 	if not Wallet.pay_for_shot():
 		Sound.play("metal_click_0", -6.0, 1.7, 0.06)  # the empty click
 		Fx.haptic(20)

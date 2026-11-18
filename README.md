@@ -192,6 +192,28 @@ No shops, missions, driving, guns or sound yet — later batches.
 
 **GATE (Phase 4)**: `tests/smoke_ledger.tscn` — **35 checks green**: wallet math and entry order, overspend refusal with no phantom entries, the offer flow (shown once, locks input, states the price, TAKE equips and records ownership), firing spends $5 visibly (HUD label matches), shots land 6 damage, cooldown blocks double-spends, broke = click with zero ledger noise, the receipt opens with header/entries/balance/footer/earnings and closes, 200-entry cap. Depth and combat suites still green. **GATE: PASS (headless).**
 
+## SERIES 2 · Phase 5 — Money, Shops, Heat
+
+**What was built**
+
+- **Fight earnings × style rank into the real Wallet**: every landed move now banks `points × rank multiplier` dollars into the Wallet (the style meter mirrors it), so the Bullet Ledger's money is the money fights earn. A varied chain earns a 1.2× bonus on top; spam still earns almost nothing.
+- **Heat, 0–5 stars** (`scripts/heat.gd`, autoload): knockdowns +0.4, gunshots +0.6 (loud on a night street), landed hits +0.08. It decays only after **5 s out of sight of any hostile** — and a fixed timer bug here taught us the old version could never decay. HUD: red `HEAT *****` line under the style meter; music heartbeat follows heat. **Escalating response**: 1★ summons a brawler from a street edge; 3★ adds a knife; 5★ the armoured bruiser walks in (12 s reinforcement cooldown); when heat dies, responders leave. Training dummies witness nothing.
+- **Three shops** (`scripts/shop.gd`, kiosks built by street_dress): **STITCH & SHADOW** (tailor — Midnight and Oxblood coats that recolour the hero's coat and fedora, $45–55), **IRON & LEATHER** (gear — leather gloves +1 punch damage, track boots +8% speed, padded jacket −30% hit stun), **VELVET'S COUNTER** (pawn placeholder — the per-shot bullet price explained, future stock info-only). Walk in, GRAB to browse; a noir panel with prices, live cash, LEAVE. Every purchase writes to the Bullet Ledger; insufficient funds click and write nothing.
+- **The safehouse** (`scripts/safehouse.gd`): a lit door on the north face. GRAB → panel with SAVE / LOAD / status. **Save** (`scripts/save_game.gd`, atomic temp-file write) round-trips wallet + entries, heat, gear, coat look, hero position, style value, and the city-memory dictionary to `user://save.json`; **load** restores all of it and re-applies look and gear effects.
+
+**How to test on a phone**
+
+1. Beat the thug with varied moves at rank S — watch the cash line climb under the style meter, then open the ledger (B): the earn entries are there.
+2. Fire the Ledger Iron twice near witnesses: the HEAT line jumps a star and a brawler arrives from a street corner within seconds. Break line of sight ~10 s and watch stars fade; the responder gives up.
+3. Walk into the cyan-lit tailor kiosk (west side), GRAB, buy the Oxblood coat — your coat and fedora change colour, the ledger records −$55. The gear stall (north, amber) sells gloves: jabs that hit for 1 now hit for 2.
+4. The safehouse door (north face, cold blue light): GRAB, SAVE. Kill the app, reopen, GRAB, LOAD — cash, heat, coat, gloves and position all come back.
+
+**Not verified on a real phone**: shop panel fit at 375 px, whether heat decay pacing feels right in real play, and responder arrival fairness (spawn distance is clamped to the block edges — on foot that is a few seconds of walking).
+
+**Added beyond the brief**: the varied-chain earning bonus, dummies not counting as witnesses, the atomic save write, and the pawn counter already named for Velvet (Phase 7's gun-shop owner) so the world stays consistent.
+
+**GATE (Phase 5)**: `tests/smoke_economy.tscn` — **34 checks green**: rank D/S earning math into the Wallet, ledger earn entries, heat rise/cap/stars/HUD/music coupling, responder summon and departure, out-of-sight decay, tailor purchase (cash, look, actual coat colour on the rig), gear purchase (+1 damage verified through the damage function), insufficient funds (no charge, no entry), pawn info-only stock, and the full save/load round-trip (wallet, entries, heat, look, gear effect, position, city memory). All six suites green. **GATE: PASS (headless).**
+
 ### The Universal Animation Library pack
 
 `bare-hands/assets/` holds `UAL1_Standard.glb` (the Godot-ready, root-motion-disabled variant), the pack's `License.txt` (**CC0 1.0 / public domain, models by @Quaternius**) and its `README.txt`. The `_RM` (root-motion) variant and the Unity `.fbx` files stay in the original zip at the repo root; this game moves the character in code.

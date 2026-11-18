@@ -78,6 +78,27 @@ func _physics_process(delta: float) -> void:
 			_coat[i].rotation.x = -0.25 * _coat_swing + sway * (1.0 if i == 0 else -1.0)
 
 
+## Recolour the coat panels and the hat felt (the tailor's work).
+func set_coat_color(c: Color) -> void:
+	for p in _coat:
+		var mat: StandardMaterial3D = (p as MeshInstance3D).material_override
+		if mat:
+			mat.albedo_color = c
+	for mi in _find_hat_meshes():
+		var hm: StandardMaterial3D = (mi as MeshInstance3D).material_override
+		if hm:
+			hm.albedo_color = c * 0.85
+
+
+func _find_hat_meshes() -> Array:
+	var out: Array = []
+	if _hat:
+		for c in _hat.find_children("*", "MeshInstance3D", true, false):
+			if c.name == "Crown" or c.name == "Brim":
+				out.append(c)
+	return out
+
+
 ## The steel pipe rides the right hand when equipped.
 func equip_pipe(on: bool) -> void:
 	if on and _pipe == null:
