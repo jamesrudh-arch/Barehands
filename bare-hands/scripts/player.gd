@@ -62,6 +62,13 @@ signal hit_landed(kind: String, damage: int)  # the combo counter listens
 
 var _punch_stage := 0  # 1 jab, 2 cross, 3 hook, 4 SUPER
 var _punch_variant := "neutral"  # stick direction at punch start (Stage A4)
+# a sequence combo (combo pass PART 2): stage 6 plays its own timeline
+var _combo_def: Dictionary = {}
+var _combo_t := 0.0
+var _combo_i := 0        # next hit to land
+var _combo_anim_i := 0   # next anim beat to play
+var _combo_spin_from := 0.0
+var _powerbomb_pending := false  # Y,B pressed while the grab was still closing
 var _punch_heavy := false
 var _punch_t := 0.0
 var _punch_hit_done := false
@@ -87,6 +94,8 @@ const COAT_COLORS := {
 
 
 func _ready() -> void:
+	ComboInput.matched.connect(_on_combo_matched)
+	ComboInput.variety_bonus.connect(_on_variety)
 	add_to_group("player")
 	_rig._velocity_fn = func() -> Vector3: return velocity  # drives the coat sway
 
@@ -201,6 +210,7 @@ func _combat_input() -> void:
 			InputBus.consume_punch_hold()
 		else:
 			InputBus.consume_punch_hold()
+			InputBus.press_face("B")
 			_start_punch(3, true)
 	# hold-DODGE becomes a block after 0.25 s
 	if InputBus.dodge_held and InputBus.dodge_age() >= 0.25 and \
@@ -210,7 +220,9 @@ func _combat_input() -> void:
 	# A press during a landing settle or a knockdown dip therefore waits
 	# (up to the queue's 0.4 s life) instead of being silently dropped.
 	var can_act := state == State.GROUND and _t >= _hitstun_until
-	if can_act and InputBus.take_super():
+	if InputBus.grab_is_older() and InputBus.take_grab():
+		_try_grab_action()
+	elif can_act and InputBus.take_super():
 		_try_super()
 	elif can_act and InputBus.take_heavy():
 		_start_punch(3, true)
@@ -284,8 +296,6 @@ func _start_punch(stage: int, heavy: bool) -> void:
 	_punch_hit_done = false
 	_punch_buffered_at = -99.0
 	_punch_variant = "super" if stage == 4 else _stick_variant()
-	# scheme-neutral token for the combo buffer (Part 2)
-	InputBus.press_face("X" if stage == 5 else ("B" if heavy or stage == 3 else "A"))
 	# a heavy always starts its own swing; a light chains from where it is
 	if heavy and stage != 4:
 		_punch_stage = 3
@@ -334,6 +344,12 @@ func _start_punch(stage: int, heavy: bool) -> void:
 
 
 func _punch_step(delta: float) -> void:
+	if _punch_stage == 6:
+		if InputBus.take_dodge() and _combo_cancellable():
+			_try_dodge()  # dodge cancels a combo (level perk, PART 3)
+			return
+		_combo_step(delta)
+		return
 	if InputBus.take_dodge():
 		_try_dodge()  # dodge cancels a swing
 		return
@@ -354,6 +370,102 @@ func _punch_step(delta: float) -> void:
 			_start_punch(_punch_stage + 1, false)  # the light chain
 		else:
 			state = State.GROUND
+
+
+## Combo cancels: base game no; the level-5 perk says yes.
+func _combo_cancellable() -> bool:
+	var p := get_node_or_null("/root/Progression")
+	if p and p.has_method("combo_cancel_unlocked"):
+		return p.combo_cancel_unlocked()
+	return false
+
+
+## Stage 6: play the string's anim beats and land its hits on time.
+func _combo_step(delta: float) -> void:
+	if InputBus.take_punch():
+		_punch_buffered_at = _t  # chain straight out of a combo
+	_gravity(delta)
+	_combo_t += delta
+	velocity.x = move_toward(velocity.x, 0.0, 9.0 * delta)
+	velocity.z = move_toward(velocity.z, 0.0, 9.0 * delta)
+	var hits: Array = _combo_def.get("hits", [])
+	# anim beats
+	while _combo_anim_i < hits.size() and _combo_t >= float(hits[_combo_anim_i].get("anim_t", 0.0)):
+		var h: Dictionary = hits[_combo_anim_i]
+		_rig.play(h.get("anim", "Punch_Jab"), 0.05, float(h.get("speed", 1.0)))
+		_combo_anim_i += 1
+	# impacts
+	while _combo_i < hits.size() and _combo_t >= float(hits[_combo_i]["t"]):
+		_combo_hit(hits[_combo_i])
+		_combo_i += 1
+	# while beats remain, keep stepping toward the target so the string
+	# connects (the opening single's knockback must not eat the string)
+	if _combo_i < hits.size():
+		var track := _punch_target(0.2, 0.5)
+		if track:
+			var to2 := (track as Node3D).global_position - global_position
+			to2.y = 0.0
+			if to2.length() > 1.0:
+				to2 = to2.normalized()
+				velocity.x = to2.x * 2.8
+				velocity.z = to2.z * 2.8
+	# the spin strings turn the whole body through the sequence
+	if _combo_def.get("spin", false) and hits.size() > 0:
+		var total := float(hits[hits.size() - 1]["t"])
+		_body.rotation.y = _combo_spin_from + TAU * clampf(_combo_t / maxf(total, 0.1), 0.0, 1.0)
+	move_and_slide()
+	if state != State.PUNCH:
+		return
+	if _combo_i >= hits.size() and _combo_t >= float(hits[hits.size() - 1]["t"]) + 0.22:
+		_body.rotation.y = _yaw  # settle out of a spin
+		state = State.GROUND
+
+
+## One impact of a sequence combo: distinct fx per hit, scaled by the
+## anti-spam factor, AoE for the spin strings.
+func _combo_hit(hit: Dictionary) -> void:
+	var kind: String = hit.get("kind", "heavy")
+	var spam := ComboInput.spam_factor(_combo_def.get("id", ""))
+	var dmg := int(round(float(hit.get("dmg", 1)) * (1.0 if kind == "finisher" else spam)))
+	var reach_aoe := float(_combo_def.get("aoe", 0.0))
+	var targets: Array = []
+	if reach_aoe > 0.0:
+		for e in get_tree().get_nodes_in_group("enemy"):
+			var enemy := e as Enemy
+			if enemy and enemy.state not in [Enemy.State.DOWN, Enemy.State.GRABBED] 					and global_position.distance_to(enemy.global_position) <= reach_aoe:
+				targets.append(enemy)
+	else:
+		var t := _punch_target(0.35, 0.35)
+		if t:
+			targets.append(t)
+	if targets.is_empty():
+		Sound.play("cloth_2", -14.0, 1.2)  # a whiff keeps the beat audible
+		return
+	var primary_dir := -_body.global_transform.basis.z
+	for tg in targets:
+		var target := tg as CharacterBody3D
+		var dir: Vector3 = target.global_position - global_position
+		dir.y = 0.0
+		dir = dir.normalized()
+		primary_dir = dir
+		var hit_pos := target.global_position + Vector3.UP * 1.3
+		target.take_hit(dir, kind if dmg > 0 else "jab")
+		Fx.burst(hit_pos, Color(1.0, 0.72, 0.35) if kind == "heavy" else Color(0.4, 0.9, 1.0))
+	# a multi-hit string steps WITH its target so the later beats connect
+	if _combo_i < ( _combo_def.get("hits", []) as Array ).size() and not targets.is_empty():
+		velocity.x = primary_dir.x * 2.4
+		velocity.z = primary_dir.z * 2.4
+	Fx.hit_stop(0.12 if float(hit.get("dmg", 1)) >= 3 else 0.08)
+	Fx.camera_punch(float(hit.get("cam", 3.0)))
+	Fx.shake(float(hit.get("shake", 0.3)))
+	if hit.has("slow"):
+		Fx.slow_mo(float(hit["slow"]), 0.35)
+	Sound.play(hit.get("snd", "punch_med_0"), -3.0, float(hit.get("snd_pitch", 1.0)))
+	Haptics.fire(hit.get("hap", "light"))
+	Heat.on_violence("hit", global_position)
+	_style_add(hit.get("style", kind))
+	SuperMeter.gain(SuperMeter.GAIN_HIT, kind)
+	hit_landed.emit(kind, dmg)
 
 
 func _impact_time() -> float:
@@ -735,6 +847,78 @@ func open_counter(seconds: float) -> void:
 # --- grab and throw -----------------------------------------------------------------
 
 
+## A sequence completed: fire its choreography (from neutral or, for the
+## powerbomb, out of a grab).
+func _on_combo_matched(id: String) -> void:
+	var def := ComboTable.by_id(id)
+	if def.is_empty():
+		return
+	if def.get("requires_grab", false):
+		if state == State.GRAB:
+			_powerbomb(def)
+		else:
+			_powerbomb_pending = true  # armed; fires the moment the grab lands
+		return
+	if state in [State.GROUND, State.PUNCH] and _t >= _hitstun_until:
+		_start_combo(def)
+
+
+## Three different combos inside the variety window: style pays out.
+func _on_variety(_ids: Array) -> void:
+	_style_add("variety")
+	SuperMeter.gain(8.0, "variety")
+
+
+## Begin a sequence combo: stage 6, its own timeline.
+func _start_combo(def: Dictionary) -> void:
+	state = State.PUNCH
+	InputBus.stamp_fired("punch_down")
+	_punch_stage = 6
+	_punch_heavy = false
+	_punch_variant = "combo"
+	_punch_t = 0.0
+	_punch_hit_done = true  # the single-punch impact logic must not run
+	_punch_buffered_at = -99.0
+	_combo_def = def
+	_combo_t = 0.0
+	_combo_i = 0
+	_combo_anim_i = 0
+	_combo_spin_from = _yaw
+	var lunge := float(def.get("lunge", 1.0))
+	# combos always face the nearest enemy first (engage-range soft-lock)
+	var target := _punch_target(-1.0, 2.1)
+	if target:
+		var to := target.global_position - global_position
+		to.y = 0.0
+		_yaw = atan2(-to.x, -to.z)
+		_body.rotation.y = _yaw
+		# and step IN to open the string, however far the opening single
+		# knocked them: enough VELOCITY to close the gap inside the first
+		# beat's windup (a string that whiffs its own first beat is a bug)
+		var first_t := 0.22
+		var hits0: Array = def.get("hits", [])
+		if not hits0.is_empty():
+			first_t = maxf(0.15, float((hits0[0] as Dictionary).get("t", 0.22)))
+		lunge = clampf((to.length() - 0.9) / first_t, lunge, 6.0)
+	var fwd := -_body.global_transform.basis.z
+	velocity.x = fwd.x * lunge
+	velocity.z = fwd.z * lunge
+	Haptics.fire("ui")
+
+
+## The powerbomb (Y,B while holding someone): the throw, made cinematic.
+func _powerbomb(def: Dictionary) -> void:
+	var hit: Dictionary = def["hits"][0]
+	_grab_throw()
+	Fx.camera_punch(float(hit.get("cam", -7.0)))
+	Fx.shake(float(hit.get("shake", 0.8)))
+	Fx.slow_mo(0.3, 0.4)
+	Sound.play(hit.get("snd", "wood_heavy_0"), -3.0, float(hit.get("snd_pitch", 0.8)))
+	Haptics.fire(hit.get("hap", "super"))
+	_style_add("slam")
+	SuperMeter.gain(SuperMeter.GAIN_TAKEDOWN, "slam")
+
+
 ## A kick (stage 5): the code-built Kick_Code clip. Reads as a mid-range
 ## poke; on a staggered enemy it launches instead (the pop-up juggle entry).
 func _try_kick() -> void:
@@ -779,7 +963,6 @@ func dodge_cooldown_01() -> float:
 
 
 func _try_grab_action() -> void:
-	InputBus.press_face("Y")
 	if state == State.GRAB:
 		_grab_throw()
 		return
@@ -805,6 +988,12 @@ func _try_grab_action() -> void:
 		_grabbed_enemy = target
 		target.grabbed_by(self)
 		_rig.play("Push", 0.08, 0.8)
+		if _powerbomb_pending:
+			# Y,B was pressed while the grab closed: finish the thought
+			_powerbomb_pending = false
+			var pb := ComboTable.by_id("slam_chain")
+			if not pb.is_empty():
+				_powerbomb(pb)
 		return
 	# no enemy: the gun on the car, offered with its bullet price first
 	if not has_gun and not has_pipe:

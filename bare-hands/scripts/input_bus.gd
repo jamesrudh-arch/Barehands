@@ -160,6 +160,18 @@ func take_kick() -> bool:
 	return _take("_kick_at")
 
 
+## Is a grab waiting, and was it pressed BEFORE any swing queued after it?
+## (The combo pass: Y then B must not let the heavy eat the grab.)
+func grab_pending() -> bool:
+	return _game_msec - _grab_at <= QUEUE_LIFE_MSEC
+
+
+func grab_is_older() -> bool:
+	if _game_msec - _grab_at > QUEUE_LIFE_MSEC:
+		return false
+	return _grab_at <= maxf(_heavy_at, maxf(_punch_at, _kick_at))
+
+
 func queue_dodge() -> void:
 	_dodge_at = _game_msec
 

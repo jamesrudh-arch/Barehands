@@ -349,8 +349,30 @@ func take_hit(dir: Vector3, hit_kind: String) -> void:
 			knock = 6.0
 			_play("Hit_Head", 0.03, 1.8)
 			_flash_white(Color(0.4, 1.0, 1.0), 2.4)
+		"tap":
+			knock = 0.6  # string ticks stay in range for the next beat
+			_play("Hit_Chest", 0.04, 1.6)
+			_flash_white(Color(1, 1, 1), 1.5)
 		"kick":
 			knock = 5.5
+			_play("Hit_Chest", 0.04, 1.4)
+			_flash_white(Color(1.0, 0.85, 0.5), 2.2)
+		"sweep":
+			dmg = _damage_of("kick")
+			knock = 1.6
+			velocity = dir * knock
+			_enter(State.DOWN)  # dumped onto the asphalt, not dead
+			_play("Hit_Chest", 0.04, 1.1)
+			_flash_white(Color(0.9, 0.9, 0.9), 1.8)
+			return
+		"throw_slam":
+			dmg = 3
+			knock = 2.0
+			velocity = dir * knock + Vector3.UP * 2.0
+			_enter(State.DOWN)
+			_play("Death01", 0.05, 1.0)
+			_flash_white(Color(1.0, 0.6, 0.3), 2.6)
+			return
 			_play("Hit_Chest", 0.04, 1.4)
 			_flash_white(Color(1.0, 0.85, 0.5), 2.2)
 		"backfist":
@@ -411,7 +433,8 @@ func take_hit(dir: Vector3, hit_kind: String) -> void:
 func _damage_of(hit_kind: String) -> int:
 	return {"jab": 1, "cross": 2, "hook": 2, "heavy": 3, "counter": 99,
 			"pipe": 2, "pipe_heavy": 4, "knee": 1, "launcher": 1, "shot": 6,
-			"backfist": 2, "backfist_counter": 6, "kick": 2, "super": 99}.get(hit_kind, 1)
+			"backfist": 2, "backfist_counter": 6, "kick": 2, "super": 99,
+			"throw_slam": 3, "tap": 1}.get(hit_kind, 1)
 
 
 func _die(cause: String) -> void:

@@ -119,11 +119,13 @@ func _on_down(name: String) -> void:
 		"PunchBtn":
 			InputBus.stamp_action("punch_down")
 			InputBus.punch_press()
+			InputBus.press_face("A")
 		"DodgeBtn":
 			InputBus.stamp_action("dodge_down")
 			InputBus.dodge_press()
 		"GrabBtn", "FaceY":
 			InputBus.queue_grab()
+			InputBus.press_face("Y")
 		"LockBtn":
 			_toggle_lock()
 		"SuperBtn":
@@ -131,11 +133,14 @@ func _on_down(name: String) -> void:
 		"FaceA":
 			InputBus.stamp_action("punch_down")
 			InputBus.queue_punch()
+			InputBus.press_face("A")
 		"FaceB":
 			InputBus.stamp_action("punch_down")
 			InputBus.queue_heavy()
+			InputBus.press_face("B")
 		"FaceX":
 			InputBus.queue_kick()
+			InputBus.press_face("X")
 
 
 func _on_up(name: String) -> void:
