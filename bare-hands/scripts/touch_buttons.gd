@@ -1,20 +1,40 @@
 class_name TouchButtons
 extends CanvasLayer
-## The action side of the HUD (Stage A2/A3). Builds its own buttons in code
-## (ActionButton - touch-DOWN triggers, oversized hit areas, press
-## animations, a soft tick, per-action haptics, cooldown rings), applies the
-## player's layout (presets, the editor, opacity) and keeps the one-time
-## hint label. Also feeds the debug panel's latency numbers.
+## The action side of the HUD (Stage A + combo pass). Two button schemes
+## the player chooses in Settings and the first-run picker:
+##   face    - the console diamond: A light punch, B heavy punch, X kick,
+##             Y grab/throw, with smaller JUMP / DODGE / SPRINT / LOCK
+##             beside it. The SUPER button only appears when the meter is
+##             full.
+##   classic - PUNCH (tap light / hold heavy), DODGE/BLOCK, JUMP, SPRINT,
+##             GRAB, LOCK, SUPER with its fill ring.
+## Both keep touch-DOWN firing, oversized hit areas, press animation, the
+## ui tick, haptics, cooldown rings, the layout editor and left-handed
+## mode. Buttons are rebuilt on scheme change; layouts are per-button so
+## each scheme remembers its own arrangement.
 
-const BUTTON_SPECS := [
-	# name, label, colour, dx, dy (from the bottom-right corner, px)
-	["PunchBtn", "PUNCH", Color(1.0, 0.45, 0.35, 0.95), 152.0, 152.0],
-	["DodgeBtn", "DODGE", Color(0.85, 0.9, 1.0, 0.95), 284.0, 152.0],
-	["JumpBtn", "JUMP", Color(1.0, 0.78, 0.45, 0.95), 152.0, 300.0],
-	["SprintBtn", "SPRINT", Color(0.55, 0.95, 1.0, 0.95), 284.0, 300.0],
-	["GrabBtn", "GRAB", Color(0.75, 1.0, 0.6, 0.95), 284.0, 420.0],
-	["LockBtn", "LOCK", Color(0.8, 0.8, 0.85, 0.9), 416.0, 300.0],
-	["SuperBtn", "SUPER", Color(1.0, 0.62, 0.2, 1.0), 152.0, 428.0],
+const CLASSIC_SPECS := [
+	# name, label, sub, colour, dx, dy, size
+	["PunchBtn", "PUNCH", "", Color(1.0, 0.45, 0.35, 0.95), 152.0, 152.0, 116.0],
+	["DodgeBtn", "DODGE", "", Color(0.85, 0.9, 1.0, 0.95), 284.0, 152.0, 116.0],
+	["JumpBtn", "JUMP", "", Color(1.0, 0.78, 0.45, 0.95), 152.0, 300.0, 116.0],
+	["SprintBtn", "SPRINT", "", Color(0.55, 0.95, 1.0, 0.95), 284.0, 300.0, 116.0],
+	["GrabBtn", "GRAB", "", Color(0.75, 1.0, 0.6, 0.95), 284.0, 420.0, 116.0],
+	["LockBtn", "LOCK", "", Color(0.8, 0.8, 0.85, 0.9), 416.0, 300.0, 86.0],
+	["SuperBtn", "SUPER", "", Color(1.0, 0.62, 0.2, 1.0), 152.0, 428.0, 116.0],
+]
+
+const FACE_SPECS := [
+	# the diamond: A bottom, B right, X left, Y top
+	["FaceA", "A", "LIGHT", Color(1.0, 0.82, 0.6, 0.95), 214.0, 84.0, 108.0],
+	["FaceB", "B", "HEAVY", Color(1.0, 0.42, 0.34, 0.95), 106.0, 190.0, 108.0],
+	["FaceX", "X", "KICK", Color(0.45, 0.92, 1.0, 0.95), 322.0, 190.0, 108.0],
+	["FaceY", "Y", "GRAB", Color(0.72, 1.0, 0.62, 0.95), 214.0, 296.0, 108.0],
+	["JumpBtn", "JUMP", "", Color(1.0, 0.78, 0.45, 0.95), 452.0, 148.0, 84.0],
+	["DodgeBtn", "DODGE", "", Color(0.85, 0.9, 1.0, 0.95), 452.0, 248.0, 84.0],
+	["SprintBtn", "SPRINT", "", Color(0.55, 0.95, 1.0, 0.95), 452.0, 348.0, 84.0],
+	["LockBtn", "LOCK", "", Color(0.8, 0.8, 0.85, 0.9), 322.0, 330.0, 74.0],
+	["SuperBtn", "SUPER", "", Color(1.0, 0.62, 0.2, 1.0), 106.0, 330.0, 96.0],
 ]
 
 var hint_shown := false
@@ -27,9 +47,11 @@ var _edit_drag := false
 var _edit_last := Vector2.ZERO
 var _toolbar: PanelContainer
 var _hint: Label
+var _vp: Vector2
 
 
 func _ready() -> void:
+	_vp = get_viewport().size
 	_build_buttons()
 	_build_hint()
 	_apply_layout()
@@ -38,35 +60,50 @@ func _ready() -> void:
 	_on_super_meter(SuperMeter.value)
 
 
-func _on_super_meter(value: float) -> void:
-	var b := _buttons.get("SuperBtn") as ActionButton
-	if b:
-		b.charged = SuperMeter.is_full()
-		# the ring shows the FILL (drains as the meter grows)
-		b.cooldown = 1.0 - SuperMeter.frac()
+func _scheme() -> String:
+	return "face" if str(Settings.value("button_scheme")) == "face" else "classic"
+
+
+func _specs() -> Array:
+	return FACE_SPECS if _scheme() == "face" else CLASSIC_SPECS
+
+
+func _on_setting(key: String) -> void:
+	if key == "button_scheme":
+		_build_buttons()
+		_apply_layout()
+	elif key == "layout" or key == "left_handed" or key == "opacity":
+		_apply_layout()
 
 
 # --- buttons ---------------------------------------------------------------------
 
 
 func _build_buttons() -> void:
-	for spec in BUTTON_SPECS:
+	for name in _buttons:
+		(_buttons[name] as ActionButton).queue_free()
+	_buttons.clear()
+	_default_rects.clear()
+	for spec in _specs():
 		var name: String = spec[0]
 		var b := ActionButton.new()
 		b.name = name
 		b.label = spec[1]
-		b.tint = spec[2]
+		b.sub = spec[2]
+		b.tint = spec[3]
+		var sz: float = spec[6]
 		b.anchor_left = 1.0
 		b.anchor_right = 1.0
 		b.anchor_top = 1.0
 		b.anchor_bottom = 1.0
-		b.size = Vector2(116, 116)
-		b.position = Vector2(-spec[3] - 116.0, -spec[4] - 116.0)
+		b.size = Vector2(sz, sz)
+		b.position = Vector2(-spec[4] - sz, -spec[5] - sz)
 		b.down.connect(_on_down.bind(name))
 		b.up.connect(_on_up.bind(name))
 		add_child(b)
 		_buttons[name] = b
 		_default_rects[name] = Rect2(b.position, b.size)
+	_apply_super_visibility()
 
 
 func _on_down(name: String) -> void:
@@ -85,12 +122,20 @@ func _on_down(name: String) -> void:
 		"DodgeBtn":
 			InputBus.stamp_action("dodge_down")
 			InputBus.dodge_press()
-		"GrabBtn":
+		"GrabBtn", "FaceY":
 			InputBus.queue_grab()
 		"LockBtn":
 			_toggle_lock()
 		"SuperBtn":
 			InputBus.queue_super()
+		"FaceA":
+			InputBus.stamp_action("punch_down")
+			InputBus.queue_punch()
+		"FaceB":
+			InputBus.stamp_action("punch_down")
+			InputBus.queue_heavy()
+		"FaceX":
+			InputBus.queue_kick()
 
 
 func _on_up(name: String) -> void:
@@ -120,6 +165,9 @@ func _process(delta: float) -> void:
 		var p := player as CharacterBody3D
 		_set_ring("PunchBtn", p.punch_cooldown_01())
 		_set_ring("DodgeBtn", p.dodge_cooldown_01())
+		_set_ring("FaceA", p.punch_cooldown_01())
+		_set_ring("FaceB", p.punch_cooldown_01())
+		_set_ring("FaceX", p.punch_cooldown_01())
 	if _hint_fade > 0.0:
 		_hint_fade -= delta
 		if _hint_fade <= 0.0:
@@ -134,19 +182,25 @@ func _set_ring(name: String, cd: float) -> void:
 		b.cooldown = cd
 
 
-## The SUPER button lights up when the meter is full (Stage A4 wires this).
-func set_super_charged(on: bool) -> void:
+func _on_super_meter(value: float) -> void:
+	var b := _buttons.get("SuperBtn") as ActionButton
+	if b == null:
+		return
+	b.charged = SuperMeter.is_full()
+	# the ring shows the FILL (drains as the meter grows)
+	b.cooldown = 1.0 - SuperMeter.frac()
+	_apply_super_visibility()
+
+
+## Face scheme: the SUPER button only exists on screen while the meter is
+## full; Classic keeps it visible with its fill ring.
+func _apply_super_visibility() -> void:
 	var b := _buttons.get("SuperBtn") as ActionButton
 	if b:
-		b.charged = on
+		b.visible = _scheme() == "classic" or SuperMeter.is_full()
 
 
 # --- layout: presets, editor overrides, opacity ------------------------------------
-
-
-func _on_setting(key: String) -> void:
-	if key == "layout" or key == "left_handed" or key == "opacity":
-		_apply_layout()
 
 
 func _apply_layout() -> void:
@@ -158,6 +212,7 @@ func _apply_layout() -> void:
 		b.position = def.position + Vector2(float(over.get("dx", 0.0)), float(over.get("dy", 0.0)))
 		b.size = def.size * float(over.get("scale", 1.0))
 		b.modulate = Color(1, 1, 1, opacity * float(over.get("opacity", 1.0)))
+	_apply_super_visibility()
 
 
 # --- the layout editor ---------------------------------------------------------------
@@ -296,6 +351,25 @@ func _save_override(name: String) -> void:
 	over["dx"] = b.position.x - def.position.x
 	over["dy"] = b.position.y - def.position.y
 	Settings.set_layout_for(name, over)
+
+
+## Presets are generic over whichever buttons exist (both schemes).
+func apply_preset(id: String) -> void:
+	Settings.set_value("preset", id)
+	var layout := {}
+	match id:
+		"compact":
+			for name in _buttons:
+				layout[name] = {"dx": 34.0, "dy": 30.0, "scale": 0.85, "opacity": 1.0}
+		"left":
+			# mirror every button horizontally around the screen centre
+			for name in _buttons:
+				var def: Rect2 = _default_rects[name]
+				var cx := def.position.x + def.size.x * 0.5
+				layout[name] = {"dx": _vp.x - 2.0 * cx, "dy": 0.0, "scale": 1.0, "opacity": 1.0}
+	Settings.set_value("layout", layout)
+	Settings.set_value("left_handed", id == "left")
+	Settings.changed.emit("layout")
 
 
 # --- hints ---------------------------------------------------------------------------

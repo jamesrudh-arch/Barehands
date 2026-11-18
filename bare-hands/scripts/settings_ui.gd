@@ -194,6 +194,24 @@ func _style(b: Button) -> void:
 
 func _layout_section(col: BoxContainer) -> void:
 	_title(col, "BUTTON LAYOUT")
+	# the scheme chooser: console diamond vs classic touch buttons
+	var brow := HBoxContainer.new()
+	brow.add_theme_constant_override("separation", 8)
+	col.add_child(brow)
+	for id in ["face", "classic"]:
+		var b := Button.new()
+		b.text = "Face buttons" if id == "face" else "Classic"
+		b.focus_mode = Control.FOCUS_NONE
+		b.custom_minimum_size = Vector2(182, 48)
+		b.add_theme_font_size_override("font_size", 14)
+		_style(b)
+		b.name = "BtnScheme_" + id
+		var bid: String = id
+		b.pressed.connect(func() -> void:
+			Settings.set_value("button_scheme", bid)
+			_refresh_btn_scheme())
+		brow.add_child(b)
+	_refresh_btn_scheme()
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
 	col.add_child(row)
@@ -222,28 +240,17 @@ func _layout_section(col: BoxContainer) -> void:
 	col.add_child(note)
 
 
+func _refresh_btn_scheme() -> void:
+	var cur := str(Settings.value("button_scheme"))
+	for b in find_children("BtnScheme_*", "Button", true, false):
+		(b as Button).modulate = Color(1.4, 1.15, 0.8) if b.name == "BtnScheme_" + cur else Color.WHITE
+
+
 func _apply_preset(id: String) -> void:
-	Settings.set_value("preset", id)
-	var layout := {}
-	match id:
-		"compact":
-			for n in BUTTON_NAMES:
-				layout[n] = {"dx": 34.0, "dy": 30.0, "scale": 0.85, "opacity": 1.0}
-		"left":
-			# mirror the cluster to the bottom-left, stick zone flips right
-			layout = {
-				"PunchBtn": {"dx": -300.0, "dy": 120.0, "scale": 1.0, "opacity": 1.0},
-				"DodgeBtn": {"dx": -170.0, "dy": 120.0, "scale": 1.0, "opacity": 1.0},
-				"JumpBtn": {"dx": -300.0, "dy": -20.0, "scale": 1.0, "opacity": 1.0},
-				"SprintBtn": {"dx": -170.0, "dy": -20.0, "scale": 1.0, "opacity": 1.0},
-				"GrabBtn": {"dx": -300.0, "dy": -150.0, "scale": 1.0, "opacity": 1.0},
-				"LockBtn": {"dx": -560.0, "dy": 0.0, "scale": 1.0, "opacity": 1.0},
-			}
-			Settings.set_value("left_handed", true)
-	Settings.set_value("layout", layout)
-	if id != "left":
-		Settings.set_value("left_handed", false)
-	Settings.changed.emit("layout")
+	# generic: the HUD mirrors whichever buttons exist (face or classic)
+	var hud := get_tree().get_first_node_in_group("hud")
+	if hud and hud.has_method("apply_preset"):
+		hud.apply_preset(id)
 
 
 func _start_layout_edit() -> void:

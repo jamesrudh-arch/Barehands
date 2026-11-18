@@ -28,6 +28,7 @@ const PATH := "user://settings.json"
 
 const DEFAULTS := {
 	"scheme": "floating",
+	"button_scheme": "classic",
 	"sensitivity": 1.0,
 	"deadzone": 0.15,
 	"curve": 1.7,

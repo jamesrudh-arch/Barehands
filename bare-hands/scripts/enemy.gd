@@ -349,6 +349,10 @@ func take_hit(dir: Vector3, hit_kind: String) -> void:
 			knock = 6.0
 			_play("Hit_Head", 0.03, 1.8)
 			_flash_white(Color(0.4, 1.0, 1.0), 2.4)
+		"kick":
+			knock = 5.5
+			_play("Hit_Chest", 0.04, 1.4)
+			_flash_white(Color(1.0, 0.85, 0.5), 2.2)
 		"backfist":
 			knock = 4.0
 			_play("Hit_Head", 0.04, 1.9)
@@ -407,7 +411,7 @@ func take_hit(dir: Vector3, hit_kind: String) -> void:
 func _damage_of(hit_kind: String) -> int:
 	return {"jab": 1, "cross": 2, "hook": 2, "heavy": 3, "counter": 99,
 			"pipe": 2, "pipe_heavy": 4, "knee": 1, "launcher": 1, "shot": 6,
-			"backfist": 2, "backfist_counter": 6, "super": 99}.get(hit_kind, 1)
+			"backfist": 2, "backfist_counter": 6, "kick": 2, "super": 99}.get(hit_kind, 1)
 
 
 func _die(cause: String) -> void:

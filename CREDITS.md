@@ -50,3 +50,9 @@ The fedora and the swinging coat panels (scripts/hero_rig.gd), all level geometr
 ## Engine
 
 Godot 4.7 (MIT license) — https://godotengine.org
+
+## Combo pass — code-built animation
+- **Kick_Code** (the hero's kick): no CC0 clip existed in the Universal
+  Animation Library, so the kick is built in code (`scripts/ual_bind.gd`,
+  `_kick_clip()` - bone-keyframe animation on the pack's own rig). No
+  external asset, nothing to credit.

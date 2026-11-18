@@ -9,6 +9,7 @@ const FISTS := [
 	["Lunge cross", "stick forward + tap PUNCH", "Covers ground fast; the opening move of a chase."],
 	["Backfist counter", "stick back + tap PUNCH", "A quick back-step strike. Counts as a counter on an attacking enemy."],
 	["Uppercut launcher", "stick back + hold PUNCH", "Pops a staggered enemy into the air for a juggle."],
+	["Kick", "X (Face buttons) / tap KICK", "A mid-range poke; on a staggered enemy it pops them up for a juggle."],
 	["Finisher", "hold PUNCH on a nearly-down enemy", "A slow-mo execution with the biggest style points."],
 	["Wall slam", "heavy near a wall or crate", "The environment is a weapon: cross or heavy with something solid behind them."],
 ]

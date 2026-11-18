@@ -206,11 +206,19 @@ func _combat_input() -> void:
 	if InputBus.dodge_held and InputBus.dodge_age() >= 0.25 and \
 			state == State.GROUND and _t >= _hitstun_until:
 		_enter_block()
-	if InputBus.take_super():
+	# Buffering: a queued action is only CONSUMED when the hero can act.
+	# A press during a landing settle or a knockdown dip therefore waits
+	# (up to the queue's 0.4 s life) instead of being silently dropped.
+	var can_act := state == State.GROUND and _t >= _hitstun_until
+	if can_act and InputBus.take_super():
 		_try_super()
+	elif can_act and InputBus.take_heavy():
+		_start_punch(3, true)
+	elif can_act and InputBus.take_kick():
+		_try_kick()
 	elif InputBus.take_dodge():
 		_try_dodge()
-	elif InputBus.take_punch():
+	elif can_act and InputBus.take_punch():
 		_try_punch()
 	elif InputBus.take_grab():
 		_try_grab_action()
@@ -276,6 +284,8 @@ func _start_punch(stage: int, heavy: bool) -> void:
 	_punch_hit_done = false
 	_punch_buffered_at = -99.0
 	_punch_variant = "super" if stage == 4 else _stick_variant()
+	# scheme-neutral token for the combo buffer (Part 2)
+	InputBus.press_face("X" if stage == 5 else ("B" if heavy or stage == 3 else "A"))
 	# a heavy always starts its own swing; a light chains from where it is
 	if heavy and stage != 4:
 		_punch_stage = 3
@@ -298,6 +308,8 @@ func _start_punch(stage: int, heavy: bool) -> void:
 		if to.length() < 0.85:
 			lunge = 0.0  # point-blank: no lunge, just swing
 	var fwd := -_body.global_transform.basis.z
+	if stage == 5:
+		lunge = 1.4  # the kick steps in a touch
 	if _punch_variant == "back":
 		# the backfist hops away; the uppercut charges back, then rises
 		# INTO the enemy like a fighting-game uppercut
@@ -315,7 +327,10 @@ func _start_punch(stage: int, heavy: bool) -> void:
 		speed = 2.1  # the backfist snaps
 	if stage == 4:
 		speed = 0.55  # the SUPER winds up slow on purpose
-	_rig.play("Punch_Jab" if stage == 1 else "Punch_Cross", 0.06, speed)
+	if stage == 5:
+		_rig.play("Kick_Code", 0.06, 1.0)
+	else:
+		_rig.play("Punch_Jab" if stage == 1 else "Punch_Cross", 0.06, speed)
 
 
 func _punch_step(delta: float) -> void:
@@ -342,6 +357,8 @@ func _punch_step(delta: float) -> void:
 
 
 func _impact_time() -> float:
+	if _punch_stage == 5:
+		return 0.22
 	if _punch_stage == 4:
 		return 0.30
 	if _punch_heavy:
@@ -356,6 +373,8 @@ func _impact_time() -> float:
 
 
 func _lock_time() -> float:
+	if _punch_stage == 5:
+		return 0.52
 	if _punch_stage == 4:
 		return 0.9
 	if _punch_heavy:
@@ -418,6 +437,21 @@ func _land_punch() -> void:
 		if surface != "":
 			_env_takedown(target, dir, surface, hit_pos)
 			return
+	if kind == "kick":
+		# the kick: a distinct crack - deeper thud, heel haptic, wider arc
+		Fx.hit_stop(0.12)
+		target.take_hit(dir, kind)
+		Fx.burst(hit_pos, Color(1.0, 0.85, 0.5))
+		Fx.shake(0.45)
+		Fx.camera_punch(4.5)
+		Haptics.fire("heavy")
+		Sound.play("body_heavy_0", -3.0, 0.75, 0.04)
+		Fx.emit_hit("kick", hit_pos)
+		Heat.on_violence("hit", global_position)
+		_style_add("kick")
+		SuperMeter.gain(SuperMeter.GAIN_HIT, "kick")
+		hit_landed.emit("kick", 2)
+		return
 	var dmg := _swing_damage(kind)
 	Fx.hit_stop(0.11 if counter or kind in ["cross", "heavy", "pipe_heavy"] else 0.07)
 	target.take_hit(dir, kind)
@@ -473,6 +507,9 @@ func _hint_once(id: String, text: String) -> void:
 
 ## What this swing is, given the target's condition and the stick variant.
 func _swing_kind(target: CharacterBody3D, counter: bool) -> String:
+	if _punch_stage == 5:
+		# a kick on a staggered enemy pops them up (juggle entry)
+		return "launcher" if target.state in [Enemy.State.STAGGER, Enemy.State.FLINCH] else "kick"
 	if _punch_stage == 4:
 		return "super"
 	if counter:
@@ -698,6 +735,16 @@ func open_counter(seconds: float) -> void:
 # --- grab and throw -----------------------------------------------------------------
 
 
+## A kick (stage 5): the code-built Kick_Code clip. Reads as a mid-range
+## poke; on a staggered enemy it launches instead (the pop-up juggle entry).
+func _try_kick() -> void:
+	if state == State.GROUND and _t >= _hitstun_until:
+		_start_punch(5, false)
+	elif state == State.PUNCH and _punch_stage in [1, 2] and _t >= _hitstun_until:
+		# a kick cancels the tail of a light chain (feels snappy)
+		_start_punch(5, false)
+
+
 ## The SUPER strike: spends the full meter for a slow-mo shockwave that
 ## flattens everyone in reach (Stage A4).
 func _try_super() -> void:
@@ -732,6 +779,7 @@ func dodge_cooldown_01() -> float:
 
 
 func _try_grab_action() -> void:
+	InputBus.press_face("Y")
 	if state == State.GRAB:
 		_grab_throw()
 		return

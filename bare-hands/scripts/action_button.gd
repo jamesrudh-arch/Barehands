@@ -11,6 +11,7 @@ signal down
 signal up
 
 var label := "BUTTON"
+var sub := ""  # small caption under the label (A LIGHT, B HEAVY, ...)
 var tint := Color(1, 0.58, 0.45, 0.95)
 var visual_scale := 0.80  # drawn disc vs hit rect
 var cooldown := 0.0       # 0 = ready, 1 = just used (arc drains to 0)
@@ -73,9 +74,14 @@ func _draw() -> void:
 	if cooldown > 0.003:
 		draw_arc(c, press_r + 4.0, -PI / 2.0, -PI / 2.0 + TAU * (1.0 - cooldown),
 				40, Color(1, 1, 1, 0.5), 3.0, true)
-	# label
+	# label (+ optional small caption under it)
 	var font := get_theme_default_font()
 	var fs := maxi(12, int(r * 0.42))
 	var ts: Vector2 = font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, fs)
-	draw_string(font, c - ts * 0.5, label, HORIZONTAL_ALIGNMENT_LEFT, -1, fs,
-			Color(1, 1, 1, 0.92))
+	draw_string(font, c - ts * 0.5 - Vector2(0, r * 0.12), label,
+			HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(1, 1, 1, 0.92))
+	if sub != "":
+		var fss := maxi(9, int(r * 0.20))
+		var tss: Vector2 = font.get_string_size(sub, HORIZONTAL_ALIGNMENT_LEFT, -1, fss)
+		draw_string(font, c - tss * 0.5 + Vector2(0, r * 0.34), sub,
+				HORIZONTAL_ALIGNMENT_LEFT, -1, fss, Color(1, 1, 1, 0.62))

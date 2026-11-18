@@ -30,6 +30,7 @@ static func library() -> AnimationLibrary:
 	_lib = AnimationLibrary.new()
 	for anim_name in src.get_animation_list():
 		_lib.add_animation(anim_name, _rewritten(src.get_animation(anim_name)))
+	_add_code_clips(_lib)
 	Log.info("UalBind: library ready, %d clips rewritten to plain paths" % _lib.get_animation_list().size())
 	return _lib
 
@@ -37,6 +38,41 @@ static func library() -> AnimationLibrary:
 ## Duplicate an animation with every track path stripped of the ^ marker.
 ## (Position and rotation tracks for the same bone share one path - both
 ## get rewritten.)
+## Clips the pack does not have, built in code. Kick_Code: the right leg
+## chambers, snaps out at hip height, recovers - plus a pelvis lean, spine
+## counter and a guard arm so it reads as a kick, not a leg raise. Built
+## from the same plain bone paths the rewritten library uses.
+static func _add_code_clips(lib: AnimationLibrary) -> void:
+	lib.add_animation("Kick_Code", _kick_clip())
+	Log.info("UalBind: code clips added (Kick_Code)")
+
+
+static func _kick_clip() -> Animation:
+	var a := Animation.new()
+	a.length = 0.5
+	# path -> [time0, rot0, time1, rot1, ...] as X-axis rotations (rad);
+	# the hero faces -Z, so +X on the thigh lifts the knee forward.
+	var marks := {
+		"Armature/Skeleton3D:thigh_r": [0.0, 0.0, 0.12, 1.45, 0.22, 1.75, 0.36, 1.25, 0.5, 0.0],
+		"Armature/Skeleton3D:calf_r": [0.0, 0.0, 0.12, -1.6, 0.22, -0.12, 0.36, -1.45, 0.5, 0.0],
+		"Armature/Skeleton3D:foot_r": [0.0, 0.0, 0.12, -0.3, 0.22, 0.45, 0.36, -0.1, 0.5, 0.0],
+		"Armature/Skeleton3D:pelvis": [0.0, 0.0, 0.12, -0.12, 0.22, -0.18, 0.36, -0.1, 0.5, 0.0],
+		"Armature/Skeleton3D:spine_01": [0.0, 0.0, 0.12, 0.1, 0.22, 0.16, 0.36, 0.08, 0.5, 0.0],
+		"Armature/Skeleton3D:upperarm_l": [0.0, 0.0, 0.12, 0.7, 0.22, 0.9, 0.36, 0.6, 0.5, 0.0],
+		"Armature/Skeleton3D:upperarm_r": [0.0, 0.0, 0.12, -0.4, 0.22, -0.5, 0.36, -0.3, 0.5, 0.0],
+	}
+	for path in marks:
+		var t := a.add_track(Animation.TYPE_ROTATION_3D)
+		a.track_set_path(t, NodePath(path))
+		var keys: Array = marks[path]
+		for i in range(0, keys.size(), 2):
+			a.rotation_track_insert_key(t, keys[i],
+					Quaternion.from_euler(Vector3(keys[i + 1], 0.0, 0.0)))
+		a.track_set_interpolation_type(t, Animation.InterpolationType.INTERPOLATION_CUBIC)
+	a.loop_mode = Animation.LOOP_NONE
+	return a
+
+
 static func _rewritten(a: Animation) -> Animation:
 	var out := a.duplicate()
 	for t in out.get_track_count():

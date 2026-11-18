@@ -78,8 +78,19 @@ func _test_first_run_picker() -> void:
 	if fr == null or not is_instance_valid(fr):
 		return
 	_check(InputBus.locked, "picker locks gameplay input")
-	var cards := fr.find_children("*", "Button", true, false)
-	_check(cards.size() == 4, "picker shows four scheme cards (%d)" % cards.size())
+	var cards := fr.find_children("Move_*", "Button", true, false)
+	_check(cards.size() == 4, "picker shows four movement cards (%d)" % cards.size())
+	var btn_cards := fr.find_children("Btns_*", "Button", true, false)
+	_check(btn_cards.size() == 2, "picker offers both button schemes (%d)" % btn_cards.size())
+	# the button-scheme cards set button_scheme WITHOUT dismissing the picker
+	for bc in btn_cards:
+		if (bc as Button).name == "Btns_face":
+			(bc as Button).pressed.emit()
+	await _frame(2)
+	_check(str(Settings.value("button_scheme")) == "face",
+			"the Face buttons card sets the button scheme")
+	_check(is_instance_valid(fr), "the picker stays up until a movement card is picked")
+	Settings.set_value("button_scheme", "classic")
 	# pick the fixed stick: scheme set, done flag persists, picker frees
 	(cards[1] as Button).pressed.emit()
 	await _frame(2)

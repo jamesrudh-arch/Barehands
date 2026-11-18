@@ -42,6 +42,19 @@ var _stamps := {}  # action id -> usec when the touch landed / the action fired
 
 ## Latency measurement: the HUD stamps the touch, the player stamps the
 ## action; the debug panel shows the difference.
+## The face buttons' logical presses (A/B/X/Y) - also what the combo
+## buffer listens to. direction: "f"/"b"/"" captured from the stick.
+signal face_pressed(token: String, direction: String)
+
+
+func press_face(token: String) -> void:
+	var d := ""
+	var m := move
+	if m.length() > 0.45:
+		d = "f" if m.y < 0.0 else "b"
+	face_pressed.emit(token, d)
+
+
 func stamp_action(id: String) -> void:
 	_stamps[id + "_touch"] = Time.get_ticks_usec()
 
@@ -58,6 +71,8 @@ func latency_msec(id: String) -> float:
 	return (b - a) / 1000.0
 var _jump_at := -99999.0
 var _punch_at := -99999.0
+var _heavy_at := -99999.0
+var _kick_at := -99999.0
 var _dodge_at := -99999.0
 var _grab_at := -99999.0
 var _super_at := -99999.0
@@ -125,6 +140,24 @@ func queue_punch() -> void:
 
 func take_punch() -> bool:
 	return _take("_punch_at")
+
+
+## Face-button scheme: B is an instant heavy (Classic gets heavies by
+## holding PUNCH), X is a kick.
+func queue_heavy() -> void:
+	_heavy_at = _game_msec
+
+
+func take_heavy() -> bool:
+	return _take("_heavy_at")
+
+
+func queue_kick() -> void:
+	_kick_at = _game_msec
+
+
+func take_kick() -> bool:
+	return _take("_kick_at")
 
 
 func queue_dodge() -> void:
@@ -198,6 +231,8 @@ func consume_dodge_hold() -> void:
 func clear_queues() -> void:
 	_jump_at = -99999.0
 	_punch_at = -99999.0
+	_heavy_at = -99999.0
+	_kick_at = -99999.0
 	_dodge_at = -99999.0
 	_grab_at = -99999.0
 	_super_at = -99999.0
