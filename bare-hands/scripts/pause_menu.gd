@@ -114,6 +114,23 @@ func _build_panel() -> void:
 		row.add_child(sl)
 		col.add_child(row)
 
+	var ledger := Button.new()
+	ledger.text = "LEDGER  (B)"
+	ledger.focus_mode = Control.FOCUS_NONE
+	ledger.custom_minimum_size = Vector2(240, 54)
+	ledger.add_theme_font_size_override("font_size", 16)
+	var lsb := StyleBoxFlat.new()
+	lsb.bg_color = Color(0.10, 0.09, 0.06, 0.8)
+	lsb.border_color = Color(0.92, 0.88, 0.78, 0.4)
+	lsb.set_border_width_all(1)
+	lsb.set_corner_radius_all(8)
+	ledger.add_theme_stylebox_override("normal", lsb)
+	ledger.pressed.connect(func() -> void:
+		var ui := get_tree().get_first_node_in_group("ledger")
+		if ui:
+			ui.toggle())
+	col.add_child(ledger)
+
 	var resume := Button.new()
 	resume.text = "RESUME"
 	resume.focus_mode = Control.FOCUS_NONE

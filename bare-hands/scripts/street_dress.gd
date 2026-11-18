@@ -19,6 +19,7 @@ func _ready() -> void:
 	_grates_and_steam()
 	_props()
 	_car()
+	_gun_prop()
 	_shutter()
 	_rails()
 	_pipe_prop()
@@ -431,3 +432,34 @@ func _pipe_prop() -> void:
 	mi.position = Vector3(6.3, 0.05, -7.6)
 	add_child(mi)
 	mi.add_to_group("pipe_prop")
+
+
+## The Ledger Iron, a test revolver lying on the sedan's hood. The first
+## GRAB shows the bullet price before it is ever taken.
+func _gun_prop() -> void:
+	var steel := StandardMaterial3D.new()
+	steel.albedo_color = Color(0.13, 0.13, 0.15)
+	steel.roughness = 0.3
+	steel.metallic = 0.85
+	var gun := Node3D.new()
+	gun.position = Vector3(11.4, 1.12, -2.6)
+	gun.rotation.y = 0.6
+	add_child(gun)
+	var slide := _box(Vector3(0.34, 0.09, 0.07), steel)
+	slide.position = Vector3(0, 0.05, 0)
+	gun.add_child(slide)
+	var grip := _box(Vector3(0.08, 0.16, 0.09), steel)
+	grip.position = Vector3(-0.12, -0.07, 0)
+	grip.rotation.z = -0.35
+	gun.add_child(grip)
+	var barrel := MeshInstance3D.new()
+	var bm := CylinderMesh.new()
+	bm.top_radius = 0.022
+	bm.bottom_radius = 0.022
+	bm.height = 0.18
+	bm.material = steel
+	barrel.mesh = bm
+	barrel.rotation.z = PI / 2.0
+	barrel.position = Vector3(0.24, 0.05, 0)
+	gun.add_child(barrel)
+	gun.add_to_group("gun_prop")

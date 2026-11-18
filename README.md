@@ -169,6 +169,29 @@ No shops, missions, driving, guns or sound yet — later batches.
 
 **GATE (Phase 3)**: `tests/smoke_depth.tscn` — **30 checks green**: chain math, heavy, launcher (airborne y 1.02), finisher (slow-mo + 160 ms haptic), mature block, perfect-block parry, grab/knee/throw, pipe pickup + light (−2) + heavy (−4), bruiser armour (jab −1, no stagger; heavy staggers), knife (20-tick telegraph, 2.6 m/s), boss (armour, 84 strike hits in 4 s of chains), tactics (max 1 attacker, surround active), 3 tagged surfaces. All four existing suites still pass (one assertion updated: wall slams now record as `slam_wall`). **GATE: PASS (headless).**
 
+## SERIES 2 · Phase 4 — The Bullet Ledger (the signature)
+
+**What was built**
+
+- **The Wallet** (`scripts/wallet.gd`, autoload): one source of truth for money. Every transaction — earnings, purchases, and **every single bullet fired** — appends an entry with the running balance. Bullets cost **$5 each**, spent per shot, never in batches; a shot you cannot afford does not fire.
+- **The test weapon — the Ledger Iron** (`player.gd` + a steel prop on the sedan's hood): GRAB near it to take it. With the iron equipped, PUNCH fires: a 6-damage raycast shot with recoil, muzzle burst, camera kick, 50 ms haptic and the layered gunshot. **Firing visibly spends cash on screen**: the balance ticks down and a red "−$5" pops beside it (green "＋$" for earnings), plus a one-line receipt ticker for the latest entry. Broke? The gun clicks — no charge, no ledger entry.
+- **The first-offer modal**: the first GRAB at the gun opens a noir panel *before* anything is owned — "THE LEDGER IRON / Every bullet you fire costs $5 of your own money / BULLET … $5" with TAKE IT / LEAVE IT. Gameplay input locks until you choose.
+- **The ledger screen** (`scripts/ledger_ui.gd`): a thermal-paper receipt — header "CINDER CITY AMMUNITION", timed entries in order (earn / purchase / shot, item, amount), dashed rules, BALANCE, BULLET PRICE, and the footer "THANK YOU. NO REFUNDS." Opens with **B** or the pause menu's LEDGER button; scrolls; caps at the last 200 entries.
+- Wired for the economy: one weapon slot (taking the iron drops the pipe at your feet), ownership and offer state persist via `Wallet.to_dict()` for Phase 5's save system.
+
+**How to test on a phone**
+
+1. Walk to the car east of spawn: a revolver sits on the hood. GRAB it — the offer appears with the bullet price before you own anything. TAKE IT.
+2. Face the dummy and press PUNCH: a shot, a flash, the dummy rocks back — and **$5 leaves your balance on screen** with a red pop and a ticker line.
+3. Press B (or pause → LEDGER): the receipt lists each shot with its time and the running balance.
+4. Fire until under $5 (about 29 shots): the gun only clicks, nothing is charged, the receipt shows nothing new. Earnings (Phase 5's fights and shops) will refill it.
+
+**Not verified on a real phone**: the receipt's legibility at 375 px width (built with 13–15 px type; the panel is 480 px wide, wider than a small screen — the scroll container handles it but the fit wants eyes), the feel of the shot recoil, and whether the $5 price reads as dear or cheap before the economy exists.
+
+**Added beyond the brief**: the empty-click when broke (the brief said shots cost money; the click makes being broke its own feel), the receipt ticker on the HUD, the entry cap, and the "NO ONE IS BORN WITH A GUN" line printed on every receipt — the Phase 8 title card, foreshadowed on paper.
+
+**GATE (Phase 4)**: `tests/smoke_ledger.tscn` — **35 checks green**: wallet math and entry order, overspend refusal with no phantom entries, the offer flow (shown once, locks input, states the price, TAKE equips and records ownership), firing spends $5 visibly (HUD label matches), shots land 6 damage, cooldown blocks double-spends, broke = click with zero ledger noise, the receipt opens with header/entries/balance/footer/earnings and closes, 200-entry cap. Depth and combat suites still green. **GATE: PASS (headless).**
+
 ### The Universal Animation Library pack
 
 `bare-hands/assets/` holds `UAL1_Standard.glb` (the Godot-ready, root-motion-disabled variant), the pack's `License.txt` (**CC0 1.0 / public domain, models by @Quaternius**) and its `README.txt`. The `_RM` (root-motion) variant and the Unity `.fbx` files stay in the original zip at the repo root; this game moves the character in code.

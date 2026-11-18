@@ -45,6 +45,8 @@ enum State { GROUND, AIR, CLIMB, PUNCH, DODGE, BLOCK, GRAB }
 
 var state: State = State.GROUND
 var has_pipe := false
+var has_gun := false  # the Ledger Iron: every shot costs cash
+var _gun_cd := 0.0
 var _yaw := 0.0
 var _since_floor := 0.0
 var _air_time := 0.0
@@ -222,6 +224,9 @@ func _face_travel(delta: float) -> void:
 
 
 func _try_punch() -> void:
+	if has_gun and state == State.GROUND and _t >= _hitstun_until:
+		_fire_gun()  # the iron answers every punch press with a shot
+		return
 	if state == State.GRAB:  # a knee while holding someone
 		_grab_knee()
 	elif state == State.PUNCH:
@@ -562,6 +567,18 @@ func _try_grab_action() -> void:
 		target.grabbed_by(self)
 		_rig.play("Push", 0.08, 0.8)
 		return
+	# no enemy: the gun on the car, offered with its bullet price first
+	if not has_gun and not has_pipe:
+		for gun in get_tree().get_nodes_in_group("gun_prop"):
+			if gun is Node3D and global_position.distance_to((gun as Node3D).global_position) < 1.7:
+				var hud := get_tree().get_first_node_in_group("cash_hud")
+				if not Wallet.gun_offered and hud:
+					hud.show_gun_offer(
+						func() -> void: _equip_gun(gun as Node3D),
+						func() -> void: pass)
+				else:
+					_equip_gun(gun as Node3D)
+				return
 	# no enemy: pick up the pipe if it is at our feet
 	if not has_pipe:
 		for pipe in get_tree().get_nodes_in_group("pipe_prop"):
@@ -599,6 +616,46 @@ func _grab_step(delta: float) -> void:
 	_grab_t += delta
 	if _grab_t >= GRAB_TIME:
 		_release_grab(Vector3.ZERO, 0.0)
+
+
+func _equip_gun(prop: Node3D) -> void:
+	if has_pipe:  # one weapon slot: the pipe drops where you stand
+		has_pipe = false
+		_rig.equip_pipe(false)
+		if _pipe_prop:
+			_pipe_prop.visible = true
+			_pipe_prop.global_position = global_position + Vector3(0.6, 0.05, 0.3)
+	has_gun = true
+	Wallet.gun_owned = true
+	prop.visible = false
+	Sound.play("latch_0", -4.0)
+	Sound.play("metal_click_0", -8.0)
+	Log.info("player took the Ledger Iron")
+
+
+## PUNCH with the Ledger Iron: a shot. Every single one costs $5.
+func _fire_gun() -> void:
+	if _t < _gun_cd:
+		return
+	_gun_cd = _t + 0.35
+	if not Wallet.pay_for_shot():
+		Sound.play("metal_click_0", -6.0, 1.7, 0.06)  # the empty click
+		Fx.haptic(20)
+		return
+	var fwd := -_body.global_transform.basis.z
+	velocity += fwd * 1.2  # recoil
+	Fx.camera_punch(4.0)
+	Fx.haptic(50)
+	var target := _punch_target(0.5, 8.0)
+	if target:
+		var dir: Vector3 = target.global_position - global_position
+		dir.y = 0.0
+		dir = dir.normalized()
+		target.take_hit(dir, "shot")
+		Fx.burst(target.global_position + Vector3.UP * 1.2, Color(1.0, 0.8, 0.4))
+	else:
+		Fx.burst(global_position + fwd * 6.0 + Vector3.UP * 1.2, Color(1.0, 0.8, 0.4))
+	Fx.emit_hit("gun_test", global_position + fwd * 1.0 + Vector3.UP * 1.3)
 
 
 func _grab_knee() -> void:
