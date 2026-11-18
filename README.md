@@ -122,6 +122,27 @@ No shops, missions, driving, guns or sound yet — later batches.
 
 **GATE (docs/WOW_GATE.md, Phase 1)**: every machine-checkable line passes — `tests/smoke_audio.tscn` verifies buses, bank, layers per kind, all five footstep surfaces, puddle/wood/asphalt detection by position, 3 spatial hums, sliders, mute, persistence. Phone-only lines (mix, weight, audibility) await your test. **GATE: PASS (headless).**
 
+## SERIES 2 · Phase 2 — Adaptive Music
+
+**What was built**
+
+- **A layered music director** (`scripts/music.gd`, autoload "Music"): four synchronized loop stems on the Music bus — the quiet noir **bed**, a **tension** pulse, the **combat** layer, and the **heartbeat** — plus a one-shot **resolve** phrase. All stems are code-synthesized placeholders (D minor, 88 BPM, built by `scripts/synth_audio.py`); swap the WAVs in `assets/audio/` for recorded stems of the same names and the system is unchanged.
+- **Beat-aware transitions**: the director runs an 88 BPM bar clock; layer volume targets only change on bar boundaries and fade over about one bar, so the music breathes with the scene instead of clicking. State detection scans the world every bar: an enemy within 10 m = tension; within 4 m or the hero fighting = combat; two calm bars after combat = the resolve phrase plays and the bed returns.
+- **Combat rises with the style rank** (D → S maps the combat layer from −10 dB to −1 dB) and the **heartbeat speeds up with heat** (0.9× → 1.55× tempo and louder); until Phase 5 lands real heat, engaged enemies lend provisional heat.
+- **Dialogue duck** (`Music.duck`) dips and restores the whole Music bus, ready for Phase 7's dialogue. `force_state` holds a state for cutscenes.
+
+**How to test on a phone**
+
+1. Walk the empty street: just the quiet bed and rain. Walk toward the thug: a pulse joins in. Get within swing range: the full combat layer; land a varied combo and it climbs with your rank.
+2. Walk away and stay clear ~5 s: a calm resolve phrase, then the bed alone.
+3. Open the pause menu mid-fight: music keeps playing while paused; the Music slider still controls it.
+
+**What I could not verify on a real phone**: whether the synthesized stems actually *sound* noir (I generated them to spec, but I cannot hear this sandbox — the mix, the levels, and the genre feel need your ears). The **stems to replace** if you want recorded music, all 88 BPM in D minor: `music_bed.wav` (quiet pad, 10.9 s loop), `music_tension.wav` (sparse pulse, 5.5 s loop), `music_combat.wav` (drums + bass, 5.5 s loop), `music_heartbeat.wav` (single lub-dub pair, 0.85 s loop), `music_resolve.wav` (calm phrase, 6 s one-shot). Drop replacements in `bare-hands/assets/audio/` with the same names.
+
+**Added beyond the brief**: the dialogue-duck helper, the cutscene hold on `force_state`, and rank-driven combat mixing (the brief asked for style rank to raise the layer).
+
+**GATE (Phase 2)**: `tests/smoke_music.tscn` — 18 checks green: layers, bar-clock phase, bed/tension/combat crossfades with distinct levels per state, rank D vs S combat levels, heartbeat 1.55× at heat 5, resolve triggers and bed returns, duck dips/restores. Phone-only lines (the actual sound) await your test. **GATE: PASS (headless).**
+
 ### The Universal Animation Library pack
 
 `bare-hands/assets/` holds `UAL1_Standard.glb` (the Godot-ready, root-motion-disabled variant), the pack's `License.txt` (**CC0 1.0 / public domain, models by @Quaternius**) and its `README.txt`. The `_RM` (root-motion) variant and the Unity `.fbx` files stay in the original zip at the repo root; this game moves the character in code.

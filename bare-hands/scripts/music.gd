@@ -1,0 +1,198 @@
+extends Node
+## Adaptive music director. Autoloaded as "Music" (see project.godot).
+## Five stems, all synthesized placeholders (swap the WAVs in assets/audio
+## for recorded stems of the same names): a quiet noir bed, a tension pulse,
+## a combat layer whose level follows the style rank, a heartbeat that speeds
+## up with heat, and a resolve phrase after combat. Layer volume targets only
+## change on bar boundaries (88 BPM, 4/4) so every transition lands on the
+## beat and fades over about one bar.
+
+const BPM := 88.0
+const BAR := 60.0 / BPM * 4.0
+
+enum State { EXPLORE, TENSION, COMBAT, RESOLVE }
+
+var state: State = State.EXPLORE
+var heat := 0.0  # 0..5, driven by the economy phase; combat lends a little
+var style_rank := 0
+var beat_phase := 0.0  # 0..1 through the current bar
+
+var _layers: Dictionary = {}  # name -> AudioStreamPlayer
+var _targets: Dictionary = {}  # name -> target volume db
+var _resolve_one := AudioStreamPlayer.new()
+var _bar_t := 0.0
+var _resolve_until := 0.0
+var _combat_calm := 0.0  # seconds since an enemy was engaged
+var _resolve_count := 0  # test hook
+var _hold_until := 0  # while held, the world scan leaves the state alone
+
+
+func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	for stem in ["music_bed", "music_tension", "music_combat", "music_heartbeat"]:
+		var stream: AudioStream = load("res://assets/audio/%s.wav" % stem)
+		if stream is AudioStreamWAV:
+			(stream as AudioStreamWAV).loop_mode = AudioStreamWAV.LOOP_FORWARD
+			(stream as AudioStreamWAV).loop_begin = 0
+			(stream as AudioStreamWAV).loop_end = (stream as AudioStreamWAV).data.size() / 2
+		var p := AudioStreamPlayer.new()
+		p.name = stem
+		p.bus = "Music"
+		p.stream = stream
+		p.volume_db = -60.0
+		add_child(p)
+		p.play()
+		_layers[stem] = p
+		_targets[stem] = -60.0
+	_resolve_one.bus = "Music"
+	add_child(_resolve_one)
+	# enter quietly: bed rises over the first bar
+	_targets["music_bed"] = -8.0
+	Log.info("Music: ready, 88 BPM, bar %.2fs" % BAR)
+
+
+func _process(delta: float) -> void:
+	_bar_t += delta
+	beat_phase = _bar_t / BAR
+	if _bar_t >= BAR:
+		_bar_t -= BAR
+		_on_bar()
+	# smooth fades toward targets (about one bar to travel 40 dB)
+	for stem in _layers:
+		var p: AudioStreamPlayer = _layers[stem]
+		p.volume_db = move_toward(p.volume_db, _targets[stem], delta * 40.0 / BAR * 4.0)
+	# heartbeat tempo follows heat continuously
+	var hb: AudioStreamPlayer = _layers.get("music_heartbeat")
+	if hb:
+		hb.pitch_scale = lerpf(0.9, 1.55, clampf(heat / 5.0, 0.0, 1.0))
+
+
+## Volume targets change only here - on the beat, effectively.
+func _on_bar() -> void:
+	if state == State.RESOLVE:
+		if Time.get_ticks_msec() >= _resolve_until:
+			state = State.EXPLORE
+			_set_explore_targets()
+		else:
+			return
+	if Time.get_ticks_msec() >= _hold_until:
+		_scan_game()
+	match state:
+		State.EXPLORE:
+			_set_explore_targets()
+		State.TENSION:
+			_targets["music_bed"] = -10.0
+			_targets["music_tension"] = -5.0
+			_targets["music_combat"] = -60.0
+			_targets["music_heartbeat"] = -26.0 if heat > 0.5 else -40.0
+		State.COMBAT:
+			_targets["music_bed"] = -14.0
+			_targets["music_tension"] = -8.0
+			# the combat layer rises with the style rank (D..S -> -10..-1 dB)
+			_targets["music_combat"] = lerpf(-10.0, -1.0, clampf(style_rank / 4.0, 0.0, 1.0))
+			_targets["music_heartbeat"] = lerpf(-22.0, -10.0, clampf(heat / 5.0, 0.0, 1.0))
+
+
+func _set_explore_targets() -> void:
+	_targets["music_bed"] = -8.0
+	_targets["music_tension"] = -60.0
+	_targets["music_combat"] = -60.0
+	_targets["music_heartbeat"] = -34.0 if heat > 1.0 else -60.0
+
+
+## Who is near the hero right now? Sets state and handles the resolve flow.
+func _scan_game() -> void:
+	var player := get_tree().get_first_node_in_group("player") as CharacterBody3D
+	if player == null:
+		if state == State.COMBAT or state == State.TENSION:
+			state = State.EXPLORE
+		return
+	var nearest := 999.0
+	var engaged := 0
+	for e in get_tree().get_nodes_in_group("enemy"):
+		if e.state == Enemy.State.DOWN:
+			continue
+		var d: float = e.global_position.distance_to(player.global_position)
+		nearest = minf(nearest, d)
+		if d < 8.0:
+			engaged += 1
+	var style := get_tree().get_first_node_in_group("style") as Control
+	if style and style.has_method("rank"):
+		style_rank = style.rank()
+	# provisional heat until the economy phase drives the real value
+	var wanted := maxf(heat, clampf(engaged - 1.0, 0.0, 2.0))
+	if not is_equal_approx(wanted, heat) and state != State.RESOLVE:
+		heat = lerpf(heat, wanted, 0.5)
+
+	if state == State.RESOLVE:
+		return
+	if nearest < 4.0 or player.state == Player.State.PUNCH or player.state == Player.State.DODGE:
+		if state == State.COMBAT:
+			_combat_calm = 0.0
+		else:
+			state = State.COMBAT
+			_combat_calm = 0.0
+	elif state == State.COMBAT:
+		_combat_calm += BAR
+		if _combat_calm >= 2.0 * BAR:  # two calm bars -> resolve
+			_begin_resolve()
+	elif nearest < 10.0:
+		state = State.TENSION
+	else:
+		state = State.EXPLORE
+
+
+func _begin_resolve() -> void:
+	state = State.RESOLVE
+	_resolve_until = Time.get_ticks_msec() + 6500
+	_resolve_count += 1
+	for stem in _targets:
+		_targets[stem] = -60.0
+	_resolve_one.stream = load("res://assets/audio/music_resolve.wav")
+	_resolve_one.volume_db = -7.0
+	_resolve_one.play()
+	Log.info("Music: resolve after combat")
+
+
+## --- public API (economy, dialogue and tests drive these) --------------------
+
+func set_heat(h: float) -> void:
+	heat = clampf(h, 0.0, 5.0)
+
+
+func set_style_rank(r: int) -> void:
+	style_rank = clampi(r, 0, 4)
+
+
+## Dialogue duck: dip the whole Music bus, restore after `dur` seconds.
+func duck(db := -8.0, dur := 1.5) -> void:
+	var idx := AudioServer.get_bus_index("Music")
+	if idx < 0:
+		return
+	var base := AudioServer.get_bus_volume_db(idx)
+	AudioServer.set_bus_volume_db(idx, base + db)
+	var t := get_tree().create_timer(dur)
+	t.timeout.connect(func() -> void:
+		AudioServer.set_bus_volume_db(idx, AudioServer.get_bus_volume_db(idx) - db))
+
+
+## Force a state (tests, cutscenes). Holds for 15 s against the world scan.
+func force_state(s: String) -> void:
+	_hold_until = Time.get_ticks_msec() + 15000
+	match s:
+		"explore":
+			state = State.EXPLORE
+			_set_explore_targets()
+		"tension":
+			state = State.TENSION
+		"combat":
+			state = State.COMBAT
+			heat = maxf(heat, 2.0)
+		"resolve":
+			_begin_resolve()
+	_on_bar()
+
+
+func layer_vol(stem: String) -> float:
+	var p: AudioStreamPlayer = _layers.get(stem)
+	return p.volume_db if p else -99.0

@@ -17,6 +17,7 @@ Log="*res://scripts/log.gd"
 Quality="*res://scripts/quality.gd"
 Fx="*res://scripts/fx.gd"
 Sound="*res://scripts/sound.gd"
+Music="*res://scripts/music.gd"
 
 [display]
 
