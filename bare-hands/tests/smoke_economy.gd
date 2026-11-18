@@ -103,6 +103,12 @@ func _heat_cycle() -> void:
 
 func _shopping() -> void:
 	Wallet.call("reset_for_test")
+	# the heat cycle above was public violence; the shops price by it.
+	# this suite tests the money math, so start the city neutral.
+	for d in City.DISTRICTS:
+		City.rep[d] = 0.0
+		City.hostile[d] = false
+	Heat.heat = 0.0
 	# tailor: a coat changes the look
 	_tailor._buy("Midnight coat", "coat_midnight", 45)
 	_check(Wallet.cash == 105, "tailor purchase deducts ($%d)" % Wallet.cash)

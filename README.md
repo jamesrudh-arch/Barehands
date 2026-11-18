@@ -214,6 +214,30 @@ No shops, missions, driving, guns or sound yet — later batches.
 
 **GATE (Phase 5)**: `tests/smoke_economy.tscn` — **34 checks green**: rank D/S earning math into the Wallet, ledger earn entries, heat rise/cap/stars/HUD/music coupling, responder summon and departure, out-of-sight decay, tailor purchase (cash, look, actual coat colour on the rig), gear purchase (+1 damage verified through the damage function), insufficient funds (no charge, no entry), pawn info-only stock, and the full save/load round-trip (wallet, entries, heat, look, gear effect, position, city memory). All six suites green. **GATE: PASS (headless).**
 
+## SERIES 2 · Phase 6 — The City Remembers You
+
+**What was built**
+
+- **Reputation per district** (`scripts/city.gd`, full behaviour on the Phase-5 persistence shell): the street is three districts — **riverside** (west), **market** (middle), **foundry** (east). Public violence costs the district it happens in (knockdown −8, gunshot −4, hit −0.8); a **stylish win** — counter, launcher, finisher, any slam — gives +7 back. Where you fight matters as much as how.
+- **A district turns hostile** at rep −50 (and can be bought back with good will): its own two brawlers shadow you while you stand in it and stand down when you leave. The mood reads on screen: crossing a district boundary raises a toast — `RIVERSIDE — wary`, `MARKET — your street`.
+- **Shopkeepers recognise you**: prices move with how the district feels — high rep **−15%** ("Good to see you, friend. Friend prices."), bad rep **+15%**, a hostile district +15% more, four-star heat adds +10% ("You're not wanted here. Everything costs extra."). Greetings quote what **witnesses remember**: "They say a body dropped in the market."
+- **Witness memory**: every violent event in a district is remembered (last 8) with a timestamp, quoted by shopkeepers and stored in the save.
+- **Graffiti of your nickname** goes up as reputation grows — Label3D spray-text on each district's wall: your tag at 25, `THE NEW HANDS WAS HERE` at 40, `THE NEW HANDS RUNS THE FOUNDRY` at 75 — and `THE NEW HANDS GO HOME` when a district turns hostile. All of it persists (rep, hostility, witnessed events, nickname) through the safehouse save.
+- Heat and City now talk: violence reports carry positions, so a gunshot in the foundry heats the police *and* sours the foundry.
+
+**How to test on a phone**
+
+1. Knock the thug down repeatedly around x < −6 (riverside): watch the toast moods sour, then the district turn hostile — two locals shadow you until you leave.
+2. Slam someone stylishly in the market and check the toast: the mood warms. Buy your way back into riverside with clean stylish wins.
+3. Enter the tailor after being violent nearby: the greeting quotes what witnesses saw, and prices are up. Earn rep in that district and the same coat costs 15% less.
+4. Get foundry rep to 40+ (stylish wins) and look at the east wall: your name is on it. Save at the safehouse, reload — the tag is still there.
+
+**Not verified on a real phone**: graffiti legibility (Label3D at 4 px scale — size and colour want eyes on a real screen), toast pacing, and whether the hostility threshold feels fair in live play.
+
+**Added beyond the brief**: districts buying back with good will, hostile graffiti ("GO HOME"), the district-crossing toast, and witness quotes in every greeting.
+
+**GATE (Phase 6)**: `tests/smoke_city.tscn` — **27 checks green**: district math, rep costs per event in the right district only, stylish-win recovery, hostility threshold + muscle summoned while present + stood down when leaving + buy-back, graffiti tiers at 40/80 (real Label3D on walls), toast with district and mood, price tiers (0.85×/1.15×/heat +10%), greetings by rep with witness recall, and rep/hostility/witness/nickname persistence through save. Economy, ledger and combat suites still green (the economy suite now resets city state — its own violence was, correctly, repriced). **GATE: PASS (headless).**
+
 ### The Universal Animation Library pack
 
 `bare-hands/assets/` holds `UAL1_Standard.glb` (the Godot-ready, root-motion-disabled variant), the pack's `License.txt` (**CC0 1.0 / public domain, models by @Quaternius**) and its `README.txt`. The `_RM` (root-motion) variant and the Unity `.fbx` files stay in the original zip at the repo root; this game moves the character in code.

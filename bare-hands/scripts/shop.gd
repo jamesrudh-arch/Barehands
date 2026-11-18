@@ -96,6 +96,14 @@ func _open() -> void:
 	title.add_theme_color_override("font_color", Color(0.95, 0.85, 0.55))
 	col.add_child(title)
 
+	var greet := Label.new()
+	greet.text = City.greeting(global_position)
+	greet.add_theme_font_size_override("font_size", 12)
+	greet.add_theme_color_override("font_color", Color(0.65, 0.68, 0.66))
+	greet.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	greet.custom_minimum_size = Vector2(420, 0)
+	col.add_child(greet)
+
 	var cash_line := Label.new()
 	cash_line.name = "Cash"
 	cash_line.text = "cash on hand   $%d" % Wallet.cash
@@ -127,7 +135,7 @@ func _open() -> void:
 			b.text = "info" if shop_id == "pawn" else "n/a"
 			b.disabled = true
 		else:
-			b.text = "$%d" % entry.price
+			b.text = "$%d" % _priced(entry.price)
 		b.focus_mode = Control.FOCUS_NONE
 		b.custom_minimum_size = Vector2(96, 44)
 		b.add_theme_font_size_override("font_size", 15)
@@ -167,7 +175,13 @@ func _open() -> void:
 	Sound.play("door_open_0", -8.0)
 
 
+## The price this shop quotes you, after reputation and heat.
+func _priced(base: int) -> int:
+	return maxi(1, roundi(base * City.price_mult(global_position)))
+
+
 func _buy(item_name: String, apply: String, price: int) -> void:
+	price = _priced(price)
 	if not Wallet.spend(price, item_name):
 		Sound.play("ui_error_0", -6.0)
 		return

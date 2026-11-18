@@ -21,6 +21,8 @@ var _chain_until := -99.0
 @onready var _bar: ProgressBar = $Bar
 @onready var _cash: Label = $CashLabel
 @onready var _heat: Label = $HeatLabel
+@onready var _toast: Label = $ToastLabel
+var _toast_a := 0.0
 
 ## Cash now lives in the Wallet; the meter mirrors it for the HUD and tests.
 var cash: int:
@@ -32,7 +34,21 @@ func _ready() -> void:
 	add_to_group("style")
 	Heat.changed.connect(_on_heat)
 	_on_heat(Heat.heat)
+	City.entered_district.connect(_on_district)
 	_refresh()
+
+
+func _on_district(d: String, mood: String) -> void:
+	if _toast:
+		_toast.text = "%s  -  %s" % [d.to_upper(), mood]
+		_toast_a = 2.5
+
+
+func _toast_tick(delta: float) -> void:
+	if _toast_a > 0.0:
+		_toast_a = maxf(_toast_a - delta, 0.0)
+		if _toast:
+			_toast.modulate.a = minf(_toast_a, 1.0)
 
 
 func _on_heat(h: float) -> void:
@@ -42,6 +58,7 @@ func _on_heat(h: float) -> void:
 
 
 func _process(delta: float) -> void:
+	_toast_tick(delta)
 	if value > 0.0:
 		value = maxf(value - 10.0 * delta, 0.0)
 		_refresh()

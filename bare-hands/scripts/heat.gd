@@ -58,8 +58,9 @@ func stars() -> int:
 	return roundi(heat)
 
 
-## Enemy knockdowns and gunshots report in here.
-func on_violence(kind: String) -> void:
+## Enemy knockdowns and gunshots report in here - to the meter and the city.
+func on_violence(kind: String, pos: Vector3 = Vector3.ZERO) -> void:
+	City.on_violence(kind, pos)
 	match kind:
 		"knockdown":
 			add(0.4)

@@ -388,7 +388,7 @@ func _damage_of(hit_kind: String) -> int:
 
 func _die(cause: String) -> void:
 	_enter(State.DOWN)
-	Heat.on_violence("knockdown")
+	Heat.on_violence("knockdown", global_position)
 	_play("Death01", 0.08, 1.3)
 	if cause in ["counter", "slam", "slam_wall", "slam_car", "slam_shutter", "slam_rail",
 			"finisher"] or cause.begins_with("slam"):

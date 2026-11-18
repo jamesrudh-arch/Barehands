@@ -382,7 +382,7 @@ func _land_punch() -> void:
 		Fx.haptic(60)
 		Fx.camera_punch(5.0)
 	Fx.emit_hit(kind, hit_pos)
-	Heat.on_violence("hit")
+	Heat.on_violence("hit", global_position)
 	_style_add(kind)
 
 
@@ -478,7 +478,7 @@ func _env_takedown(target: CharacterBody3D, dir: Vector3, surface: String, hit_p
 	Fx.camera_punch(6.0)
 	Fx.haptic(120)
 	Fx.emit_hit(kind, hit_pos)
-	Heat.on_violence("knockdown")
+	Heat.on_violence("knockdown", global_position)
 	_style_add(kind)
 
 
@@ -686,7 +686,7 @@ func _fire_gun() -> void:
 	if _t < _gun_cd:
 		return
 	_gun_cd = _t + 0.35
-	Heat.on_violence("shot")
+	Heat.on_violence("shot", global_position)
 	if not Wallet.pay_for_shot():
 		Sound.play("metal_click_0", -6.0, 1.7, 0.06)  # the empty click
 		Fx.haptic(20)
@@ -807,6 +807,9 @@ func _punch_target(min_dot: float, reach_slack: float) -> CharacterBody3D:
 func _style_add(kind: String) -> void:
 	if _style():
 		_style().add(kind)
+	# the street remembers a stylish win better than a beating
+	if kind in ["counter", "finisher", "launcher"] or kind.begins_with("slam"):
+		City.on_stylish_win(global_position, kind)
 
 
 func _style() -> Node:
