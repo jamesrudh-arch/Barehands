@@ -11,7 +11,7 @@ func save_all() -> bool:
 	var p := get_tree().get_first_node_in_group("player") as CharacterBody3D
 	var style := get_tree().get_first_node_in_group("style") as Control
 	var d := {
-		"version": 2,
+		"version": 3,
 		"wallet": Wallet.to_dict(),
 		"heat": Heat.to_dict(),
 		"gear": p.get("gear") if p else {},
@@ -19,6 +19,7 @@ func save_all() -> bool:
 		"pos": [p.global_position.x, p.global_position.y, p.global_position.z] if p else [0, 0, 0],
 		"style_value": style.get("value") if style else 0.0,
 		"city": City.to_dict(),
+		"progression": Progression.to_dict(),
 	}
 	var f := FileAccess.open(PATH + ".tmp", FileAccess.WRITE)
 	if f == null:
@@ -42,10 +43,11 @@ func load_all() -> bool:
 		return false
 	var parsed = JSON.parse_string(f.get_as_text())
 	f.close()
-	if parsed is not Dictionary or int(parsed.get("version", 0)) != 2:
+	if parsed is not Dictionary or int(parsed.get("version", 0)) < 2:
 		Log.warn("SaveGame: incompatible save")
 		return false
 	Wallet.from_dict(parsed.get("wallet", {}))
+	Progression.from_dict(parsed.get("progression", {}))
 	Heat.from_dict(parsed.get("heat", {}))
 	City.from_dict(parsed.get("city", {}))
 	var p := get_tree().get_first_node_in_group("player") as CharacterBody3D

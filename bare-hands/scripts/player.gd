@@ -96,6 +96,8 @@ const COAT_COLORS := {
 func _ready() -> void:
 	ComboInput.matched.connect(_on_combo_matched)
 	ComboInput.variety_bonus.connect(_on_variety)
+	# XP lands with every hit; parries and takedowns pay better (PART 3)
+	hit_landed.connect(func(_k: String, _d: int) -> void: Progression.add_xp(1.0, "hit"))
 	add_to_group("player")
 	_rig._velocity_fn = func() -> Vector3: return velocity  # drives the coat sway
 
@@ -527,6 +529,7 @@ func _land_punch() -> void:
 		Fx.emit_hit("launcher", hit_pos)
 		_style_add("launcher")
 		SuperMeter.gain(SuperMeter.GAIN_TAKEDOWN, "launcher")
+		Progression.add_xp(8.0, "takedown")
 		hit_landed.emit("launcher", 1)
 		return
 	# finisher: a heavy on a nearly-done enemy executes
@@ -541,6 +544,7 @@ func _land_punch() -> void:
 		Fx.emit_hit("finisher", hit_pos)
 		_style_add("finisher")
 		SuperMeter.gain(SuperMeter.GAIN_TAKEDOWN, "finisher")
+		Progression.add_xp(8.0, "takedown")
 		hit_landed.emit("finisher", 99)
 		return
 	# environmental takedown: a heavy/cross with something solid behind them
@@ -586,11 +590,12 @@ func _land_punch() -> void:
 ## The SUPER lands: everyone in reach takes the shockwave.
 func _land_super() -> void:
 	var hit_any := false
+	var radius := 2.6 * Progression.super_radius_mult()
 	for e in get_tree().get_nodes_in_group("enemy"):
 		var enemy := e as Enemy
 		if enemy == null or enemy.state == Enemy.State.DOWN:
 			continue
-		if global_position.distance_to(enemy.global_position) <= 2.6:
+		if global_position.distance_to(enemy.global_position) <= radius:
 			var to := enemy.global_position - global_position
 			to.y = 0.0
 			to = to.normalized()
@@ -842,6 +847,7 @@ func dodge_age() -> float:
 func open_counter(seconds: float) -> void:
 	_counter_until = _t + seconds
 	SuperMeter.gain(SuperMeter.GAIN_PARRY, "parry")
+	Progression.add_xp(4.0, "parry")
 
 
 # --- grab and throw -----------------------------------------------------------------
@@ -867,6 +873,7 @@ func _on_combo_matched(id: String) -> void:
 func _on_variety(_ids: Array) -> void:
 	_style_add("variety")
 	SuperMeter.gain(8.0, "variety")
+	Progression.add_xp(3.0, "variety")
 
 
 ## Begin a sequence combo: stage 6, its own timeline.
@@ -917,6 +924,7 @@ func _powerbomb(def: Dictionary) -> void:
 	Haptics.fire(hit.get("hap", "super"))
 	_style_add("slam")
 	SuperMeter.gain(SuperMeter.GAIN_TAKEDOWN, "slam")
+	Progression.add_xp(8.0, "takedown")
 
 
 ## A kick (stage 5): the code-built Kick_Code clip. Reads as a mid-range
@@ -970,6 +978,9 @@ func _try_grab_action() -> void:
 		return
 	# the hero is the single GRAB consumer: people first, then counters and
 	# doors, then the fight (this replaced a lost input race between nodes)
+	for trainer in get_tree().get_nodes_in_group("trainer"):
+		if trainer.has_method("try_train") and trainer.try_train(self):
+			return
 	var cast_node := get_tree().get_first_node_in_group("cast")
 	if cast_node and cast_node.has_method("try_talk") and cast_node.try_talk(self):
 		return

@@ -29,6 +29,7 @@ func _ready() -> void:
 	Settings.set_value("first_run_done", true)
 	Settings.set_value("button_scheme", "face")
 	Settings.set_value("hints", {})
+	Progression.level = 20  # every combo unlocked for the sequence battery
 	_main = load("res://scenes/main.tscn").instantiate()
 	add_child(_main)
 	var opening := get_tree().get_first_node_in_group("opening") as OpeningShot

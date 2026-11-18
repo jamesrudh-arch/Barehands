@@ -191,6 +191,11 @@ func _open_settings() -> void:
 		s.open()
 
 
+## Menus call this when they take over without unpausing.
+func hide_menu() -> void:
+	_panel.visible = false
+
+
 ## SettingsUI calls this on DONE: bring the pause panel back.
 func show_menu() -> void:
 	if get_tree().paused:

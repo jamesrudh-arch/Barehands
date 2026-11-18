@@ -12,9 +12,19 @@ const GAP := 8.0
 var _flash_name := ""
 var _flash_t := 0.0
 var _last_tokens: Array = []
+var _demo_chip := ""
+var _demo_t := 0.0
+
+
+## The level-up banner demos a move's sequence: flash one bright chip.
+func demo_flash(tok: String) -> void:
+	_demo_chip = tok
+	_demo_t = 0.35
+	queue_redraw()
 
 
 func _ready() -> void:
+	add_to_group("input_strip")
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	anchor_left = 0.5
 	anchor_right = 0.5
@@ -36,6 +46,9 @@ func _on_matched(combo_id: String) -> void:
 func _process(delta: float) -> void:
 	if _flash_t > 0.0:
 		_flash_t = maxf(0.0, _flash_t - delta)
+	if _demo_t > 0.0:
+		_demo_t = maxf(0.0, _demo_t - delta)
+		queue_redraw()
 	var toks := ComboInput.tokens()
 	if toks != _last_tokens or _flash_t > 0.0:
 		_last_tokens = toks.duplicate()
@@ -61,6 +74,7 @@ func _draw() -> void:
 	var shown := toks.slice(maxi(0, toks.size() - CHIPS), toks.size())
 	var total_w := shown.size() * (CHIP_W + GAP) - GAP
 	var x := (size.x - total_w) * 0.5
+	var font := get_theme_default_font()
 	for i in shown.size():
 		var tok: String = shown[i]
 		var age := shown.size() - 1 - i  # 0 = newest
@@ -73,15 +87,27 @@ func _draw() -> void:
 		sb.set_border_width_all(1)
 		sb.set_corner_radius_all(6)
 		draw_style_box(sb, r)
-		var font := get_theme_default_font()
 		var ts: Vector2 = font.get_string_size(tok, HORIZONTAL_ALIGNMENT_LEFT, -1, 15)
 		draw_string(font, r.position + (r.size - ts) * 0.5, tok,
 				HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color(1, 1, 1, 0.85))
 		x += CHIP_W + GAP
+	# the demo chip (a level-up move demo): one bright, oversized chip
+	if _demo_t > 0.0 and _demo_chip != "":
+		var da := clampf(_demo_t / 0.35, 0.0, 1.0)
+		var dr := Rect2((size.x - CHIP_W * 1.5) * 0.5, size.y - CHIP_H - 10.0,
+				CHIP_W * 1.5, CHIP_H * 1.25)
+		var dsb := StyleBoxFlat.new()
+		dsb.bg_color = Color(0.05, 0.04, 0.02, 0.8 * da)
+		dsb.border_color = Color(_chip_color(_demo_chip), da)
+		dsb.set_border_width_all(2)
+		dsb.set_corner_radius_all(8)
+		draw_style_box(dsb, dr)
+		var dts: Vector2 = font.get_string_size(_demo_chip, HORIZONTAL_ALIGNMENT_LEFT, -1, 19)
+		draw_string(font, dr.position + (dr.size - dts) * 0.5, _demo_chip,
+				HORIZONTAL_ALIGNMENT_LEFT, -1, 19, Color(1, 1, 0.9, da))
 	# the landed combo's name, lighting up then fading
 	if _flash_t > 0.0 and _flash_name != "":
 		var a := clampf(_flash_t / 1.4, 0.0, 1.0)
-		var font := get_theme_default_font()
 		var big := 22
 		var ts: Vector2 = font.get_string_size(_flash_name, HORIZONTAL_ALIGNMENT_LEFT, -1, big)
 		draw_string(font, Vector2((size.x - ts.x) * 0.5, 26), _flash_name,

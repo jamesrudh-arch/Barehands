@@ -448,6 +448,67 @@ stage on top of the existing battery) plus the 5-minute stress re-run.
 haptics, real finger latency (the 13.4 ms number is simulated at 60 Hz),
 iOS vibration (needs a plugin), and whether the glows read well on OLED.
 
+## COMBO PROGRESSION PASS (master queue interlude, before Stage B)
+
+**Parts 1-3 shipped; PART 4 (phone-photo fixes) NOT STARTED - see below.**
+
+### PART 1 - Face-button layout (commit 83ea5d0)
+New control scheme beside Classic: the console diamond (A light punch /
+B heavy punch / X kick / Y grab-throw) with smaller JUMP/DODGE/SPRINT/LOCK
+beside it. Chosen in Settings and the first-run picker; captions under the
+letters; SUPER appears only when the meter is full (face scheme). The
+layout editor, presets and left-handed mirror cover both schemes. **The
+kick is built in code** (`ual_bind.gd _kick_clip` - no CC0 kick clip
+exists in the pack; thigh/calf/foot keyframes on the pack's own rig; noted
+in CREDITS.md). Also fixed: a queued action pressed during a landing
+settle dip is no longer silently dropped (input buffering).
+`tests/smoke_face.gd` 31 checks PASS.
+
+### PART 2 - Button-sequence combos (commit a56dcc8)
+`ComboInput` autoload: presses land at FINGER time with stick direction;
+0.5 s window; longest-match with pipe variants beating same-length fist
+strings. `combo_table.gd` (one file, 16 combos): 13 fist combos including
+the **A,B,A SUPER PUNCH**, RISING KNEE launcher, X,X,X TRIPLE THREAT kick
+string, **Y,B POWERBOMB grab-to-throw** (arms while the grab closes),
+SPIN BACKFIST, f+B RISING DRAGON, CYCLONE (360 AoE), BULL RUSH, LIGHTS
+OUT finisher and the SIX-SHOOTER capstone, plus 3 pipe combos - each with
+its own anim beats, camera punch, sound and haptic. Anti-mash: repeats
+scale 1.0/0.6/0.36 (floor 0.35) within 12 s; three different combos in
+10 s pay a variety style bonus. Noir input strip: last presses as chips,
+landed names flash. Strings track their target so beats connect.
+`tests/smoke_combos.gd` 39 checks PASS.
+
+### PART 3 - Levels and unlocks (this commit)
+`Progression` autoload: XP from hits (+1), parries (+4), takedowns (+8),
+varied strings (+3), missions (+25, the Stage B/C hook). **Level 1 has NO
+combos - single presses only**; first unlocks at level 2, spread through
+level 15. Perks: combo cancels at level 5, a widening input window (capped
++0.2 s), a wider SUPER shockwave (capped +30%). Level-up moment: banner
+with the new move's name + its sequence demoed chip-by-chip on the input
+strip, a sting and a haptic. Save v3 persists level/xp (v2 saves load at
+level 1). The MOVES screen is generated from the table (locked = greyed
+"Unlocks at level N"; unlocked = sequence + PRACTISE which stages the
+dummy and demos the input). The **Knuckle Room trainer placeholder**
+stands by the dummy (a silhouette with the hook `try_train`; Stage B/C
+replaces it with the real fight-club content). `tests/smoke_progression.gd`
+23 checks PASS.
+
+### PART 4 - NOT STARTED
+The four phone-photo fixes (distant T-pose, white pixelated block stacks,
+figures floating near the HUD, blown-out white neon) have NOT been
+touched this pass - they were below Parts 1-3 in the queue order and the
+session ran out of budget. Next session starts there, then the full
+battery + stress re-run.
+
+### Pass verification status
+smoke_face 31, smoke_combos 39, smoke_progression 23 PASS; smoke,
+smoke_combat, smoke_depth, smoke_a4, smoke_controls, smoke_stick re-run
+green after each part. The FULL battery + 5-minute stress have NOT been
+re-run as a complete set this pass (they were green at Stage A; the next
+session must re-run them with Parts 1-3 in). Phone-only: the feel of the
+diamond under real thumbs, the kick's read, the banner's legibility,
+iOS haptics.
+
 ### The Universal Animation Library pack
 
 `bare-hands/assets/` holds `UAL1_Standard.glb` (the Godot-ready, root-motion-disabled variant), the pack's `License.txt` (**CC0 1.0 / public domain, models by @Quaternius**) and its `README.txt`. The `_RM` (root-motion) variant and the Unity `.fbx` files stay in the original zip at the repo root; this game moves the character in code.
