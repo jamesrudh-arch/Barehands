@@ -61,20 +61,26 @@ func _the_four() -> void:
 		var rig: NpcRig = (n.node as Node3D).get_node("Rig")
 		var skel := rig.find_children("*", "Skeleton3D", true, false)
 		_check(skel.size() >= 1, "%s is rigged (%d skeletons)" % [n.name, skel.size()])
-		var anim := rig.get_node_or_null("Body/Clips") as AnimationPlayer
-		_check(anim != null and anim.is_playing(), "%s is animated" % n.name)
+		var anims := rig.find_children("Clips", "AnimationPlayer", true, false)
+		var playing := anims.size() > 0
+		for a in anims:
+			if not (a as AnimationPlayer).is_playing():
+				playing = false
+		_check(playing, "%s is animated (%d players)" % [n.name, anims.size()])
 	# silhouettes: Marrow is the biggest, Pilsner wears glasses, the Duchess a circlet
 	var marrow := _cast.npcs[2].node as Node3D
 	_check(marrow.scale.x > 1.1, "Marrow stands biggest (%.2f)" % marrow.scale.x)
 	var pilsner := _cast.npcs[1].node as Node3D
 	var glasses := 0
-	for t in pilsner.find_children("*", "TorusMesh", true, false):
-		glasses += 1
+	for mi in pilsner.find_children("*", "MeshInstance3D", true, false):
+		if (mi as MeshInstance3D).mesh is TorusMesh:
+			glasses += 1
 	_check(glasses >= 2, "Pilsner wears glasses (%d lenses)" % glasses)
 	var duchess := _cast.npcs[3].node as Node3D
 	var spikes := 0
-	for c in duchess.find_children("*", "CylinderMesh", true, false):
-		spikes += 1
+	for mi in duchess.find_children("*", "MeshInstance3D", true, false):
+		if (mi as MeshInstance3D).mesh is CylinderMesh:
+			spikes += 1
 	_check(spikes >= 1, "The Duchess wears a circlet")
 	_check(duchess.global_position.y > 3.0, "The Duchess watches from the roof (%.1f m)" % duchess.global_position.y)
 
