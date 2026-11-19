@@ -1,11 +1,34 @@
-# PROJECT_BIBLE.md — LEVERAGE (condensed from the owner's master prompt v4.0)
+# PROJECT_BIBLE.md — LEVERAGE (condensed from the owner's master prompt v5.0)
 
-> **STATUS: ARRIVED.** The original design file (the "LEVERAGE — ALL-IN-ONE
-> MASTER PROMPT v4.0", uploaded 2026-11-19) now lives at
-> `upload/Pasted Content_1795072844419.txt`. This is the working condensation
+> **STATUS: v5.0 ARRIVED (2026-11-19).** The master prompt is now the
+> complete single-prompt build command (v5.0, in
+> `upload/Pasted Content_1795078874226.txt`; v4.0 kept alongside). Same
+> design, plus the session protocol below. This is the working condensation
 > every session re-reads first. Where the repo and the bible disagree, the
 > bible wins for FUTURE work; existing shipped systems are mapped in
 > STATE.json, not silently rewritten.
+
+> **v5.0 additions (binding):**
+> - **PRIORITY ZERO before any new feature**: (1) the distant T-pose fixed
+>   for real with a logged diagnostic + regression test [DONE, b47a29d];
+>   (2) full battery from clean isolated user dirs, never kill a suite,
+>   every suite sets first_run_done [DONE this batch]; (3) Batch 0
+>   completed where missing (Tuning + panel, in-game TestRunner, CI,
+>   Haptics, SfxSynth, save, overlays, debug jumps) [DONE this batch,
+>   Tuning wiring to scripts staged]; (4) STATE.json updated and pushed.
+> - **Session protocol**: commit and push after every completed sub-step;
+>   keep STATE.json current with the exact NEXT STEP; at session start
+>   read this bible + STATE.json, run --import, quick smoke, resume.
+>   Run batteries in chunks with a time budget; critical suites first,
+>   full battery at batch boundaries. Never claim a fix that is not
+>   verified by a test.
+> - **Definition of complete**: CORE tier of every system done and tested,
+>   then FULL, then STRETCH as time allows; the full loop end to end
+>   (fight, phone, ledger, Death=Debt, friends/trust, a job, the kidnap
+>   arc, both endings); budgets met on both phones; the final report
+>   lists per-batch completion, tiers, ONE combined test checklist, known
+>   issues, the three recommended first fixes, and the animation/audio
+>   slots most needing real assets.
 
 ## Identity
 - **LEVERAGE** — compact, high-density neon-noir tactical action-drama in ONE
