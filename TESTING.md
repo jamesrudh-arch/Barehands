@@ -63,6 +63,16 @@ batch boundary.
   (23 resources) and the TestRunner validates fields, ranges and audio
   slots; enemy reaction identity (anim/flash/launches) still lives in
   `enemy.take_hit` by design — only the numbers moved.
+- **B4.0 hotfix (the wheel crawl)**: the style wheel's world-crawl
+  refresh beat ran on the scaled delta (2.8 s of beat time = 9.3 s real
+  at 0.3 speed), so the crawl lapsed at its 3.5 s expiry (world-speed
+  flicker) and the accumulated age crossed Fx's 5 s watchdog, whose
+  merge path never refreshed _scale_since - force-restores + warn spam
+  the phone read as errors. The beat now runs on the real clock and a
+  merge counts as life for the watchdog (a net for untended slow-mos,
+  not a hard 5 s lifespan). Regression: smoke_combos holds the wheel
+  open 6.5 s real - the crawl must hold, no flicker, no watchdog line;
+  negative-proofed on the pre-fix code (FAIL).
 - **Batch 3 systems (all first-pass, phone verification pending)**:
   the five styles (registry in styles.gd; fundamentals common, combo
   strings per-style via the ComboInput gate), the five Dirty Street

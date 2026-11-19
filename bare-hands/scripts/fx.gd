@@ -88,7 +88,13 @@ func _apply_scale(duration: float, scale: float) -> void:
 		# two camera slow-mos in one frame (a multi-kill, a super into a
 		# knockdown): merge - keep the STRONGER (lower) scale and the
 		# LONGER end. The old warning here was misread as a crash.
+		# A merge also counts as LIFE for the stuck-watchdog: the style
+		# wheel keeps its world-crawl alive by re-issuing slow_mo every
+		# couple of seconds, and the watchdog must not kill a slow-mo
+		# that somebody is actively refreshing - it is a net for
+		# slow-mos nobody tends, not a hard 5 s lifespan.
 		Engine.time_scale = minf(Engine.time_scale, scale)
+		_scale_since = Time.get_ticks_msec()
 		_scale_until = maxi(_scale_until,
 				Time.get_ticks_msec() + int(duration * 1000.0))
 		return

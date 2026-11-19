@@ -466,6 +466,34 @@ func _test_style_wheel() -> void:
 	await _frame(2)
 	_check(not w.is_open(), "the wheel closes")
 	_check(Engine.time_scale == 1.0, "time restored after the wheel")
+	# the long browse (regression, Batch 4): hold the wheel open PAST the
+	# 5 s watchdog limit. The beat used to run on the scaled delta - at
+	# 0.3 speed it fired at 9.3 s real, so the crawl lapsed at 3.5 s
+	# (world-speed flicker) and past 5 s the watchdog force-restored and
+	# warned on every cycle; the phone read that warn spam as errors.
+	# Now: the world stays slow for the WHOLE hold, and no watchdog line
+	# is added to the log.
+	var wd_before := 0
+	for l in Log.recent():
+		if "watchdog" in l:
+			wd_before += 1
+	w.open()
+	await _frame(2)
+	var start := Time.get_ticks_msec()
+	var held_slow := true
+	while Time.get_ticks_msec() - start < 6500:
+		await _frame(1)
+		if Engine.time_scale >= 1.0:
+			held_slow = false
+	var wd_after := 0
+	for l in Log.recent():
+		if "watchdog" in l:
+			wd_after += 1
+	_check(held_slow, "the crawl holds through a long browse (no flicker)")
+	_check(wd_after == wd_before, "no watchdog force-restore while the wheel refreshes its crawl")
+	w.close()
+	await _frame(2)
+	_check(Engine.time_scale == 1.0, "time restored after the long browse")
 	w.queue_free()
 	await _frame(2)
 	# the soft style counter (bible 4A): style POINTS only, never damage -

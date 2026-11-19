@@ -14,6 +14,7 @@ const RADIUS := 150.0
 const SECTOR_GAP := 0.06  # radians between sectors
 
 var _open := false
+var _beat_at_msec := 0
 var _t := 0.0
 var _shade: ColorRect
 var _face: Control
@@ -49,6 +50,7 @@ func open() -> void:
 	_open = true
 	_chosen = false
 	visible = true
+	_beat_at_msec = Time.get_ticks_msec()
 	Fx.slow_mo(3.5, 0.3)  # the world waits; re-issued while open
 	Sound.play("ui_confirm_0", -8.0, 0.9, 0.05)
 	Haptics.fire("ui")
@@ -68,14 +70,18 @@ func is_open() -> bool:
 	return _open
 
 
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	if not _open:
 		return
-	_t += delta
-	# keep the crawl alive: a fresh beat before the Fx watchdog (5 s)
-	# restores time, so the wheel never snaps back to full speed mid-pick
-	if _t > 2.8:
-		_t = 0.0
+	# keep the crawl alive: a fresh beat before the 3.5 s expiry, so the
+	# wheel never snaps back to full speed mid-pick. The beat MUST run on
+	# the real clock - the world runs at 0.3 while open, so a beat timed
+	# on the scaled delta fires at 9.3 s real, lapses the crawl at 3.5 s
+	# (world-speed flicker) and aged past the 5 s watchdog (warn spam the
+	# owner's phone read as errors).
+	var now := Time.get_ticks_msec()
+	if now - _beat_at_msec > 2800:
+		_beat_at_msec = now
 		Fx.slow_mo(3.5, 0.3)
 
 

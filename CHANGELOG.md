@@ -1,5 +1,14 @@
 # CHANGELOG.md — batch history (newest first)
 
+## B4.0 hotfix — the style-wheel crawl (2026-11-19)
+- The owner's phone log ("errors" at player.gd:366, round 2) was the
+  style wheel's world-crawl fighting Fx: the refresh beat ran on the
+  scaled delta (fired at 9.3 s real instead of 2.8 s), the crawl lapsed
+  at 3.5 s (world-speed flicker mid-browse), and the watchdog's merge
+  path never refreshed its age - warn spam past 5 s. Beat now on the
+  real clock; merges count as life for the watchdog. Regression-tested
+  (6.5 s hold, negative-proofed).
+
 ## Batch 3 — Styles & the Wheel (2026-11-19)
 - **The five styles (4A)**: Brawler, Kickboxing, Grappling, Drunken,
   Weapon - learned from people (level gates until the teachers arrive
