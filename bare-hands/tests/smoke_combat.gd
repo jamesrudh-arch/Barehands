@@ -351,6 +351,8 @@ func _composure() -> void:
 			_marks_c["healed"] = true
 			_check(not Composure.guard_broken(), "the break heals on its timer")
 			_check(Composure.value > 50.0, "calm regen refills Composure (%.0f)" % Composure.value)
+			# the fight this phase fought must have scored a rank at resolve
+			_check(FightScore.last_rank >= 0, "the fight scored a rank card at resolve (%s)" % FightScore.RANKS[maxi(FightScore.last_rank, 0)])
 			_next()
 
 

@@ -88,6 +88,7 @@ func _run_all() -> void:
 		["anim library: key clips exist, short names", Callable(self, "_t_clips")],
 		["combo table: 16 combos, styles and windows sane", Callable(self, "_t_combos")],
 		["attack data: every .tres loads, fields in range, audio slots exist", Callable(self, "_t_attacks")],
+		["fight score: rank math from synthetic fight stats", Callable(self, "_t_fightscore")],
 		["progression: XP curve monotonic, unlocks reference real combos", Callable(self, "_t_progression")],
 		["wallet: cash and debt math stay finite and floored", Callable(self, "_t_wallet")],
 		["save: round-trip preserves state", Callable(self, "_t_save")],
@@ -207,6 +208,38 @@ func _t_attacks() -> Array:
 	if not bad.is_empty():
 		return [false, ", ".join(bad)]
 	return [true, "%d attacks, fields and audio valid" % AttackData.DEFAULTS.size()]
+
+
+func _t_fightscore() -> Array:
+	var bad: Array = []
+	# a flawless varied fast fight is an S
+	var r1: Dictionary = FightScore.score({"tags": 8, "counters": 3, "env": 2,
+			"takedowns": 3, "hits_taken": 0, "seconds": 20.0})
+	if r1["rank"] != 4:
+		bad.append("flawless varied fight should be S (got %s, %.0f)" % [FightScore.RANKS[r1["rank"]], r1["total"]])
+	# a sloppy one-move mauling is a D
+	var r2: Dictionary = FightScore.score({"tags": 1, "counters": 0, "env": 0,
+			"takedowns": 1, "hits_taken": 6, "seconds": 90.0})
+	if r2["rank"] != 0:
+		bad.append("sloppy mauling should be D (got %s)" % FightScore.RANKS[r2["rank"]])
+	# counter cap holds at 15
+	var r3: Dictionary = FightScore.score({"tags": 3, "counters": 9, "env": 0,
+			"takedowns": 0, "hits_taken": 0, "seconds": 60.0})
+	if float(r3["breakdown"]["counters"]) != 15.0:
+		bad.append("counter cap should hold at 15 (got %.0f)" % r3["breakdown"]["counters"])
+	# variety cap holds at 40
+	var r4: Dictionary = FightScore.score({"tags": 30, "counters": 0, "env": 0,
+			"takedowns": 0, "hits_taken": 5, "seconds": 60.0})
+	if float(r4["breakdown"]["variety"]) != 40.0:
+		bad.append("variety cap should hold at 40 (got %.0f)" % r4["breakdown"]["variety"])
+	# every rank threshold is reachable from a plausible fight
+	var r5: Dictionary = FightScore.score({"tags": 4, "counters": 1, "env": 1,
+			"takedowns": 2, "hits_taken": 1, "seconds": 40.0})
+	if r5["rank"] < 1 or r5["rank"] > 3:
+		bad.append("a mid fight should land mid-table (got %s, %.0f)" % [FightScore.RANKS[r5["rank"]], r5["total"]])
+	if not bad.is_empty():
+		return [false, ", ".join(bad)]
+	return [true, "rank math: S/D paths, caps, mid-table"]
 
 
 func _t_progression() -> Array:

@@ -66,6 +66,7 @@ func _process(delta: float) -> void:
 
 ## Register a landed move; returns the points gained (for tests).
 func add(move: String) -> float:
+	FightScore.move(move)
 	var gain: float = BASE.get(move, 5.0)
 	if move == _last:
 		_repeats += 1

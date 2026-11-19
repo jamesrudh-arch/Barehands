@@ -814,6 +814,7 @@ func take_hit(dir: Vector3, from: CharacterBody3D = null) -> String:
 	velocity.y = 1.5
 	_hitstun_until = _t + 0.45 * _gear_stun()
 	Composure.drain(Tuning.v("composure_hit_drain"), "hit")
+	FightScore.hit_taken()
 	state = State.GROUND
 	_rig.play("Hit_Chest", 0.04, 1.6)
 	Fx.shake(0.4)
