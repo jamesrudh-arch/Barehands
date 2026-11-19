@@ -63,6 +63,18 @@ batch boundary.
   (23 resources) and the TestRunner validates fields, ranges and audio
   slots; enemy reaction identity (anim/flash/launches) still lives in
   `enemy.take_hit` by design — only the numbers moved.
+- **Batch 2 systems (all first-pass, phone verification pending)**:
+  posture break (billboard gold bar, 2.8 s finisher window, regen 20/s
+  after 2.5 s calm), player Composure (bottom-centre bar; guard break
+  at zero), FightScore D..S (rank card at combat resolve; S banks
+  `pending_s_ranks` for the Ledger batch - the debt payoff and
+  story-fight Death=Debt are NOT in yet), the instant retry (offer on
+  a knockdown blow; accept resets + reloads - the accept path is a
+  scene reload and only phone play exercises it fully), and the
+  adaptive memory (Tactics ring buffer; mash -> faster telegraphs,
+  dodge spam -> held strikes). Attack tokens: tiered pool 1/2/3 by
+  ring size (bible's 2-3 budget; a 2-man ring keeps the classic
+  single attacker for readability).
 - **Selective hitstop**: attacker+target freeze via paused
   AnimationPlayers and a physics gate; `slow_mo` remains a camera
   effect on Engine.time_scale by design (hitstop never touches it).

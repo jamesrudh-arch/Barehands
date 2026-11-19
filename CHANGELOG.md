@@ -1,5 +1,26 @@
 # CHANGELOG.md — batch history (newest first)
 
+## Batch 2 — Rank & Posture (2026-11-19)
+- **Attack token pool (4A rule 2)**: 1/2/3 concurrent attackers by ring
+  size, inside the bible's 2-3 budget; boss keeps priority. Also fixed
+  a real Batch 1 bug: `AnimationPlayer.resume()` does not exist in
+  Godot 4 — the selective-hitstop unfreeze errored silently on every
+  hit (no-arg `play()` is the documented resume).
+- **Posture break + finisher opener**: enemies carry a posture bar
+  (AttackData `.tres` per swing, parries +30); the break is a long gold
+  stagger that opens the finisher — a heavy on a broken enemy executes.
+- **Player Composure (the mirror)**: hits drain, blocks chip, parries
+  are free; at zero the guard breaks (block dead 4 s). Bottom-centre
+  bar, gold→red, GUARD BROKEN flash.
+- **Per-fight Style Rank D..S (FightScore)**: variety / no-hit /
+  counters / environment / takedowns / speed, pure logic-tested math,
+  rank card at combat resolve. S banks for the Ledger's debt payoff.
+- **Instant arena retry**: a strike on a broken guard offers a 10 s
+  TAP-PUNCH retry that resets and reloads the fight; lapse fights on.
+- **Adaptive memory (4A)**: the ring tracks the hero's last three
+  moves — mashed lights meet 25% faster telegraphs, dodge spam meets
+  strikes held to catch the roll.
+
 ## Batch 1 — The Punch (2026-11-19)
 - **The "player.gd:366 error" solved**: it was the `Fx: scale requested
   while already at` WARNING carrying a stack trace — a punch's hitstop

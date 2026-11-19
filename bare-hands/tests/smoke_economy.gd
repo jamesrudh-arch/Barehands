@@ -101,7 +101,23 @@ func _heat_cycle() -> void:
 	Heat.heat = 1.5
 	for e in get_tree().get_nodes_in_group("enemy"):
 		(e as Node3D).global_position = Vector3(19.0, 0.02, 19.0)
-	await _wait(6.6)
+	# HOLD the street clear through the whole window: a hostile district
+	# keeps spawning goons near the hero, and any enemy inside the 12 m
+	# sight range restarts the calm timer - a single late sighting inside
+	# the last ~4 s eats the whole decay. Sweep every half-second and
+	# push anything approaching back past 15 m, so 'seen' is never true
+	# and the DECAY PATH is what this measures, not the city's ambient
+	# population. (Flaked twice in the Batch 2 battery: heat frozen at
+	# exactly 1.50 = the calm timer restarting.)
+	var frames := 0
+	while frames < 9.0 * 60:
+		await get_tree().physics_frame
+		frames += 1
+		if frames % 30 == 0:
+			for e in get_tree().get_nodes_in_group("enemy"):
+				var en := e as Node3D
+				if en.global_position.distance_to(_player.global_position) < 15.0:
+					en.global_position = Vector3(19.0, 0.02, 19.0)
 	_check(Heat.heat < 1.5, "heat decays out of sight (%.2f)" % Heat.heat)
 
 

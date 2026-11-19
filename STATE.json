@@ -3,7 +3,7 @@
   "repo": "github.com/jamesrudh-arch/Barehands, main branch",
   "godot": "4.7.2, MOBILE renderer, headless test harness at /tmp/godot",
   "continuation_protocol": "read PROJECT_BIBLE.md + this file; resume at next_step",
-  "current_batch": "Batch 1 (The Punch) - selective hitstop + AttackData + Tuning wiring DONE pending stress; next: verify stress, then Batch 2 (attack tokens, posture/Composure, S-rank, arena retry, adaptive memory)",
+  "current_batch": "Batch 2 (rank/posture) COMPLETE pending battery; next: Batch 3 (styles/wheel: the five styles from people, Dirty Street Tactics per style, style-switch wheel) per bible batch order",
   "completed": [
     "Series 1 (look and feel): stability, hero + cinematic camera, wet neon night, punches that hit, pose/stress suites",
     "Series 2 Phase 1 audio (layered hits, puddle footsteps, volume sliders, mute)",
@@ -26,7 +26,8 @@
     "player.gd:366 'error' SOLVED (5d88ce6-era): it was never a crash - the WARN 'Fx: scale 0.45 requested while already at 0.05' carries a full stack trace that reads like an error. Chain: _land_punch:573 take_hit -> _die -> slow_mo while the same punch's hitstop held time_scale at 0.05. Reproduced 16x in a clean stress run. Fixed structurally by selective hitstop (below): hitstop no longer touches Engine.time_scale, and two colliding slow-mos now MERGE (lower scale, longer end) instead of warning.",
     "Batch 1 selective hitstop: Fx.hit_stop(frames, who) pauses ONLY attacker+target AnimationPlayers and gates their _physics_process via Fx.is_frozen(); eased 4-frame recovery (speed_scale 0.3->1.0 tween); rain/particles/music/crowds never pause. Enemy strikes that clip the hero now hitstop both (3 frames) - they never did before. All 8 player hitstop call sites migrated (jab/cross/heavy/counter/launcher/finisher/kick/super/env takedown/knee/combo multi-hits).",
     "Batch 1 AttackData: class_name AttackData (damage, hitstop_frames, knockback push/lift/lateral, shake, camera, posture, cancel window, haptic, audio layers, style, super gain, slow-mo) + 23 .tres in res://attacks/ (every swing incl. slam_wall/car/rail/shutter/chain, sweep, shot; knockbacks mirrored from the shipped enemy.take_hit values) + generator scripts/gen_attack_data.py + TestRunner validation test (9/9). _land_punch and enemy.take_hit read from the resources; a missing .tres falls back to built-in defaults. Redundant knock lines removed from enemy's match so .tres tweaks cannot be shadowed.",
-    "Batch 1 Tuning wiring (first systems): player combo buffer BUFFER_TIME -> Tuning.v('input_buffer_ms')/1000 with the SHIPPED 350 ms as the default (the prompt's 200 ms is a starting guess; the owner slides it live). Tuning panel already exposes it."
+    "Batch 1 Tuning wiring (first systems): player combo buffer BUFFER_TIME -> Tuning.v('input_buffer_ms')/1000 with the SHIPPED 350 ms as the default (the prompt's 200 ms is a starting guess; the owner slides it live). Tuning panel already exposes it.",
+    "Batch 2 complete (b7114e2..acc2211): (1) attack token POOL - bible 4A's 2-3 budget, tiered 1/2/3 by ring size, Tuning attack_tokens_ring/_crowd, smoke_depth phase 12 verifies cap 2 with 4 engaged; the AnimationPlayer.resume() Batch-1 bug fixed (Godot 4: play() no-arg resumes). (2) POSTURE BREAK: enemy posture bar 100 (AttackData.posture_damage live in all 23 .tres: lights chip 4-8, heavies 20-35, parries +30 via pre-seeded Tuning keys); at cap a 2.8 s gold stagger + billboard gold bar + style 'posture'; FINISHER OPENER: heavy on a broken enemy executes; regen 20/s only after 2.5 s calm so sustained pressure always breaks. (3) PLAYER COMPOSURE: the mirror - hits drain 18, blocks chip 7, parries free; at 0 GUARD BREAK (block dead 4 s, stance shatters, ComposureBar UI gold->red + flash); calm regen 12/s. (4) FIGHTSCORE: per-fight Style Rank D..S from variety/no-hit/counters/env/takedowns/speed (pure score() math, logic-tested); Music state machine is the fight boundary; rank card overlay at resolve; S banks pending_s_ranks for the Ledger batch (bible: S cuts debt 5% of principal). (5) INSTANT RETRY: knockdown blow (hit on broken guard) offers a 10 s TAP-PUNCH retry - accept resets Composure/FightScore/SuperMeter/heat + reloads the scene; lapse fights on; one per fight. (6) ADAPTIVE MEMORY: player records last-3 moves (punch_light/heavy, dodge, block, parry, grab, super) into Tactics; enemies read it - mashing lights = telegraphs x0.75 faster, dodge spam = strikes held x1.35 to catch the roll."
   ],
   "bible_batch_mapping": {
     "batch_0_foundation": "mostly exists (tests battery, haptics abstraction, save system, debug overlay); missing: Tuning.gd consolidation, CI workflow, STATE.json (this file now closes it)",
@@ -45,10 +46,12 @@
     "batch_13_polish": "continuous (stress + pose + battery each pass)"
   },
   "known_issues": [
-    "Tuning wiring continues per system (enemy walk speeds, economy numbers) - staged in TESTING.md",
+    "S-rank debt payoff + story-fight Death=Debt wait on the Ledger/economy batch (pending_s_ranks banks them)",
+    "best-10s replay clip after S-rank: STRETCH, not started",
+    "retry-accept path (scene reload) is trivial Godot API but only phone play exercises it end-to-end; suites verify offer-open and lapse",
     "hitstop duration now real-freeze (was 5% time_scale) - feel may read slightly longer on heavy hits; tune via AttackData .tres hitstop_frames",
-    "haptics on iOS still need a Core Haptics plugin (basic fallback works)"
+    "Tuning wiring continues per system (enemy walk speeds, economy numbers) - staged in TESTING.md"
   ],
-  "next_step": "Confirm stress_combat green in /tmp/b1-verify.log, push Batch 1, then Batch 2 (v5.0 order): attack tokens (max 2-3 concurrent attackers), posture break + finisher opener, player Composure, S-rank scoring, instant arena retry, adaptive enemy memory (last_3_player_moves). Tactics.gd already ships the token system - audit it against prompt 4A rule 2 first.",
+  "next_step": "Confirm the full battery green in /tmp/b2-battery.log (each suite grepped for SCRIPT ERROR), then Batch 3 per bible order: styles/wheel - the five styles learned from people (Brawler/Brother, Kickboxing/Bouncer, Grappling/Collector, Drunken/The Drunk, Weapon/Lieutenant), one Dirty Street Tactic per style, the style-switch wheel. Style countering stays a SOFT bonus per 4A.",
   "battery_last_full_run": "2026-11-19 P0: 18/18 green (see completed list); run pattern: HOME=<fresh dir> per suite, timeout 420, never killed"
 }

@@ -7,6 +7,37 @@ The whole project is plain text (`.gd`, `.tscn`, `project.godot`) plus CC0 asset
 **SERIES 1: THE LOOK AND FEEL** — phase reports below (1 Stability · 2 Hero & Camera · 3 Wet Neon Night · 4 Punches That Hit).
 **SERIES 2: SOUND, SOUL AND DEPTH** — reports continue below (1 Audio · 2 Music · 3 Combat · 4 Ledger · 5 Economy · 6 City · 7 Cast · 8 Opening). Design docs: docs/VISION.md, docs/WOW_GATE.md (reconstructed — originals never arrived).
 
+## Batch 2 — Rank & Posture (2026-11-19)
+
+The bible's "rank/posture" batch, complete:
+
+- **Attack tokens (4A rule 2)**: a tiered POOL — a two-man ring keeps
+  one attacker for readability, 3-4 engaged share two, five or more
+  share three (the bible's 2-3 budget, Tuning-live). smoke_depth phase
+  12 drives four enemies and holds the cap.
+- **Posture break mirrors Composure (4A)**: enemies fill a posture bar
+  from landed hits (every number in the attack `.tres` set) and from
+  being parried (+30). The break is a long gold stagger with a billboard
+  bar — and the FINISHER OPENER: a heavy on a broken enemy executes.
+  Sustained pressure always reaches the break; regen only after 2.5 s
+  of calm.
+- **Player Composure**: hits drain 18, blocked strikes chip 7, parries
+  cost nothing (skill is free — defensive play stays rewarding). At
+  zero the GUARD BREAKS: blocking stops nothing for four seconds.
+  Bottom-centre bar, gold→red, flash on the break.
+- **Per-fight Style Rank D..S**: FightScore reads each fight's story —
+  variety, no-hit, clean counters, environment use, takedowns, speed —
+  and deals a rank card at resolve (pure, logic-tested math). S-rank
+  banks toward the Ledger batch's 5% debt cut.
+- **Instant arena retry**: the knockdown blow (a strike on a broken
+  guard) offers a ten-second TAP-PUNCH retry — accept resets the whole
+  fight state and reloads the street instantly.
+- **Adaptive AI (4A)**: the ring remembers the hero's last three moves.
+  Mashed lights meet faster telegraphs; dodge spam meets strikes held
+  a beat to catch the roll.
+- Verified: import 0 errors; logic tests 11/11; per-suite batteries
+  green with 0 script errors each.
+
 ## Batch 1 — The Punch: selective hitstop, AttackData, Tuning (2026-11-19)
 
 - **The "player.gd:366 error" was never a crash.** It was the `Fx:
