@@ -94,12 +94,15 @@ func _heat_cycle() -> void:
 	Heat.heat = 0.5
 	await _wait(1.0)
 	_check(Heat.responders().size() == 0, "responders leave as heat dies (%d)" % Heat.responders().size())
-	# decay out of sight: nothing near, calm timer, heat falls
-	Heat.heat = 2.0
+	# decay out of sight: nothing near, calm timer, heat falls.
+	# 1.5, not 2.0: at 2.0 the game is WORKING AS DESIGNED when it
+	# reinforces responders toward the player (they count as seen and the
+	# street does not forget) - the decay path needs no responders.
+	Heat.heat = 1.5
 	for e in get_tree().get_nodes_in_group("enemy"):
 		(e as Node3D).global_position = Vector3(19.0, 0.02, 19.0)
 	await _wait(6.6)
-	_check(Heat.heat < 2.0, "heat decays out of sight (%.2f)" % Heat.heat)
+	_check(Heat.heat < 1.5, "heat decays out of sight (%.2f)" % Heat.heat)
 
 
 func _shopping() -> void:
