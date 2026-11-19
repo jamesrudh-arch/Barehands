@@ -22,6 +22,7 @@ const CLASSIC_SPECS := [
 	["GrabBtn", "GRAB", "", Color(0.75, 1.0, 0.6, 0.95), 284.0, 420.0, 116.0],
 	["LockBtn", "LOCK", "", Color(0.8, 0.8, 0.85, 0.9), 416.0, 300.0, 86.0],
 	["SuperBtn", "SUPER", "", Color(1.0, 0.62, 0.2, 1.0), 152.0, 428.0, 116.0],
+	["PhoneBtn", "PHONE", "", Color(0.45, 0.52, 0.62, 1.0), 24.0, 600.0, 64.0],
 	["StyleBtn", "STYLE", "", Color(0.9, 0.7, 0.4, 0.9), 416.0, 428.0, 86.0],
 ]
 
@@ -36,6 +37,7 @@ const FACE_SPECS := [
 	["SprintBtn", "SPRINT", "", Color(0.55, 0.95, 1.0, 0.95), 452.0, 348.0, 84.0],
 	["LockBtn", "LOCK", "", Color(0.8, 0.8, 0.85, 0.9), 322.0, 330.0, 74.0],
 	["SuperBtn", "SUPER", "", Color(1.0, 0.62, 0.2, 1.0), 106.0, 330.0, 96.0],
+	["PhoneBtn", "PHONE", "", Color(0.45, 0.52, 0.62, 1.0), 24.0, 600.0, 64.0],
 	["StyleBtn", "STYLE", "", Color(0.9, 0.7, 0.4, 0.9), 452.0, 448.0, 74.0],
 ]
 
@@ -143,6 +145,8 @@ func _on_down(name: String) -> void:
 			_toggle_lock()
 		"SuperBtn":
 			InputBus.queue_super()
+		"PhoneBtn":
+			Phone.toggle_open()  # the ring banner answers itself
 		"StyleBtn":
 			_open_wheel()
 		"FaceA":

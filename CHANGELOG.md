@@ -1,5 +1,20 @@
 # CHANGELOG.md — batch history (newest first)
 
+## B5 — the phone + Trust (2026-11-19)
+- The device the pressure loop runs through (bible 4C): calls interrupt
+  fights - the ring never locks input, answer in seconds while enemies
+  swing, one answer per ring; answering dims and slows the world (the
+  wheel's slow-mo pattern); declining costs -6 Trust, a missed ring
+  leaves a replayable voicemail and -6; demand calls ask real money
+  (PAY $40 / REFUSE -4); invitations take promises (batch 7 redeems);
+  Last Call redials once; countdown texts ride push_text; the buzz is
+  a slow low haptic pulse. The map app: three blocks, fog of war until
+  walked, heat tint, no fast travel. Trust autoload: the four friends
+  0-100 from 70, tiers, estranged stop calling, save v5. HUD PhoneBtn
+  on both schemes; debug RING NOW / CLEAR PHONE. smoke_phone 41 green.
+  Leverage Clips deliberately unshipped (they ride the job/ledger
+  batches). The lines are first-pass voice - the owner's ear decides.
+
 ## B4.2 — the accessibility four (2026-11-19)
 - block_hold_ms (Tuning, live): hold-DODGE->block threshold; the dodge
   tap-vs-hold split reads the same key. autotarget_mult (Tuning): the

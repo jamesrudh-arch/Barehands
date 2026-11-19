@@ -49,6 +49,11 @@ func _physics_process(_delta: float) -> void:
 # --- districts -------------------------------------------------------------------
 
 
+## Where the hero stands right now (the phone map's YOU-ARE-HERE).
+func district_now() -> String:
+	return _district_now
+
+
 func district_at(pos: Vector3) -> String:
 	if pos.x < -6.0:
 		return "riverside"

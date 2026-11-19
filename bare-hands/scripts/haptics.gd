@@ -15,6 +15,7 @@ const PATTERNS := {
 	"super": [30, 70, 120], # the super strike: building rumble
 	"ui": [10],             # a button press
 	"down": [70],           # the hero is knocked down
+	"buzz": [150, 110, 150], # a call: slow low pulse-pause-pulse (4C)
 }
 
 var _queue: Array = []  # [msec_to_wait, duration] steps

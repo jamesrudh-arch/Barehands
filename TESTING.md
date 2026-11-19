@@ -63,6 +63,18 @@ batch boundary.
   (23 resources) and the TestRunner validates fields, ranges and audio
   slots; enemy reaction identity (anim/flash/launches) still lives in
   `enemy.take_hit` by design — only the numbers moved.
+- **B5 the phone (4C) + Trust counters (4D)**: smoke_phone (41 checks)
+  - the ring under fire (input NEVER locks; a punch lands mid-ring),
+    the buzz pulse, one answer per ring, answer -> dim + slow (0.25,
+    the wheel's re-issued slow-mo) + input lock, decline -6 Trust,
+    expiry -> missed -> replayable voicemail + -6, demand PAY
+  $40/REFUSE -4, invitation promise (batch 7 redeems), Last Call once
+  per run, fog of war (spawn block lifts, unwalked stays ???, heat
+  tints), the HUD PhoneBtn open/close restores lock + time scale,
+  estranged friends blocked, countdown texts via push_text, save v5
+  round-trip (log/fog/trust). Signal gotcha found by the suite:
+  City.entered_district carries (district, MOOD) - handlers must take
+  both.
 - **B4.2 accessibility four (bible 7)**: block_hold_ms (Tuning) is the
   hold-DODGE->block threshold and the input bus's tap-vs-hold split
   reads the same key (they can never disagree); autotarget_mult

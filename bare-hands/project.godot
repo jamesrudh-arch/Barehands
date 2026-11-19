@@ -33,6 +33,8 @@ Heat="*res://scripts/heat.gd"
 City="*res://scripts/city.gd"
 SaveGame="*res://scripts/save_game.gd"
 Dialogue="*res://scripts/dialogue.gd"
+Trust="*res://scripts/trust.gd"
+Phone="*res://scripts/phone.gd"
 
 [display]
 

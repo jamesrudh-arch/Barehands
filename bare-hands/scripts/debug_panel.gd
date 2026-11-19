@@ -64,6 +64,26 @@ func _ready() -> void:
 	style.focus_mode = Control.FOCUS_NONE
 	style.pressed.connect(_open_style_wheel)
 	jumps.add_child(style)
+	# Batch 5: jump straight into the phone pressure loop
+	var ring := Button.new()
+	ring.text = "RING NOW"
+	ring.focus_mode = Control.FOCUS_NONE
+	ring.pressed.connect(_ring_now)
+	jumps.add_child(ring)
+	var clr := Button.new()
+	clr.text = "CLEAR PHONE"
+	clr.focus_mode = Control.FOCUS_NONE
+	clr.pressed.connect(func(): Phone.reset_for_test())
+	jumps.add_child(clr)
+
+
+## Batch 5: a random friend calls, right now, whatever the hero is doing.
+func _ring_now() -> void:
+	var options := Trust.callers()
+	if options.is_empty():
+		return
+	Phone.ring(options[randi() % options.size()],
+			"demand" if randi() % 2 == 0 else "invitation")
 
 
 ## Batch 3: the debug menu jumps straight to the style wheel.

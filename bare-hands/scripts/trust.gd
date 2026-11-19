@@ -1,0 +1,88 @@
+extends Node
+## Trust (bible 4D) - the phone's cost engine, autoloaded as "Trust".
+## Friends 0-100, everyone starts at 70. Unanswered calls cost -6,
+## and the later hangout/setup beats add their own. Tiers: Close >=60
+## (helps in a fight once), Drifting 30-59 (hesitates), Estranged <30
+## (stops calling). The batch-7 pass builds hangouts, setup payoffs and
+## the kidnap-target pick on top of these numbers; the phone only needs
+## the counters and the signal today.
+##
+## The Ledger always shows Trust so outcomes stay earned and visible
+## (that surface lands with the Ledger batch).
+
+signal changed(friend: String)
+
+const FRIENDS := {
+	"brother": {"name": "Brother", "color": Color(0.85, 0.55, 0.25),
+		"who": "family, Brawler hands"},
+	"mechanic": {"name": "The Mechanic", "color": Color(0.5, 0.8, 0.9),
+		"who": "the garage, power-cut setups"},
+	"club_owner": {"name": "The Club Owner", "color": Color(0.75, 0.5, 0.85),
+		"who": "laundering, brawl-staging"},
+	"drunk": {"name": "The Drunk", "color": Color(0.85, 0.75, 0.3),
+		"who": "Drunken Boxing, lures cops"},
+}
+
+## bible 4D deltas: unanswered -6, hangout +15 (batch 7), clean setup
+## +10, setup that hurts them -10.
+const MISSED_CALL := -6.0
+const DECLINED_CALL := -6.0
+const REFUSED_DEMAND := -4.0
+
+var _t: Dictionary = {}  # friend id -> 0..100
+
+
+func _ready() -> void:
+	for id in FRIENDS:
+		_t[id] = 70.0
+
+
+func value(friend: String) -> float:
+	return float(_t.get(friend, 70.0))
+
+
+func add(friend: String, delta: float, why: String) -> void:
+	if not FRIENDS.has(friend):
+		Log.warn("Trust: unknown friend '%s'" % friend)
+		return
+	var v := clampf(value(friend) + delta, 0.0, 100.0)
+	if is_equal_approx(v, value(friend)):
+		return
+	_t[friend] = v
+	changed.emit(friend)
+	Log.info("Trust: %s %+.0f -> %.0f (%s)" % [FRIENDS[friend]["name"], delta, v, why])
+
+
+## Close >=60 / Drifting 30-59 / Estranged <30 (bible 4D). The phone
+## mutes rings from Estranged friends - they stop calling.
+func tier(friend: String) -> String:
+	var v := value(friend)
+	if v >= 60.0:
+		return "close"
+	if v >= 30.0:
+		return "drifting"
+	return "estranged"
+
+
+func callers() -> Array:
+	## Who still calls: Close and Drifting friends.
+	var out: Array = []
+	for id in FRIENDS:
+		if tier(id) != "estranged":
+			out.append(id)
+	return out
+
+
+func to_dict() -> Dictionary:
+	return _t.duplicate()
+
+
+func from_dict(d: Dictionary) -> void:
+	for id in FRIENDS:
+		if d.has(id):
+			_t[id] = clampf(float(d[id]), 0.0, 100.0)
+
+
+func reset_for_test() -> void:
+	for id in FRIENDS:
+		_t[id] = 70.0
