@@ -11,7 +11,7 @@ func save_all() -> bool:
 	var p := get_tree().get_first_node_in_group("player") as CharacterBody3D
 	var style := get_tree().get_first_node_in_group("style") as Control
 	var d := {
-		"version": 3,
+		"version": 4,
 		"wallet": Wallet.to_dict(),
 		"heat": Heat.to_dict(),
 		"gear": p.get("gear") if p else {},
@@ -20,6 +20,7 @@ func save_all() -> bool:
 		"style_value": style.get("value") if style else 0.0,
 		"city": City.to_dict(),
 		"progression": Progression.to_dict(),
+		"styles": Styles.to_dict(),
 	}
 	var f := FileAccess.open(PATH + ".tmp", FileAccess.WRITE)
 	if f == null:
@@ -47,6 +48,8 @@ func load_all() -> bool:
 		Log.warn("SaveGame: incompatible save")
 		return false
 	Wallet.from_dict(parsed.get("wallet", {}))
+	# styles ride in save v4+; older saves predate them and start clean
+	Styles.from_dict(parsed.get("styles", {}))
 	Progression.from_dict(parsed.get("progression", {}))
 	Heat.from_dict(parsed.get("heat", {}))
 	City.from_dict(parsed.get("city", {}))

@@ -14,5 +14,8 @@ func _ready() -> void:
 	for r in runner._results:
 		if r[1]:
 			passed += 1
+		else:
+			# a failed logic test must be loud: name + reason
+			print("TESTRUNNER FAIL: %s - %s" % [str(r[0]), str(r[2] if r.size() > 2 else "")])
 	print("TESTRUNNER %d/%d" % [passed, runner._results.size()])
 	get_tree().quit(0 if passed == runner._results.size() else 1)

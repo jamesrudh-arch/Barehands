@@ -30,6 +30,7 @@ func _ready() -> void:
 	Settings.set_value("button_scheme", "face")
 	Settings.set_value("hints", {})
 	Progression.level = 20  # every combo unlocked for the sequence battery
+	Styles.unlock_all_for_test()  # ...and every style learned (Batch 3)
 	_main = load("res://scenes/main.tscn").instantiate()
 	add_child(_main)
 	var opening := get_tree().get_first_node_in_group("opening") as OpeningShot
@@ -54,6 +55,7 @@ func _ready() -> void:
 
 	await _test_buffer_basics()
 	await _test_named_combos()
+	await _test_style_gate()
 	await _test_every_sequence()
 	await _test_gating()
 	await _test_spam_scaling()
@@ -151,7 +153,8 @@ func _test_buffer_basics() -> void:
 
 
 func _test_named_combos() -> void:
-	# A,B,A = the SUPER PUNCH
+	# A,B,A = the SUPER PUNCH (brawler)
+	Styles.switch_to("brawler")
 	ComboInput.reset_for_test()
 	_matched_ids.clear()
 	_wait_ground()
@@ -175,7 +178,8 @@ func _test_named_combos() -> void:
 			break
 	_check(_dummy.hp < hp0, "the SUPER PUNCH damages the dummy (hp %d -> %d)" % [hp0, _dummy.hp])
 
-	# f+B = the explicit uppercut launcher
+	# f+B = the explicit uppercut launcher (grappling)
+	Styles.switch_to("grappling")
 	ComboInput.reset_for_test()
 	_matched_ids.clear()
 	_wait_ground()
@@ -194,7 +198,8 @@ func _test_named_combos() -> void:
 	_dummy.state = Enemy.State.IDLE
 	_dummy.hp = 99
 
-	# X,X,X = the multi-hit kick string
+	# X,X,X = the multi-hit kick string (kickboxing)
+	Styles.switch_to("kickboxing")
 	ComboInput.reset_for_test()
 	_matched_ids.clear()
 	_wait_ground()
@@ -210,7 +215,8 @@ func _test_named_combos() -> void:
 			break
 	_check(_dummy.hp <= hp1 - 5, "the kick string is multi-hit (hp %d -> %d)" % [hp1, _dummy.hp])
 
-	# Y,B while holding = the grab-to-throw chain (POWERBOMB)
+	# Y,B while holding = the grab-to-throw chain (grappling)
+	Styles.switch_to("grappling")
 	ComboInput.reset_for_test()
 	_matched_ids.clear()
 	_wait_ground()
@@ -239,6 +245,39 @@ func _test_named_combos() -> void:
 	InputBus.reset_input()
 
 
+# --- the STYLE GATE: a combo fires only in its own style -----------------------------------
+
+
+func _test_style_gate() -> void:
+	# the same string, the WRONG style: no match, just single presses
+	Styles.switch_to("kickboxing")
+	ComboInput.reset_for_test()
+	_matched_ids.clear()
+	_wait_ground()
+	_stage_dummy()
+	for tok in ["A", "B", "A"]:
+		_press(tok)
+		await _frame(10)
+	_check(not _matched_ids.has("super_punch"),
+			"A,B,A does NOT fire the brawler SUPER PUNCH in kickboxing (%s)" % str(_matched_ids))
+	# the right style: the same string lands
+	Styles.switch_to("brawler")
+	ComboInput.reset_for_test()
+	_matched_ids.clear()
+	_wait_ground()
+	_stage_dummy()
+	for tok in ["A", "B", "A"]:
+		_press(tok)
+		await _frame(10)
+	_check(_last_match() == "super_punch",
+			"the same string fires it once the hero fights brawler (%s)" % _last_match())
+	for i in 220:
+		await _frame(1)
+		if _player.state == Player.State.GROUND and Engine.time_scale == 1.0 and _combo_done():
+			break
+	InputBus.reset_input()
+
+
 # --- EVERY sequence in the table matches its combo ----------------------------------------
 
 
@@ -256,6 +295,8 @@ func _test_every_sequence() -> void:
 				await _frame(1)
 				if _player.state == Player.State.GRAB:
 					break
+		# Batch 3: fire it in the style that owns it
+		Styles.switch_to(str(def.get("style", "brawler")))
 		_player.has_pipe = bool(def.get("pipe", false))
 		for step in def["seq"]:
 			var tok: String = step
@@ -286,7 +327,8 @@ func _combo_done() -> bool:
 
 
 func _test_gating() -> void:
-	# without the pipe, A,A,B is the FIST combo (knee_rise)
+	# without the pipe, A,A,B is the FIST combo (knee_rise, kickboxing)
+	Styles.switch_to("kickboxing")
 	ComboInput.reset_for_test()
 	_matched_ids.clear()
 	_wait_ground()
@@ -300,7 +342,8 @@ func _test_gating() -> void:
 		await _frame(1)
 		if _player.state == Player.State.GROUND and Engine.time_scale == 1.0 and _combo_done():
 			break
-	# with the pipe, the same string is the pipe combo
+	# with the pipe, the same string is the pipe combo (weapon style)
+	Styles.switch_to("weapon")
 	ComboInput.reset_for_test()
 	_matched_ids.clear()
 	_wait_ground()
@@ -315,7 +358,9 @@ func _test_gating() -> void:
 		await _frame(1)
 		if _player.state == Player.State.GROUND and Engine.time_scale == 1.0 and _combo_done():
 			break
-	# Y,B does NOT match while standing free (dummy out of grab range)
+	# Y,B does NOT match while standing free (dummy out of grab range,
+	# grappling equipped so the gate itself is not what blocks it)
+	Styles.switch_to("grappling")
 	ComboInput.reset_for_test()
 	_matched_ids.clear()
 	_wait_ground()
@@ -335,6 +380,7 @@ func _test_gating() -> void:
 
 
 func _test_spam_scaling() -> void:
+	Styles.switch_to("brawler")
 	ComboInput.reset_for_test()
 	var factors := []
 	for i in 3:
@@ -362,8 +408,11 @@ func _test_variety() -> void:
 	ComboInput.reset_for_test()
 	_variety_fired.clear()
 	_matched_ids.clear()
-	# three DIFFERENT combos inside the window
-	var seqs := [["A", "B", "A"], ["X", "A"], ["A", "A", "B"]]
+	# three DIFFERENT combos inside the window - one style's move list
+	# (kickboxing: sweep, knee_rise, triple_threat), since a combo only
+	# fires in the style that owns it
+	Styles.switch_to("kickboxing")
+	var seqs := [["X", "A"], ["A", "A", "B"], ["X", "X", "X"]]
 	for seq in seqs:
 		_wait_ground()
 		_stage_dummy()
@@ -391,6 +440,7 @@ func _test_strip() -> void:
 	_press("A")
 	await _frame(2)
 	_check(strip._last_tokens == ["A"], "the strip shows the last press (%s)" % str(strip._last_tokens))
+	Styles.switch_to("brawler")  # the strip's flash test wants the SUPER PUNCH
 	for tok in ["B", "A"]:
 		_press(tok)
 		await _frame(8)

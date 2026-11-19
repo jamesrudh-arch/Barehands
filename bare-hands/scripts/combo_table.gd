@@ -21,7 +21,7 @@ const ALL := [
 	# --- fists ----------------------------------------------------------------
 	{
 		"id": "super_punch", "name": "SUPER PUNCH", "seq": ["A", "B", "A"],
-		"level": 2, "desc": "The signature haymaker: a slow wind-up, then the biggest single hit your bare hands can land.",
+		"level": 2, "style": "brawler", "desc": "The signature haymaker: a slow wind-up, then the biggest single hit your bare hands can land.",
 		"dmg": 6, "lunge": 1.6,
 		"hits": [
 			{"anim": "Punch_Cross", "anim_t": 0.0, "speed": 0.5, "t": 0.52,
@@ -32,7 +32,7 @@ const ALL := [
 	},
 	{
 		"id": "sweep", "name": "ANKLE SWEEP", "seq": ["X", "A"],
-		"level": 2, "desc": "A low kick that dumps them on the wet asphalt. Cheap, mean, effective.",
+		"level": 2, "style": "kickboxing", "desc": "A low kick that dumps them on the wet asphalt. Cheap, mean, effective.",
 		"dmg": 2, "lunge": 1.0,
 		"hits": [
 			{"anim": "Kick_Code", "anim_t": 0.0, "speed": 1.1, "t": 0.30,
@@ -42,7 +42,7 @@ const ALL := [
 	},
 	{
 		"id": "knee_rise", "name": "RISING KNEE", "seq": ["A", "A", "B"],
-		"level": 3, "desc": "Two quick taps to soften them, then a knee that pops them into the air for a juggle.",
+		"level": 3, "style": "kickboxing", "desc": "Two quick taps to soften them, then a knee that pops them into the air for a juggle.",
 		"dmg": 2, "lunge": 1.2,
 		"hits": [
 			{"anim": "Punch_Jab", "anim_t": 0.0, "speed": 1.8, "t": 0.30,
@@ -52,7 +52,7 @@ const ALL := [
 	},
 	{
 		"id": "triple_threat", "name": "TRIPLE THREAT", "seq": ["X", "X", "X"],
-		"level": 4, "desc": "Three fast kicks - snap, snap, and a spinning heel that sends them sliding. The kick string.",
+		"level": 4, "style": "kickboxing", "desc": "Three fast kicks - snap, snap, and a spinning heel that sends them sliding. The kick string.",
 		"dmg": 6, "lunge": 1.1,
 		"hits": [
 			{"anim": "Kick_Code", "anim_t": 0.0, "speed": 1.7, "t": 0.20, "kind": "tap",
@@ -68,7 +68,7 @@ const ALL := [
 	},
 	{
 		"id": "slam_chain", "name": "POWERBOMB", "seq": ["Y", "B"],
-		"level": 3, "requires_grab": true,
+		"level": 3, "requires_grab": true, "style": "grappling",
 		"desc": "While holding someone: hoist and drive them into the ground. The grab-to-throw chain.",
 		"dmg": 3,
 		"hits": [
@@ -79,7 +79,7 @@ const ALL := [
 	},
 	{
 		"id": "backfist_combo", "name": "SPIN BACKFIST", "seq": ["A", "Y"],
-		"level": 5, "desc": "A jab that turns into a spinning backfist. Reads like a street fight, not a dojo.",
+		"level": 5, "style": "drunken", "desc": "A jab that turns into a spinning backfist. Reads like a street fight, not a dojo.",
 		"dmg": 3, "lunge": 0.8, "spin": true,
 		"hits": [
 			{"anim": "Punch_Cross", "anim_t": 0.0, "speed": 1.9, "t": 0.26,
@@ -89,7 +89,7 @@ const ALL := [
 	},
 	{
 		"id": "hamstring", "name": "HAMSTRING", "seq": ["X", "B"],
-		"level": 6, "desc": "Kick the leg, then bring the whole arm down on their neck.",
+		"level": 6, "style": "kickboxing", "desc": "Kick the leg, then bring the whole arm down on their neck.",
 		"dmg": 4, "lunge": 1.0,
 		"hits": [
 			{"anim": "Kick_Code", "anim_t": 0.0, "speed": 1.2, "t": 0.24, "kind": "kick",
@@ -102,7 +102,7 @@ const ALL := [
 	},
 	{
 		"id": "uppercut", "name": "RISING DRAGON", "seq": ["f+B"],
-		"level": 7, "desc": "Stick forward and drive the heavy up through their chin. The launcher, made explicit.",
+		"level": 7, "style": "grappling", "desc": "Stick forward and drive the heavy up through their chin. The launcher, made explicit.",
 		"dmg": 3, "lunge": 2.0,
 		"hits": [
 			{"anim": "Punch_Jab", "anim_t": 0.0, "speed": 0.55, "t": 0.38,
@@ -113,7 +113,7 @@ const ALL := [
 	},
 	{
 		"id": "cross_counter", "name": "CROSS-COUNTER", "seq": ["B", "A"],
-		"level": 8, "desc": "Feint the heavy, then counter over the top of whatever they started.",
+		"level": 8, "style": "drunken", "desc": "Feint the heavy, then counter over the top of whatever they started.",
 		"dmg": 4, "lunge": 1.2,
 		"hits": [
 			{"anim": "Punch_Jab", "anim_t": 0.0, "speed": 1.9, "t": 0.30,
@@ -123,7 +123,7 @@ const ALL := [
 	},
 	{
 		"id": "cyclone", "name": "CYCLONE", "seq": ["A", "X", "A"],
-		"level": 9, "desc": "Punch, kick, punch - with a full body spin that catches everyone around you.",
+		"level": 9, "style": "drunken", "desc": "Punch, kick, punch - with a full body spin that catches everyone around you.",
 		"dmg": 5, "lunge": 0.6, "spin": true, "aoe": 2.2,
 		"hits": [
 			{"anim": "Punch_Jab", "anim_t": 0.0, "speed": 1.5, "t": 0.22, "kind": "tap",
@@ -139,7 +139,7 @@ const ALL := [
 	},
 	{
 		"id": "headbutt_rush", "name": "BULL RUSH", "seq": ["f+A", "f+A"],
-		"level": 10, "desc": "Two lunging shoulder drives. Closes distance like an argument you intend to finish.",
+		"level": 10, "style": "brawler", "desc": "Two lunging shoulder drives. Closes distance like an argument you intend to finish.",
 		"dmg": 4, "lunge": 3.2,
 		"hits": [
 			{"anim": "Punch_Jab", "anim_t": 0.0, "speed": 1.4, "t": 0.26, "kind": "cross",
@@ -152,7 +152,7 @@ const ALL := [
 	},
 	{
 		"id": "knockout", "name": "LIGHTS OUT", "seq": ["A", "B", "B"],
-		"level": 12, "desc": "Jab, heavy, and a finisher that ends the conversation in slow motion.",
+		"level": 12, "style": "brawler", "desc": "Jab, heavy, and a finisher that ends the conversation in slow motion.",
 		"dmg": 99, "lunge": 1.4,
 		"hits": [
 			{"anim": "Punch_Jab", "anim_t": 0.0, "speed": 1.6, "t": 0.22, "kind": "jab",
@@ -166,7 +166,7 @@ const ALL := [
 	},
 	{
 		"id": "six_shooter", "name": "SIX-SHOOTER", "seq": ["A", "A", "X", "A"],
-		"level": 15, "desc": "Four beats, one breath. The capstone string for hands that never learned to hold a gun.",
+		"level": 15, "style": "brawler", "desc": "Four beats, one breath. The capstone string for hands that never learned to hold a gun.",
 		"dmg": 6, "lunge": 1.0,
 		"hits": [
 			{"anim": "Punch_Jab", "anim_t": 0.0, "speed": 1.9, "t": 0.16, "kind": "tap",
@@ -186,7 +186,7 @@ const ALL := [
 	# --- with the pipe ----------------------------------------------------------
 	{
 		"id": "pipe_waltz", "name": "PIPE WALTZ", "seq": ["A", "A", "B"], "pipe": true,
-		"level": 4, "desc": "Swing, swing, and a heavy finish. The pipe leads; you follow.",
+		"level": 4, "style": "weapon", "desc": "Swing, swing, and a heavy finish. The pipe leads; you follow.",
 		"dmg": 5, "lunge": 1.2,
 		"hits": [
 			{"anim": "Punch_Jab", "anim_t": 0.0, "speed": 1.0, "t": 0.30, "kind": "pipe",
@@ -199,7 +199,7 @@ const ALL := [
 	},
 	{
 		"id": "skull_cracker", "name": "SKULL CRACKER", "seq": ["B", "B"], "pipe": true,
-		"level": 5, "desc": "Two overhead blows with the full pipe. Nothing subtle about it.",
+		"level": 5, "style": "weapon", "desc": "Two overhead blows with the full pipe. Nothing subtle about it.",
 		"dmg": 6, "lunge": 1.0,
 		"hits": [
 			{"anim": "Punch_Cross", "anim_t": 0.0, "speed": 0.7, "t": 0.42,
@@ -213,7 +213,7 @@ const ALL := [
 	},
 	{
 		"id": "pipe_sweep", "name": "PIPE SWEEP", "seq": ["X", "A"], "pipe": true,
-		"level": 6, "desc": "Kick the shin, sweep the legs with the pipe. They go down; you stay standing.",
+		"level": 6, "style": "weapon", "desc": "Kick the shin, sweep the legs with the pipe. They go down; you stay standing.",
 		"dmg": 3, "lunge": 0.9,
 		"hits": [
 			{"anim": "Kick_Code", "anim_t": 0.0, "speed": 1.1, "t": 0.28, "kind": "sweep",

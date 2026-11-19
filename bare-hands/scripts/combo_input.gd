@@ -82,6 +82,11 @@ func _unlocked(c: Dictionary, player: Node) -> bool:
 		return false
 	if c.get("pipe", false) and not player.has_pipe:
 		return false
+	# the style gate (Batch 3): a combo fires only in the style that owns
+	# it - the fundamentals (single presses) stay common to every style
+	var st := get_node_or_null("/root/Styles")
+	if st and c.has("style") and st.get("current") != c["style"]:
+		return false
 	var p := get_node_or_null("/root/Progression")
 	if p and p.has_method("combo_unlocked"):
 		return p.combo_unlocked(c["id"])

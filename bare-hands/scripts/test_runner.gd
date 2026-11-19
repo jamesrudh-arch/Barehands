@@ -90,6 +90,7 @@ func _run_all() -> void:
 		["attack data: every .tres loads, fields in range, audio slots exist", Callable(self, "_t_attacks")],
 		["fight score: rank math from synthetic fight stats", Callable(self, "_t_fightscore")],
 		["tactics memory: last-3-moves ring buffer and spam reads", Callable(self, "_t_memory")],
+		["styles: registry, gates, and combo style coverage", Callable(self, "_t_styles")],
 		["progression: XP curve monotonic, unlocks reference real combos", Callable(self, "_t_progression")],
 		["wallet: cash and debt math stay finite and floored", Callable(self, "_t_wallet")],
 		["save: round-trip preserves state", Callable(self, "_t_save")],
@@ -266,6 +267,61 @@ func _t_memory() -> Array:
 	if not bad.is_empty():
 		return [false, ", ".join(bad)]
 	return [true, "memory: ring buffer, spam thresholds, broken reads"]
+
+
+func _t_styles() -> Array:
+	var bad: Array = []
+	# the registry itself
+	if Styles.STYLES.size() != 5:
+		bad.append("bible 4A wants five styles (got %d)" % Styles.STYLES.size())
+	var ids := []
+	var teachers := []
+	for st in Styles.STYLES:
+		ids.append(st["id"])
+		teachers.append(st["teacher"])
+		if st["unlock_level"] < 1:
+			bad.append("%s has no unlock level" % st["id"])
+	if ids.size() != (ids as Array).size() or (ids as Array).duplicate().size() != ids.size():
+		bad.append("style ids must be unique")
+	# brawler is the start; switch rules
+	Styles.reset_for_test()
+	if not Styles.can_switch("brawler"):
+		bad.append("brawler must be learned from the start")
+	if Styles.can_switch("kickboxing"):
+		bad.append("kickboxing is locked at level 1")
+	if Styles.switch_to("kickboxing"):
+		bad.append("switch to a locked style must be refused")
+	Styles.unlock_all_for_test()
+	if not Styles.switch_to("kickboxing"):
+		bad.append("switch to a learned style must work")
+	if Styles.current != "kickboxing":
+		bad.append("switch must take effect")
+	if not Styles.switch_to("brawler"):
+		bad.append("switching back must work")
+	# every combo carries a style tag that exists in the registry
+	for c in ComboTable.ALL:
+		if not c.has("style"):
+			bad.append("combo %s has no style" % c["id"])
+		elif Styles.def(c["style"]).is_empty():
+			bad.append("combo %s names unknown style %s" % [c["id"], c["style"]])
+	# each of the five styles owns at least one move
+	for st in Styles.STYLES:
+		var owned := 0
+		for c in ComboTable.ALL:
+			if c.get("style", "") == st["id"]:
+				owned += 1
+		if owned == 0:
+			bad.append("style %s owns no moves" % st["id"])
+	# the soft counter map: brawler->thug, kickboxing->knife, grappling->bruiser, drunken->boss; weapon answers with steel
+	Styles.switch_to("brawler")
+	if not Styles.counters_kind(1) or Styles.counter_style_mult(1) <= 1.0:
+		bad.append("brawler should softly counter thugs")
+	if Styles.counters_kind(2):
+		bad.append("brawler does not read bruisers")
+	Styles.reset_for_test()
+	if not bad.is_empty():
+		return [false, ", ".join(bad)]
+	return [true, "five styles, gates, coverage, soft counter map"]
 
 
 func _t_progression() -> Array:
