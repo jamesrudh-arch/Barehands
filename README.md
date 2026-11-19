@@ -7,6 +7,42 @@ The whole project is plain text (`.gd`, `.tscn`, `project.godot`) plus CC0 asset
 **SERIES 1: THE LOOK AND FEEL** — phase reports below (1 Stability · 2 Hero & Camera · 3 Wet Neon Night · 4 Punches That Hit).
 **SERIES 2: SOUND, SOUL AND DEPTH** — reports continue below (1 Audio · 2 Music · 3 Combat · 4 Ledger · 5 Economy · 6 City · 7 Cast · 8 Opening). Design docs: docs/VISION.md, docs/WOW_GATE.md (reconstructed — originals never arrived).
 
+## Batch 3 — Styles & the Wheel (2026-11-19)
+
+The bible's "styles/wheel" batch, complete:
+
+- **The five styles (4A)**: Brawler (Brother), Kickboxing (the
+  Bouncer), Grappling (the Collector), Drunken (the Drunk), Weapon
+  (the Lieutenant). Learned from people, never lost - level gates
+  1/3/5/7/9 stand in until the teachers arrive as story NPCs; each
+  learning is credited to the teacher by name. A style is a MOVE
+  LIST: the hero's fundamentals are common to every style, the 16
+  combo strings belong to their styles, and ComboInput refuses a
+  combo whose style is not equipped. Styles persist (save v4).
+- **Dirty Street Tactics - one per style (4A)**: Glass Jaw (the
+  feint-cross posture bite), Chin Check (the switch-kick launcher),
+  Collector's Toss (the holding knee-to-pavement, posture 40), Liquor
+  Legs (the stumble-counter spin), Full Swing (the 360 pipe arc,
+  AoE). Sequences are collision-safe: a plain token matches any stick
+  direction, so a naive [A, f+Y] ties with the backfist's [A, Y] and
+  would never fire.
+- **The wheel**: five sectors around a hub naming what you fight as;
+  learned in colour with teachers credited, locked grey with the
+  level; the world crawls while it is open (a fresh slow-mo beat
+  every 2.8 s, never a dangling time scale), resumes at speed on
+  close. A STYLE button in both touch schemes, a debug-menu jump,
+  locked picks refused with a flash.
+- **Soft style countering (4A)**: brawler reads thugs, kickboxing
+  reads knives, grappling reads bruisers, drunken reads the boss, the
+  weapon style answers with steel. Extra STYLE POINTS on countered
+  kinds through every landing path - damage numbers never move.
+- Also fixed a pre-existing bad clip (cyclone's body_med_1) that the
+  every-sequence battery surfaced.
+- Verified per sub-step: import 0 errors; logic tests 12/12;
+  smoke_combos 56 (incl. the style gate: the same string does NOT
+  fire in the wrong style), smoke_face 31, smoke_controls 35, smoke,
+  smoke_progression 23 green; full battery below.
+
 ## Batch 2 — Rank & Posture (2026-11-19)
 
 The bible's "rank/posture" batch, complete:

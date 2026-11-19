@@ -1,5 +1,20 @@
 # CHANGELOG.md — batch history (newest first)
 
+## Batch 3 — Styles & the Wheel (2026-11-19)
+- **The five styles (4A)**: Brawler, Kickboxing, Grappling, Drunken,
+  Weapon - learned from people (level gates until the teachers arrive
+  as NPCs), never lost. Fundamentals stay common; the 16 combo strings
+  are the styles' move lists, enforced by a gate in ComboInput.
+- **Dirty Street Tactics**: one signature special per style - Glass
+  Jaw, Chin Check, Collector's Toss, Liquor Legs, Full Swing - each
+  built on a real AttackData kind so knockback/hitstop/posture/style
+  just work.
+- **The wheel**: a radial style switch with the world in slow crawl;
+  a locked pick is refused, the fight resumes at speed on close
+  (needed a real Fx.end_slow_mo - a fresh slow_mo merges and extends).
+- **Soft style countering**: the school that reads a kind banks extra
+  style points on it - never damage.
+
 ## Batch 2 — Rank & Posture (2026-11-19)
 - **Attack token pool (4A rule 2)**: 1/2/3 concurrent attackers by ring
   size, inside the bible's 2-3 budget; boss keeps priority. Also fixed

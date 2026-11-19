@@ -63,6 +63,16 @@ batch boundary.
   (23 resources) and the TestRunner validates fields, ranges and audio
   slots; enemy reaction identity (anim/flash/launches) still lives in
   `enemy.take_hit` by design — only the numbers moved.
+- **Batch 3 systems (all first-pass, phone verification pending)**:
+  the five styles (registry in styles.gd; fundamentals common, combo
+  strings per-style via the ComboInput gate), the five Dirty Street
+  Tactics, the style wheel (STYLE button both schemes + debug menu
+  jump; sector picks tested via _pick - the phone's touch-arc feel
+  needs the owner's hands), and the soft style-counter bonus (style
+  points only, never damage). Styles persist in save v4; older saves
+  start clean on brawler. Teachers are LEVEL GATES (1/3/5/7/9) until
+  the story batches bring Brother/Bouncer/Collector/Drunk/Lieutenant
+  as NPCs - the log credits the teacher by name on learning.
 - **Batch 2 systems (all first-pass, phone verification pending)**:
   posture break (billboard gold bar, 2.8 s finisher window, regen 20/s
   after 2.5 s calm), player Composure (bottom-centre bar; guard break
