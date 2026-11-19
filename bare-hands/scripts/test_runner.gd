@@ -87,6 +87,7 @@ func _run_all() -> void:
 		["tuning: overrides round-trip through disk", Callable(self, "_t_overrides")],
 		["anim library: key clips exist, short names", Callable(self, "_t_clips")],
 		["combo table: 16 combos, styles and windows sane", Callable(self, "_t_combos")],
+		["attack data: every .tres loads, fields in range, audio slots exist", Callable(self, "_t_attacks")],
 		["progression: XP curve monotonic, unlocks reference real combos", Callable(self, "_t_progression")],
 		["wallet: cash and debt math stay finite and floored", Callable(self, "_t_wallet")],
 		["save: round-trip preserves state", Callable(self, "_t_save")],
@@ -181,6 +182,31 @@ func _t_combos() -> Array:
 		if int(c.get("level", 1)) < 1 or int(c.get("level", 1)) > 15:
 			return [false, "combo '%s' level %d out of 1..15" % [str(c.get("name", "?")), int(c.get("level", 1))]]
 	return [true, "%d combos, windows and level gates sane" % combos.size()]
+
+
+func _t_attacks() -> Array:
+	var bad: Array = []
+	var bank: Array = []
+	for key in Sound._bank:
+		bank.append(key)
+	for id in AttackData.DEFAULTS:
+		var a := AttackData.for_attack(id)
+		if a.damage < 1 or a.damage > 99:
+			bad.append("%s damage %d" % [id, a.damage])
+		if a.hitstop_frames < 1 or a.hitstop_frames > 20:
+			bad.append("%s hitstop %d" % [id, a.hitstop_frames])
+		if a.cancel_start_ms > a.cancel_end_ms:
+			bad.append("%s cancel window inverted" % id)
+		if (a.cancel_start_ms == 0.0) != (a.cancel_end_ms == 0.0):
+			bad.append("%s cancel window half-open" % id)
+		for clip in a.audio_layers:
+			if not bank.has(clip):
+				bad.append("%s audio '%s' missing" % [id, clip])
+		if a.knockback.length() > 12.0:
+			bad.append("%s knockback %s" % [id, a.knockback])
+	if not bad.is_empty():
+		return [false, ", ".join(bad)]
+	return [true, "%d attacks, fields and audio valid" % AttackData.DEFAULTS.size()]
 
 
 func _t_progression() -> Array:

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/attack_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+attack_name = "tap"
+damage = 1
+hitstop_frames = 3
+knockback = Vector3(0.6, 0.0, 0.0)
+shake_intensity = 0.15
+camera_punch = 1.0
+cancel_start_ms = 0.0
+cancel_end_ms = 0.0
+haptic_pattern = "light"
+audio_layers = ["punch_med_0"]
+style_tag = "tap"
+super_gain = 0.5

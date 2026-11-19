@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/attack_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+attack_name = "kick"
+damage = 2
+hitstop_frames = 7
+knockback = Vector3(2.6, 0.0, 0.0)
+shake_intensity = 0.45
+camera_punch = 4.5
+posture_damage = 15.0
+cancel_start_ms = 0.0
+cancel_end_ms = 0.0
+haptic_pattern = "heavy"
+audio_layers = ["body_heavy_0"]
+style_tag = "kick"
+super_gain = 2.0

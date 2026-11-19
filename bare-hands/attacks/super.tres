@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/attack_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+attack_name = "super"
+damage = 99
+hitstop_frames = 12
+knockback = Vector3(3.4, 0.0, 0.0)
+shake_intensity = 1.0
+camera_punch = 6.0
+posture_damage = 60.0
+cancel_start_ms = 0.0
+cancel_end_ms = 0.0
+haptic_pattern = "super"
+audio_layers = ["bell_heavy_0"]
+style_tag = "super"
+super_gain = 0.0
+slow_mo_seconds = 0.3
+slow_mo_scale = 0.4

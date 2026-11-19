@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/attack_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+attack_name = "counter"
+damage = 99
+hitstop_frames = 8
+knockback = Vector3(3.2, 0.0, 0.0)
+shake_intensity = 0.6
+camera_punch = 5.0
+posture_damage = 30.0
+cancel_start_ms = 0.0
+cancel_end_ms = 0.0
+haptic_pattern = "parry"
+audio_layers = ["punch_heavy_0", "sub_hit_1", "metal_ring_1"]
+style_tag = "counter"
+super_gain = 6.0

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/attack_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+attack_name = "hook"
+damage = 2
+hitstop_frames = 7
+knockback = Vector3(2.0, 0.0, 0.4)
+shake_intensity = 0.35
+camera_punch = 3.0
+cancel_start_ms = 150.0
+cancel_end_ms = 350.0
+haptic_pattern = "light"
+audio_layers = ["punch_heavy_0", "body_med_0"]
+style_tag = "hook"
+super_gain = 2.0

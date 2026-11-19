@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/attack_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+attack_name = "finisher"
+damage = 99
+hitstop_frames = 10
+knockback = Vector3(2.0, 0.0, 0.0)
+shake_intensity = 0.8
+camera_punch = -7.0
+cancel_start_ms = 0.0
+cancel_end_ms = 0.0
+haptic_pattern = "super"
+audio_layers = ["punch_heavy_2", "sub_hit_1"]
+style_tag = "finisher"
+super_gain = 4.0
+slow_mo_seconds = 0.5
+slow_mo_scale = 0.3
