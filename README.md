@@ -494,18 +494,20 @@ replaces it with the real fight-club content). `tests/smoke_progression.gd`
 23 checks PASS.
 
 ### PART 4 - Phone-photo fixes (this commit)
-1. **Distant T-pose - ROOT CAUSE FOUND AND FIXED.** All four cast NPCs
-   idled on the clip name "Idle", which does not exist in the Universal
-   Animation Library (its clips are "Idle_Loop", "Idle_Talking_Loop",
-   ...), and UalBind.play_all's fallback clip was ALSO the nonexistent
-   "Idle" - so a miss fell back to nothing and the character stood in a
-   T-pose forever (the distant figure in the photo). Fix: the cast now
-   plays real clips (Idle_Loop / Idle_Talking_Loop per personality),
-   NpcRig's default idle is "Idle_Loop", the UalBind fallback is
-   "Idle_Loop", and a miss logs a warning so a bad clip name can never
-   hide as a silent T-pose again. Far characters still animate cheaply
-   (one idle clip, no AI) - just never frozen.
-2. **White pixelated block stacks - IDENTIFIED AND SOFTENED.** They are
+1. **Distant T-pose - INVESTIGATED, ONE CHANGE KEPT, ROOT CAUSE STILL
+   OPEN.** First diagnosis (cast idling on a missing "Idle" clip) was
+   WRONG: the runtime library does carry the short names (the smoke
+   suite's "idles with the pack's Idle clip (got Idle)" check passes).
+   Kept from the investigation, all safe: the cast now idles on
+   Idle_Loop / Idle_Talking_Loop for per-personality variety, NpcRig
+   defaults to Idle_Loop, UalBind's miss-fallback is Idle_Loop and a
+   miss logs a warning (a bad clip name can never silently freeze a
+   character again). The ACTUAL cause of the distant T-posed figure in
+   the photo is still unidentified (no distance-based anim culling
+   exists in the code; suspects: an outfit piece player missing the
+   library, or a crowd muscle spawn) - re-opened in STATE.json as the
+   first item of the next session.
+   2. **White pixelated block stacks - IDENTIFIED AND SOFTENED.** They are
    the stacks of emissive window panes and their additive glow quads up
    the facades (plus the two long WinB/WinE strips), which the phone's
    bloom pushed into white pixelated rectangles. Pane emission cut
