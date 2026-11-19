@@ -1,5 +1,24 @@
 # CHANGELOG.md — batch history (newest first)
 
+## Batch 1 — The Punch (2026-11-19)
+- **The "player.gd:366 error" solved**: it was the `Fx: scale requested
+  while already at` WARNING carrying a stack trace — a punch's hitstop
+  (time_scale 0.05) colliding with the kill's slow-mo (0.45) in the same
+  frame. Reproduced 16× in a clean stress run; never a crash.
+- **Selective hitstop (bible 8)**: hitstop now pauses ONLY the attacker
+  and target (AnimationPlayers paused, physics gated, velocity held;
+  eased 4-frame recovery). Engine.time_scale is never used for hitstop;
+  colliding slow-mos merge instead of warning. Enemy strikes that clip
+  the hero now hitstop both — they never did before.
+- **AttackData resources**: one .tres per swing (23) — damage, hitstop
+  frames, knockback, shake, camera, posture, cancel window, haptic,
+  audio layers — validated by the in-game TestRunner; missing files fall
+  back to built-in defaults.
+- **Tuning wiring begins**: combo input buffer →
+  `Tuning.v("input_buffer_ms")` (350 ms shipped default).
+- Also fixed: tests/run_tests.tscn pointed at the pre-rename
+  test_runner_headless.gd (CI would have failed).
+
 ## Priority Zero (v5.0 master prompt, 2026-11-19)
 - **P0.1 T-pose (b47a29d)**: ROOT CAUSE — enemies spawning beyond the
   10 m think radius never had play() called (their far-branch only plays

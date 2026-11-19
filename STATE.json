@@ -3,7 +3,7 @@
   "repo": "github.com/jamesrudh-arch/Barehands, main branch",
   "godot": "4.7.2, MOBILE renderer, headless test harness at /tmp/godot",
   "continuation_protocol": "read PROJECT_BIBLE.md + this file; resume at next_step",
-  "current_batch": "PRIORITY ZERO COMPLETE - next: Batch 1 audit (selective hitstop, AttackData) per the v5.0 batch order",
+  "current_batch": "Batch 1 (The Punch) - selective hitstop + AttackData + Tuning wiring DONE pending stress; next: verify stress, then Batch 2 (attack tokens, posture/Composure, S-rank, arena retry, adaptive memory)",
   "completed": [
     "Series 1 (look and feel): stability, hero + cinematic camera, wet neon night, punches that hit, pose/stress suites",
     "Series 2 Phase 1 audio (layered hits, puddle footsteps, volume sliders, mute)",
@@ -22,7 +22,11 @@
     "LEVERAGE bible arrived: PROJECT_BIBLE.md written (condensed), VISION.md reconciled, trainer comment points at the Block 2 gym / underground tournaments (no 'Knuckle Room' in the design)",
     "P0.1 (b47a29d): distant T-pose root cause - enemies spawning beyond the 10 m think radius never had play() called (far branch only plays Idle when leaving Walk). Every enemy plays Idle in _ready. smoke_tpose regression suite walks every AnimationPlayer (hero pieces, cast bases+outfits, dummy, thug, muscle) and fails if any is not playing: 20/20 green. Also reverted the wrong missing-clip fix: runtime library uses SHORT names (Idle, Walk, Idle_Talking)",
     "P0.3 (830b9ba + ddccd1e): Tuning.gd autoload + debug TUNING PANEL (live sliders, user://tuning_overrides.json, reset) + in-game TEST RUNNER (RUN ALL TESTS, 8 logic tests, copyable report user://test_report.txt, debug-menu jumps) + .github/workflows/godot-check.yml (import + run_tests + fast suites + artifacts) + TESTING.md + CHANGELOG.md + bible v5.0. Audited present already: Haptics.gd, save_game.gd, sound bank, FPS/draw overlay",
-    "P0.2 (19ac51a): full 18-suite battery from clean isolated per-suite user dirs. In-battery green: smoke, pose 90, cast, audio, music, stick, controls, face, combat, depth, a4 25, city, ledger, progression 23, combos 39, stress. Two real bugs found and fixed: (1) smoke_tpose.tscn pointed at the dead probe_tpose.gd path after a rename (suite hung to its timeout; fixed path, re-run TPOSE PASS 20/20); (2) smoke_economy's decay check raced its own reinforcement system at heat 2.0 (responders are working as designed there); decay check moved to 1.5, verified twice in isolation (33 checks). 18/18 verified after fixes."
+    "P0.2 (19ac51a): full 18-suite battery from clean isolated per-suite user dirs. In-battery green: smoke, pose 90, cast, audio, music, stick, controls, face, combat, depth, a4 25, city, ledger, progression 23, combos 39, stress. Two real bugs found and fixed: (1) smoke_tpose.tscn pointed at the dead probe_tpose.gd path after a rename (suite hung to its timeout; fixed path, re-run TPOSE PASS 20/20); (2) smoke_economy's decay check raced its own reinforcement system at heat 2.0 (responders are working as designed there); decay check moved to 1.5, verified twice in isolation (33 checks). 18/18 verified after fixes.",
+    "player.gd:366 'error' SOLVED (5d88ce6-era): it was never a crash - the WARN 'Fx: scale 0.45 requested while already at 0.05' carries a full stack trace that reads like an error. Chain: _land_punch:573 take_hit -> _die -> slow_mo while the same punch's hitstop held time_scale at 0.05. Reproduced 16x in a clean stress run. Fixed structurally by selective hitstop (below): hitstop no longer touches Engine.time_scale, and two colliding slow-mos now MERGE (lower scale, longer end) instead of warning.",
+    "Batch 1 selective hitstop: Fx.hit_stop(frames, who) pauses ONLY attacker+target AnimationPlayers and gates their _physics_process via Fx.is_frozen(); eased 4-frame recovery (speed_scale 0.3->1.0 tween); rain/particles/music/crowds never pause. Enemy strikes that clip the hero now hitstop both (3 frames) - they never did before. All 8 player hitstop call sites migrated (jab/cross/heavy/counter/launcher/finisher/kick/super/env takedown/knee/combo multi-hits).",
+    "Batch 1 AttackData: class_name AttackData (damage, hitstop_frames, knockback push/lift/lateral, shake, camera, posture, cancel window, haptic, audio layers, style, super gain, slow-mo) + 23 .tres in res://attacks/ (every swing incl. slam_wall/car/rail/shutter/chain, sweep, shot; knockbacks mirrored from the shipped enemy.take_hit values) + generator scripts/gen_attack_data.py + TestRunner validation test (9/9). _land_punch and enemy.take_hit read from the resources; a missing .tres falls back to built-in defaults. Redundant knock lines removed from enemy's match so .tres tweaks cannot be shadowed.",
+    "Batch 1 Tuning wiring (first systems): player combo buffer BUFFER_TIME -> Tuning.v('input_buffer_ms')/1000 with the SHIPPED 350 ms as the default (the prompt's 200 ms is a starting guess; the owner slides it live). Tuning panel already exposes it."
   ],
   "bible_batch_mapping": {
     "batch_0_foundation": "mostly exists (tests battery, haptics abstraction, save system, debug overlay); missing: Tuning.gd consolidation, CI workflow, STATE.json (this file now closes it)",
@@ -41,11 +45,10 @@
     "batch_13_polish": "continuous (stress + pose + battery each pass)"
   },
   "known_issues": [
-    "A non-fatal script error printed once during smoke_combos (player.gd:366 _punch_step, via _physics_process) - the suite still passed 39/39; inspect next session",
-    "Tuning wiring: scripts still hold their own constants; migrate per system to Tuning.v() (first pass marked in TESTING.md)",
-    "hitstop uses global Engine.time_scale (bible demands selective hitstop) - Batch 1 audit item",
+    "Tuning wiring continues per system (enemy walk speeds, economy numbers) - staged in TESTING.md",
+    "hitstop duration now real-freeze (was 5% time_scale) - feel may read slightly longer on heavy hits; tune via AttackData .tres hitstop_frames",
     "haptics on iOS still need a Core Haptics plugin (basic fallback works)"
   ],
-  "next_step": "Batch 1 audit per v5.0: (1) selective hitstop - pause attacker+target only, never Engine.time_scale; (2) AttackData resources (damage, hitstop_frames, knockback, shake, posture, cancel window, haptic, audio layers); (3) migrate core combat constants to Tuning.v(); re-run smoke/combos/depth/stress after each. Then Batch 2 (attack tokens, posture/Composure, S-rank, arena retry, adaptive memory).",
+  "next_step": "Confirm stress_combat green in /tmp/b1-verify.log, push Batch 1, then Batch 2 (v5.0 order): attack tokens (max 2-3 concurrent attackers), posture break + finisher opener, player Composure, S-rank scoring, instant arena retry, adaptive enemy memory (last_3_player_moves). Tactics.gd already ships the token system - audit it against prompt 4A rule 2 first.",
   "battery_last_full_run": "2026-11-19 P0: 18/18 green (see completed list); run pattern: HOME=<fresh dir> per suite, timeout 420, never killed"
 }

@@ -26,7 +26,7 @@ const DEFAULTS := {
 	# --- combat: timing (section 14; the repo's current feel) ---
 	"hitstop_light_frames": 3.0,
 	"hitstop_heavy_frames": 8.0,
-	"input_buffer_ms": 200.0,
+	"input_buffer_ms": 350.0,  # shipped feel (the design guess was 200)
 	"parry_window_ms": 300.0,
 	"dodge_window_ms": 120.0,
 	"cancel_start_ms": 150.0,

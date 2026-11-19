@@ -7,6 +7,34 @@ The whole project is plain text (`.gd`, `.tscn`, `project.godot`) plus CC0 asset
 **SERIES 1: THE LOOK AND FEEL** — phase reports below (1 Stability · 2 Hero & Camera · 3 Wet Neon Night · 4 Punches That Hit).
 **SERIES 2: SOUND, SOUL AND DEPTH** — reports continue below (1 Audio · 2 Music · 3 Combat · 4 Ledger · 5 Economy · 6 City · 7 Cast · 8 Opening). Design docs: docs/VISION.md, docs/WOW_GATE.md (reconstructed — originals never arrived).
 
+## Batch 1 — The Punch: selective hitstop, AttackData, Tuning (2026-11-19)
+
+- **The "player.gd:366 error" was never a crash.** It was the `Fx:
+  scale 0.45 requested while already at 0.05` WARNING carrying a full
+  stack trace — a punch's hitstop (Engine.time_scale 0.05) colliding
+  with the kill's slow-mo (0.45) in the same frame. Reproduced 16× in a
+  clean stress run, then eliminated structurally.
+- **Selective hitstop (bible section 8)**: hitstop now freezes ONLY the
+  attacker and target — their AnimationPlayers pause and their physics
+  gates on `Fx.is_frozen()`, with an eased 4-frame recovery. Rain,
+  particles, music and every other character keep running.
+  Engine.time_scale is never touched by hitstop again; two colliding
+  slow-mos merge (lower scale, longer end) instead of warning. Enemy
+  strikes that clip the hero now hitstop both — they never did before.
+- **AttackData**: one .tres per swing (23 resources in res://attacks/)
+  — damage, hitstop frames, knockback (push/lift/lateral), shake,
+  camera, posture damage, cancel window, haptic pattern, audio layers,
+  style tag, super gain, optional slow-mo — validated by the in-game
+  TestRunner; a missing file falls back to built-in defaults. All eight
+  player hitstop sites and the enemy knockback path read from them.
+- **Tuning wiring begins**: the combo input buffer reads
+  `Tuning.v("input_buffer_ms")` (350 ms shipped default; the prompt's
+  200 ms was a starting guess — slide it live in the TUNING PANEL).
+- Verification: import clean (0 script errors); smoke, combos 39,
+  combat, depth, progression 23, tpose and stress all green from clean
+  isolated user dirs; **zero** scale-collision warnings across the whole
+  battery.
+
 ## Priority Zero — COMPLETE (v5.0 master prompt, 2026-11-19)
 
 The v5.0 master prompt arrived (full design + session protocol + build

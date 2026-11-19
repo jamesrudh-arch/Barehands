@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/attack_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+attack_name = "slam_shutter"
+damage = 99
+hitstop_frames = 8
+knockback = Vector3(7.5, 0.0, 0.0)
+shake_intensity = 0.8
+camera_punch = 5.0
+cancel_start_ms = 0.0
+cancel_end_ms = 0.0
+haptic_pattern = "heavy"
+audio_layers = ["metal_ring_0", "glass_med_0"]
+style_tag = "slam"
+super_gain = 3.0
+slow_mo_seconds = 0.4
+slow_mo_scale = 0.45

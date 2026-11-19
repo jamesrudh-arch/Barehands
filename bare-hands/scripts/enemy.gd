@@ -123,6 +123,8 @@ func _armour() -> int:
 
 
 func _physics_process(delta: float) -> void:
+	if Fx.is_frozen(self):
+		return  # selective hitstop: the target holds mid-impact
 	_t += delta
 	_state_t += delta
 	if not is_on_floor():
@@ -281,6 +283,8 @@ func _resolve_strike() -> void:
 		var result: String = p.take_hit(to / dist, self)
 		if result == "blocked":
 			_enter(State.RECOVER)  # the guard held: back off and reset
+		elif result == "hit":
+			Fx.hit_stop(3, [self, p])  # the hero is clipped: a beat of weight
 		# boss combo: chain up to three hits, then a grab cycle
 		if kind == 4:
 			_combo_step += 1
@@ -329,21 +333,21 @@ func take_hit(dir: Vector3, hit_kind: String) -> void:
 	dir.y = 0.0
 	dir = dir.normalized()
 	var dmg := _damage_of(hit_kind)
-	var knock := 3.0
+	# knockback lives in res://attacks/<kind>.tres (x = push along the
+	# hit, y = lift, z = lateral); the match below keeps only the
+	# reaction identity - anim, flash, launches, DOWN states.
+	var knock := AttackData.for_attack(hit_kind).knockback.x
 	match hit_kind:
 		"jab":
 			_play("Hit_Chest", 0.04, 1.5)
 			_flash_white(Color(1, 1, 1), 1.6)
 		"cross", "hook":
-			knock = 5.0
 			_play("Hit_Head", 0.04, 1.5)
 			_flash_white(Color(1, 1, 1), 2.0)
 		"heavy", "pipe_heavy":
-			knock = 6.5
 			_play("Hit_Head", 0.04, 1.2)
 			_flash_white(Color(1, 0.9, 0.7), 2.4)
 		"pipe":
-			knock = 4.5
 			_play("Hit_Chest", 0.04, 1.3)
 			_flash_white(Color(0.8, 0.85, 1.0), 2.0)
 		"launcher":
@@ -355,20 +359,16 @@ func take_hit(dir: Vector3, hit_kind: String) -> void:
 			return
 		"counter":
 			dmg = 99
-			knock = 6.0
 			_play("Hit_Head", 0.03, 1.8)
 			_flash_white(Color(0.4, 1.0, 1.0), 2.4)
 		"tap":
-			knock = 0.6  # string ticks stay in range for the next beat
 			_play("Hit_Chest", 0.04, 1.6)
 			_flash_white(Color(1, 1, 1), 1.5)
 		"kick":
-			knock = 5.5
 			_play("Hit_Chest", 0.04, 1.4)
 			_flash_white(Color(1.0, 0.85, 0.5), 2.2)
 		"sweep":
 			dmg = _damage_of("kick")
-			knock = 1.6
 			velocity = dir * knock
 			_enter(State.DOWN)  # dumped onto the asphalt, not dead
 			_play("Hit_Chest", 0.04, 1.1)
@@ -376,7 +376,6 @@ func take_hit(dir: Vector3, hit_kind: String) -> void:
 			return
 		"throw_slam":
 			dmg = 3
-			knock = 2.0
 			velocity = dir * knock + Vector3.UP * 2.0
 			_enter(State.DOWN)
 			_play("Death01", 0.05, 1.0)
@@ -385,11 +384,9 @@ func take_hit(dir: Vector3, hit_kind: String) -> void:
 			_play("Hit_Chest", 0.04, 1.4)
 			_flash_white(Color(1.0, 0.85, 0.5), 2.2)
 		"backfist":
-			knock = 4.0
 			_play("Hit_Head", 0.04, 1.9)
 			_flash_white(Color(1.0, 0.85, 0.55), 2.0)
 		"backfist_counter":
-			knock = 7.0
 			_play("Hit_Head", 0.03, 1.6)
 			_flash_white(Color(0.4, 1.0, 1.0), 2.6)
 		"super":
@@ -405,21 +402,17 @@ func take_hit(dir: Vector3, hit_kind: String) -> void:
 			return
 		"finisher":
 			dmg = 99
-			knock = 3.0
 			_play("Hit_Head", 0.03, 0.9)
 			_flash_white(Color(1.0, 0.3, 0.25), 3.0)
 		"knee":
-			knock = 0.5
 			_play("Hit_Chest", 0.04, 1.8)
 			_flash_white(Color(1, 1, 1), 1.4)
 		"shot":
-			knock = 7.0
 			_play("Hit_Head", 0.04, 1.0)
 			_flash_white(Color(1.0, 0.8, 0.4), 2.6)
 		_:
 			if hit_kind.begins_with("slam"):
 				dmg = 99
-				knock = 7.5
 				_flash_white(Color(1.0, 0.5, 0.2), 2.6)
 	hp -= dmg
 	# armour: light hits chip hp but never stagger the big ones

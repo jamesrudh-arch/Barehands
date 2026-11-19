@@ -6,7 +6,17 @@ extends Node
 
 signal hit_landed(kind: String, pos: Vector3)
 
-const STUCK_LIMIT_MSEC := 5000  # real time; a hit-stop/slow-mo never lasts this long
+const STUCK_LIMIT_MSEC := 5000  # real time; a slow-mo never lasts this long
+
+## SELECTIVE HITSTOP (bible 8, COMBAT ARCHITECTURE): hitstop pauses ONLY
+## the attacker and the target - their AnimationPlayers stop, their
+## physics gate on is_frozen() - while rain, particles, music and every
+## other character keep running. Engine.time_scale is NEVER used for
+## hitstop. slow_mo below stays a CAMERA effect on time_scale, and two
+## slow-mos landing in one frame MERGE instead of fighting (the old
+## collision warning was the "player.gd:366 error": a punch's hitstop
+## racing the kill's slow-mo).
+var _frozen: Dictionary = {}  # node -> {"players": Array, "until": msec}
 
 var _scale_until := 0  # real-time msec when Engine.time_scale returns to 1.0
 var _scale_since := 0  # real-time msec when the current scale-down started
@@ -20,8 +30,41 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
 
-func hit_stop(duration := 0.07, scale := 0.05) -> void:
-	_apply_scale(duration, scale)
+func hit_stop(frames := 4, who: Array = []) -> void:
+	## Freeze the attacker and the target for `frames` logic frames
+	## (60 fps): pause their AnimationPlayers and gate their physics.
+	## The world keeps moving. No Engine.time_scale.
+	var until := Time.get_ticks_msec() + int(frames * 1000.0 / 60.0)
+	for n in who:
+		if n == null or not is_instance_valid(n):
+			continue
+		if _frozen.has(n):
+			_frozen[n]["until"] = maxi(_frozen[n]["until"], until)
+			continue
+		var players: Array = []
+		for ap in n.find_children("*", "AnimationPlayer", true, false):
+			ap.pause()
+			players.append(ap)
+		_frozen[n] = {"players": players, "until": until}
+
+
+## The freeze gate: player.gd and enemy.gd return early from
+## _physics_process while frozen, so velocity, state timers and AI hold.
+func is_frozen(node: Node) -> bool:
+	return _frozen.has(node)
+
+
+func _unfreeze(n: Node) -> void:
+	var f: Dictionary = _frozen[n]
+	_frozen.erase(n)
+	# eased recovery (bible 4A): resume at 30% speed ramping back to full
+	# over about four frames, so the pop back to motion reads as weight
+	for ap in f["players"]:
+		if is_instance_valid(ap):
+			ap.speed_scale = 0.3
+			ap.resume()
+			var tw := create_tween()
+			tw.tween_property(ap, "speed_scale", 1.0, 0.08)
 
 
 func slow_mo(duration := 0.7, scale := 0.35) -> void:
@@ -35,13 +78,28 @@ func emit_hit(kind: String, pos: Vector3) -> void:
 
 func _apply_scale(duration: float, scale: float) -> void:
 	if Engine.time_scale != 1.0:
-		Log.warn("Fx: scale %s requested while already at %s" % [scale, Engine.time_scale])
+		# two camera slow-mos in one frame (a multi-kill, a super into a
+		# knockdown): merge - keep the STRONGER (lower) scale and the
+		# LONGER end. The old warning here was misread as a crash.
+		Engine.time_scale = minf(Engine.time_scale, scale)
+		_scale_until = maxi(_scale_until,
+				Time.get_ticks_msec() + int(duration * 1000.0))
+		return
 	Engine.time_scale = scale
 	_scale_since = Time.get_ticks_msec()
 	_scale_until = _scale_since + int(duration * 1000.0)
 
 
 func _process(_delta: float) -> void:
+	# unfreeze hitstopped characters (real time, so a pause in the tree
+	# can never lock a freeze on)
+	for n in _frozen.keys().duplicate():
+		var f: Dictionary = _frozen[n]
+		if not is_instance_valid(n):
+			_frozen.erase(n)
+			continue
+		if Time.get_ticks_msec() >= f["until"]:
+			_unfreeze(n)
 	if Engine.time_scale != 1.0:
 		var now := Time.get_ticks_msec()
 		if now >= _scale_until:
@@ -54,6 +112,8 @@ func _process(_delta: float) -> void:
 
 func _exit_tree() -> void:
 	Engine.time_scale = 1.0
+	_frozen.clear()
+	_frozen.clear()
 
 
 ## One-shot CPU particle spark at a hit point. Cheap: 10 tiny emissive boxes.

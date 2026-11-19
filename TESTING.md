@@ -56,8 +56,16 @@ batch boundary.
 ## First-pass markers (prompt section 10: never cut a tier silently)
 
 - **Tuning.gd**: the table and live panel exist and the logic tests
-  validate it, but scripts still hold some of their own constants — the
-  migration to `Tuning.v("key")` is staged per system in STATE.json.
+  validate it. Wired so far: the combo input buffer
+  (`input_buffer_ms`, shipped value 350 ms). Remaining systems (enemy
+  walk speeds, economy prices) migrate per batch — see STATE.json.
+- **AttackData**: every swing ships as `res://attacks/<kind>.tres`
+  (23 resources) and the TestRunner validates fields, ranges and audio
+  slots; enemy reaction identity (anim/flash/launches) still lives in
+  `enemy.take_hit` by design — only the numbers moved.
+- **Selective hitstop**: attacker+target freeze via paused
+  AnimationPlayers and a physics gate; `slow_mo` remains a camera
+  effect on Engine.time_scale by design (hitstop never touches it).
 - **TestRunner in-game**: logic tests only (8 of them); the scene suites
   stay headless/CI by design.
 - **CI**: fast suite set only (smoke, pose, tpose, progression, combos);

@@ -35,7 +35,11 @@ const JAB_LOCK := 0.42
 const CROSS_LOCK := 0.55
 const HOOK_LOCK := 0.60
 const HEAVY_LOCK := 0.75
-const BUFFER_TIME := 0.35
+## The combo buffer window, in ms, lives in Tuning (B1.a) - the shipped
+## feel is 350 ms; the design prompt's 200 ms is a starting guess the
+## owner can slide live from the debug TUNING PANEL.
+func _buffer_time() -> float:
+	return Tuning.v("input_buffer_ms") / 1000.0
 const DODGE_SPEED := 6.5
 const DODGE_TIME := 0.42
 const BLOCK_PARRY_WINDOW := 0.15  # a block this young parries
@@ -103,6 +107,8 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if Fx.is_frozen(self):
+		return  # selective hitstop: hold velocity, timers and inputs
 	_t += delta
 	match state:
 		State.CLIMB:
@@ -368,7 +374,7 @@ func _punch_step(delta: float) -> void:
 	if state != State.PUNCH:
 		return
 	if _punch_t >= _lock_time():
-		if not _punch_heavy and _punch_stage < 3 and _t - _punch_buffered_at < BUFFER_TIME:
+		if not _punch_heavy and _punch_stage < 3 and _t - _punch_buffered_at < _buffer_time():
 			_start_punch(_punch_stage + 1, false)  # the light chain
 		else:
 			state = State.GROUND
@@ -457,11 +463,12 @@ func _combo_hit(hit: Dictionary) -> void:
 	if _combo_i < ( _combo_def.get("hits", []) as Array ).size() and not targets.is_empty():
 		velocity.x = primary_dir.x * 2.4
 		velocity.z = primary_dir.z * 2.4
-	Fx.hit_stop(0.12 if float(hit.get("dmg", 1)) >= 3 else 0.08)
-	Fx.camera_punch(float(hit.get("cam", 3.0)))
-	Fx.shake(float(hit.get("shake", 0.3)))
-	if hit.has("slow"):
-		Fx.slow_mo(float(hit["slow"]), 0.35)
+	var cad := AttackData.from_combo_hit(hit, kind)
+	Fx.hit_stop(cad.hitstop_frames, [self] + (targets as Array))
+	Fx.camera_punch(cad.camera_punch)
+	Fx.shake(cad.shake_intensity)
+	if cad.slow_mo_seconds > 0.0:
+		Fx.slow_mo(cad.slow_mo_seconds, cad.slow_mo_scale)
 	Sound.play(hit.get("snd", "punch_med_0"), -3.0, float(hit.get("snd_pitch", 1.0)))
 	Haptics.fire(hit.get("hap", "light"))
 	Heat.on_violence("hit", global_position)
@@ -520,7 +527,7 @@ func _land_punch() -> void:
 
 	# launcher: a heavy on a staggered enemy sends them up
 	if kind == "launcher":
-		Fx.hit_stop(0.12)
+		Fx.hit_stop(AttackData.for_attack("launcher").hitstop_frames, [self, target])
 		target.take_hit(dir, kind)
 		Fx.burst(hit_pos, Color(0.5, 0.85, 1.0))
 		Fx.shake(0.5)
@@ -534,8 +541,9 @@ func _land_punch() -> void:
 		return
 	# finisher: a heavy on a nearly-done enemy executes
 	if kind == "finisher":
-		Fx.slow_mo(0.5, 0.3)
-		Fx.hit_stop(0.16)
+		var ad_f := AttackData.for_attack("finisher")
+		Fx.slow_mo(ad_f.slow_mo_seconds, ad_f.slow_mo_scale)
+		Fx.hit_stop(ad_f.hitstop_frames, [self, target])
 		target.take_hit(dir, kind)
 		Fx.burst(hit_pos + Vector3.UP * 0.3, Color(1.0, 0.3, 0.25))
 		Fx.shake(0.8)
@@ -555,7 +563,7 @@ func _land_punch() -> void:
 			return
 	if kind == "kick":
 		# the kick: a distinct crack - deeper thud, heel haptic, wider arc
-		Fx.hit_stop(0.12)
+		Fx.hit_stop(AttackData.for_attack("kick").hitstop_frames, [self, target])
 		target.take_hit(dir, kind)
 		Fx.burst(hit_pos, Color(1.0, 0.85, 0.5))
 		Fx.shake(0.45)
@@ -569,15 +577,15 @@ func _land_punch() -> void:
 		hit_landed.emit("kick", 2)
 		return
 	var dmg := _swing_damage(kind)
-	Fx.hit_stop(0.11 if counter or kind in ["cross", "heavy", "pipe_heavy"] else 0.07)
+	var ad := AttackData.for_attack(kind)
+	Fx.hit_stop(ad.hitstop_frames, [self, target])
 	target.take_hit(dir, kind)
 	Fx.burst(hit_pos, Color(0.3, 0.95, 1.0) if counter else
 			(Color(0.75, 0.8, 0.9) if kind.begins_with("pipe") else Color(1.0, 0.75, 0.3)))
-	Fx.shake(0.2 if kind == "jab" else 0.35)
-	Fx.camera_punch(1.5 if kind == "jab" else (4.0 if counter else 3.0))
+	Fx.shake(ad.shake_intensity)
+	Fx.camera_punch(ad.camera_punch)
 	if kind in ["heavy", "pipe_heavy"]:
 		Fx.haptic(60)
-		Fx.camera_punch(5.0)
 	Fx.emit_hit(kind, hit_pos)
 	Heat.on_violence("hit", global_position)
 	_style_add(kind)
@@ -590,6 +598,7 @@ func _land_punch() -> void:
 ## The SUPER lands: everyone in reach takes the shockwave.
 func _land_super() -> void:
 	var hit_any := false
+	var struck: Array = []
 	var radius := 2.6 * Progression.super_radius_mult()
 	for e in get_tree().get_nodes_in_group("enemy"):
 		var enemy := e as Enemy
@@ -600,9 +609,10 @@ func _land_super() -> void:
 			to.y = 0.0
 			to = to.normalized()
 			Fx.burst(enemy.global_position + Vector3.UP * 1.2, Color(1.0, 0.5, 0.2))
+			struck.append(enemy)
 			enemy.take_hit(to, "super")
 			hit_any = true
-	Fx.hit_stop(0.2)
+	Fx.hit_stop(AttackData.for_attack("super").hitstop_frames, [self] + struck)
 	Fx.shake(1.0)
 	Fx.camera_punch(6.0)
 	Sound.play("bell_heavy_0", -4.0, 0.9)
@@ -722,7 +732,7 @@ func _surface_behind(target: CharacterBody3D, dir: Vector3) -> String:
 
 func _env_takedown(target: CharacterBody3D, dir: Vector3, surface: String, hit_pos: Vector3) -> void:
 	var kind := "slam_" + surface
-	Fx.hit_stop(0.14)
+	Fx.hit_stop(8, [self, target])
 	target.take_hit(dir, kind)
 	Fx.burst(hit_pos, Color(1.0, 0.55, 0.2))
 	Fx.shake(0.9)
@@ -834,7 +844,7 @@ func _dodge_step(delta: float) -> void:
 	move_and_slide()
 	if _dodge_t >= DODGE_TIME:
 		state = State.GROUND
-		if _t - _punch_buffered_at < BUFFER_TIME:
+		if _t - _punch_buffered_at < _buffer_time():
 			_start_punch(1, false)
 
 
@@ -1104,7 +1114,7 @@ func _grab_knee() -> void:
 	var fwd := -_body.global_transform.basis.z
 	var dir := (fwd + Vector3.UP * 0.2)
 	dir.y = 0.0
-	Fx.hit_stop(0.08)
+	Fx.hit_stop(4, [self, _grabbed_enemy])
 	_grabbed_enemy.take_hit(dir.normalized(), "knee")
 	Fx.burst(global_position + fwd * 1.0 + Vector3.UP * 1.2, Color(1.0, 0.85, 0.5))
 	Fx.shake(0.25)
