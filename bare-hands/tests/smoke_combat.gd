@@ -335,6 +335,8 @@ func _composure() -> void:
 			_marks_c["hitstun_while_broken"] = true
 			_marks_c["heal_pf"] = _pf
 			_check(true, "a broken guard stops nothing: the strike landed")
+			# the knockdown blow puts a RETRY on the table (bible 2-min loop)
+			_check(_player.get("_retry_offer") != null, "the knockdown blow offers an instant retry")
 		if _pf - _marks_c["broke_pf"] > 360:
 			_check(false, "no strike landed while the guard was broken")
 			InputBus.dodge_release()
@@ -347,12 +349,14 @@ func _composure() -> void:
 			print("CPDEBUG pf=%d val=%.1f broken=%s since_drain=%d" % [_pf,
 					Composure.value, Composure.guard_broken(),
 					Time.get_ticks_msec() - Composure._last_drain_msec])
-		if _pf - _marks_c["heal_pf"] > 480 and not _marks_c["healed"]:
+		# >11 s: past the retry offer's 10 s window AND enough calm regen
+		if _pf - _marks_c["heal_pf"] > 660 and not _marks_c["healed"]:
 			_marks_c["healed"] = true
 			_check(not Composure.guard_broken(), "the break heals on its timer")
 			_check(Composure.value > 50.0, "calm regen refills Composure (%.0f)" % Composure.value)
 			# the fight this phase fought must have scored a rank at resolve
 			_check(FightScore.last_rank >= 0, "the fight scored a rank card at resolve (%s)" % FightScore.RANKS[maxi(FightScore.last_rank, 0)])
+			_check(_player.get("_retry_offer") == null, "the retry offer lapsed cleanly")
 			_next()
 
 

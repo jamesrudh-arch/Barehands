@@ -123,6 +123,10 @@ func _attack_range() -> float:
 func _telegraph_time() -> float:
 	if kind == 4 and _combo_step > 0:
 		return 0.25  # the combo links fast
+	# the adaptive read (bible 4A): a hero mashing lights meets faster
+	# telegraphs - the ring punishes spam
+	if Tactics.player_spams("punch_light"):
+		return TUNING[kind][2] * 0.75
 	return TUNING[kind][2]
 
 
@@ -176,7 +180,11 @@ func _physics_process(delta: float) -> void:
 						Sound.play_v("knife", 2, -6.0, 1.0, 0.06)
 		State.STRIKE:
 			_brake(delta)
-			if not _struck and _state_t >= TUNING[kind][3]:
+			# the adaptive read: against a hero dodging on repeat the
+			# strike is HELD a beat - it catches the end of the roll
+			var hit_at: float = TUNING[kind][3] * \
+					(1.35 if Tactics.player_spams("dodge") else 1.0)
+			if not _struck and _state_t >= hit_at:
 				_struck = true
 				_resolve_strike()
 			if _state_t >= 0.45:

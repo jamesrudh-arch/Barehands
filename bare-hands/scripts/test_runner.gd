@@ -89,6 +89,7 @@ func _run_all() -> void:
 		["combo table: 16 combos, styles and windows sane", Callable(self, "_t_combos")],
 		["attack data: every .tres loads, fields in range, audio slots exist", Callable(self, "_t_attacks")],
 		["fight score: rank math from synthetic fight stats", Callable(self, "_t_fightscore")],
+		["tactics memory: last-3-moves ring buffer and spam reads", Callable(self, "_t_memory")],
 		["progression: XP curve monotonic, unlocks reference real combos", Callable(self, "_t_progression")],
 		["wallet: cash and debt math stay finite and floored", Callable(self, "_t_wallet")],
 		["save: round-trip preserves state", Callable(self, "_t_save")],
@@ -240,6 +241,31 @@ func _t_fightscore() -> Array:
 	if not bad.is_empty():
 		return [false, ", ".join(bad)]
 	return [true, "rank math: S/D paths, caps, mid-table"]
+
+
+func _t_memory() -> Array:
+	var bad: Array = []
+	Tactics._memory.clear()
+	Tactics.record_player_move("punch_light")
+	Tactics.record_player_move("punch_light")
+	if Tactics.player_spams("punch_light"):
+		bad.append("two moves is not spam yet")
+	Tactics.record_player_move("punch_light")
+	if not Tactics.player_spams("punch_light"):
+		bad.append("three same moves IS spam")
+	Tactics.record_player_move("dodge")
+	if Tactics.player_spams("punch_light"):
+		bad.append("a dodge breaks the punch read")
+	Tactics.record_player_move("dodge")
+	Tactics.record_player_move("dodge")
+	if not Tactics.player_spams("dodge"):
+		bad.append("three dodges read as dodge spam")
+	if Tactics.last_moves().size() != 3:
+		bad.append("ring buffer must hold 3 (got %d)" % Tactics.last_moves().size())
+	Tactics._memory.clear()
+	if not bad.is_empty():
+		return [false, ", ".join(bad)]
+	return [true, "memory: ring buffer, spam thresholds, broken reads"]
 
 
 func _t_progression() -> Array:

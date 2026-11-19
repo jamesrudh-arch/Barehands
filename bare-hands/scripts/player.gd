@@ -111,6 +111,7 @@ func _physics_process(delta: float) -> void:
 	if Fx.is_frozen(self):
 		return  # selective hitstop: hold velocity, timers and inputs
 	_t += delta
+	_retry_step()
 	match state:
 		State.CLIMB:
 			_climb_step(delta)
@@ -294,6 +295,9 @@ func _stick_variant() -> String:
 
 
 func _start_punch(stage: int, heavy: bool) -> void:
+	# the ring remembers (bible 4A: adaptive AI tracks last-3-moves)
+	Tactics.record_player_move("super" if stage == 4 else
+			("punch_heavy" if heavy else "punch_light"))
 	if state == State.GRAB:
 		_grab_knee()
 		return
@@ -751,6 +755,7 @@ func _env_takedown(target: CharacterBody3D, dir: Vector3, surface: String, hit_p
 func _enter_block() -> void:
 	if state != State.GROUND:
 		return
+	Tactics.record_player_move("block")
 	state = State.BLOCK
 	_block_t = 0.0
 	velocity.x *= 0.3
@@ -778,6 +783,56 @@ func block_age() -> float:
 
 ## An enemy strike connects. Returns what happened so the attacker can react:
 ## "hit", "blocked" or "parried" (a young block = perfect parry).
+# --- the instant retry (Batch 2): the knockdown blow offers a restart --
+
+var _retry_offer: RetryOffer = null
+var _retry_until := -1.0
+var _retry_offered_fight := false  # one offer per fight, not per knockdown
+
+
+func _offer_retry() -> void:
+	if _retry_offered_fight or _retry_offer != null:
+		return
+	_retry_offered_fight = true
+	_retry_until = _t + 10.0
+	_retry_offer = RetryOffer.new()
+	_retry_offer._t = 10.0
+	_retry_offer.accepted.connect(_accept_retry)
+	get_tree().root.add_child.call_deferred(_retry_offer)
+	Log.info("Player: RETRY offered (10 s)")
+
+
+func _retry_step() -> void:
+	# a fresh fight means a fresh offer
+	if Music.state != Music.State.COMBAT:
+		_retry_offered_fight = false
+	if _retry_offer == null:
+		return
+	if _t > _retry_until:
+		_close_retry()
+
+
+func _close_retry() -> void:
+	if _retry_offer != null:
+		_retry_offer.queue_free()
+		_retry_offer = null
+	Log.info("Player: retry lapsed - fight on")
+
+
+func _accept_retry() -> void:
+	# instant arena retry: the whole state resets - Composure, the fight
+	# score, the super bar, the heat - then the street reloads. Wallet and
+	# Progression are meta-economy and survive (bible: the city remembers).
+	Composure.reset()
+	FightScore.reset()
+	SuperMeter.value = 0.0
+	Heat.heat = 0.0
+	Music.heat = 0.0
+	Engine.time_scale = 1.0
+	Log.info("Player: RETRY accepted - reloading the fight")
+	get_tree().reload_current_scene()
+
+
 func _on_guard_broke() -> void:
 	# the guard shatters: out of the stance, a stagger beat, the tell
 	if state == State.BLOCK:
@@ -798,6 +853,7 @@ func take_hit(dir: Vector3, from: CharacterBody3D = null) -> String:
 		if _block_t <= BLOCK_PARRY_WINDOW:
 			if from and from.has_method("parried"):
 				from.parried()
+			Tactics.record_player_move("parry")
 			return "parried"
 		# a solid block: pushed back, no stun, no damage feel - but it
 		# chips Composure (bible 4A: the defensive economy)
@@ -815,6 +871,8 @@ func take_hit(dir: Vector3, from: CharacterBody3D = null) -> String:
 	_hitstun_until = _t + 0.45 * _gear_stun()
 	Composure.drain(Tuning.v("composure_hit_drain"), "hit")
 	FightScore.hit_taken()
+	if Composure.guard_broken():
+		_offer_retry()  # the knockdown blow: a fresh start on the table
 	state = State.GROUND
 	_rig.play("Hit_Chest", 0.04, 1.6)
 	Fx.shake(0.4)
@@ -826,6 +884,7 @@ func take_hit(dir: Vector3, from: CharacterBody3D = null) -> String:
 
 
 func _try_dodge() -> void:
+	Tactics.record_player_move("dodge")
 	if state == State.GRAB:
 		_grab_throw()
 		return
@@ -996,6 +1055,7 @@ func dodge_cooldown_01() -> float:
 
 
 func _try_grab_action() -> void:
+	Tactics.record_player_move("grab")
 	if state == State.GRAB:
 		_grab_throw()
 		return
