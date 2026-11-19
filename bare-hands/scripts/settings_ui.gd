@@ -84,6 +84,8 @@ func _build() -> void:
 	_toggle(col, "Auto-sprint at stick edge", "auto_sprint")
 	_toggle(col, "Snap movement to 8 directions", "snap8")
 	_slider(col, "HUD opacity", "opacity", 0.3, 1.0, 0.05)
+	_slider(col, "Button size", "button_scale", 0.7, 1.5, 0.05)
+	_slider(col, "Screen shake", "shake_scale", 0.0, 1.0, 0.05)
 	_toggle(col, "Haptics", "haptics_on")
 	_slider(col, "Haptic strength", "haptic_str", 0.0, 1.0, 0.05)
 	_layout_section(col)

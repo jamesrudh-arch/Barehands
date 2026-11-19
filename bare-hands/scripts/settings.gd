@@ -45,6 +45,8 @@ const DEFAULTS := {
 	"preset": "classic",
 	"layout": {},
 	"opacity": 0.85,
+	"button_scale": 1.0,
+	"shake_scale": 1.0,
 	"hints": {},
 }
 

@@ -246,8 +246,10 @@ func _combat_input() -> void:
 			InputBus.consume_punch_hold()
 			InputBus.press_face("B")
 			_start_punch(3, true)
-	# hold-DODGE becomes a block after 0.25 s
-	if InputBus.dodge_held and InputBus.dodge_age() >= 0.25 and \
+	# hold-DODGE becomes a block after block_hold_ms (accessibility:
+	# lower = easier to guard; the input bus splits tap-vs-hold on the
+	# SAME key so the two can never disagree)
+	if InputBus.dodge_held and InputBus.dodge_age() >= Tuning.v("block_hold_ms") / 1000.0 and \
 			state == State.GROUND and _t >= _hitstun_until:
 		_enter_block()
 	# Buffering: a queued action is only CONSUMED when the hero can act.
@@ -1336,7 +1338,9 @@ func throw_pipe() -> void:
 func _punch_target(min_dot: float, reach_slack: float) -> CharacterBody3D:
 	var fwd := -_body.global_transform.basis.z
 	var target: CharacterBody3D = null
-	var best_d := PUNCH_REACH + reach_slack
+	# soft auto-target strength (bible 7): the reach multiplier -
+	# 1.5 sticks to anyone nearby, 0.5 demands real aim
+	var best_d := (PUNCH_REACH + reach_slack) * Tuning.v("autotarget_mult")
 	for e in get_tree().get_nodes_in_group("enemy"):
 		if e.state in [Enemy.State.DOWN, Enemy.State.GRABBED, Enemy.State.LAUNCHED]:
 			continue

@@ -235,7 +235,10 @@ func dodge_press() -> void:
 
 func dodge_release() -> void:
 	dodge_held = false
-	if not _dodge_hold_consumed and _game_msec - _dodge_down_at < DODGE_HOLD_MSEC:
+	# the tap-vs-hold split reads the SAME key the player's block check
+	# uses (Tuning block_hold_ms) - a lower threshold must let the tap
+	# dodge on a quick release too, or the two would disagree
+	if not _dodge_hold_consumed and _game_msec - _dodge_down_at < Tuning.v("block_hold_ms"):
 		queue_dodge()  # a tap: the dodge fires on release
 
 

@@ -63,6 +63,14 @@ batch boundary.
   (23 resources) and the TestRunner validates fields, ranges and audio
   slots; enemy reaction identity (anim/flash/launches) still lives in
   `enemy.take_hit` by design — only the numbers moved.
+- **B4.2 accessibility four (bible 7)**: block_hold_ms (Tuning) is the
+  hold-DODGE->block threshold and the input bus's tap-vs-hold split
+  reads the same key (they can never disagree); autotarget_mult
+  (Tuning) scales the soft auto-target reach; button_scale (Settings
+  slider, live rebuild + left-handed re-mirror) sizes every button;
+  shake_scale (Settings slider) attenuates every impact shake.
+  smoke_controls 55 (+8 checks). LEVERAGE STRIKE keeps the SuperBtn tap
+  at full meter (hold-Heavy charge flow deferred, phone ergonomics).
 - **B4.1 feel targets (the bible 4A numbers, wired)**: parry window
   300 ms (Tuning; DRUNKEN 1.5x), dodge leniency 120 ms (a too-early tap
   is held under its original stamp - it fires the first free frame and

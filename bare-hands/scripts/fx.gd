@@ -159,7 +159,8 @@ func burst(pos: Vector3, color: Color) -> void:
 func shake(amount: float) -> void:
 	var cam := get_tree().get_first_node_in_group("camera")
 	if cam:
-		cam.shake(amount)
+		# accessibility (bible 7): reduced shake scales every impact
+		cam.shake(amount * clampf(float(Settings.value("shake_scale")), 0.0, 1.0))
 
 
 ## FOV punch in degrees (negative = zoom in). jab 1.5 / cross 3 / parry -6.

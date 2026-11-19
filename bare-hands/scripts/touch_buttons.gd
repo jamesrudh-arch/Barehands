@@ -75,6 +75,14 @@ func _on_setting(key: String) -> void:
 	if key == "button_scheme":
 		_build_buttons()
 		_apply_layout()
+	elif key == "button_scale":
+		# rebuilt rects (the default positions carry the size); the
+		# stored mirror offsets were computed against the old rects, so
+		# a left-handed layout re-mirrors after the rebuild
+		_build_buttons()
+		if Settings.value("left_handed"):
+			apply_preset("left")
+		_apply_layout()
 	elif key == "layout" or key == "left_handed" or key == "opacity":
 		_apply_layout()
 
@@ -94,7 +102,9 @@ func _build_buttons() -> void:
 		b.label = spec[1]
 		b.sub = spec[2]
 		b.tint = spec[3]
-		var sz: float = spec[6]
+		# accessibility (bible 7): button size on top of presets and
+		# the editor's per-button scale
+		var sz: float = spec[6] * clampf(float(Settings.value("button_scale")), 0.6, 1.6)
 		b.anchor_left = 1.0
 		b.anchor_right = 1.0
 		b.anchor_top = 1.0

@@ -1,5 +1,14 @@
 # CHANGELOG.md — batch history (newest first)
 
+## B4.2 — the accessibility four (2026-11-19)
+- block_hold_ms (Tuning, live): hold-DODGE->block threshold; the dodge
+  tap-vs-hold split reads the same key. autotarget_mult (Tuning): the
+  soft auto-target reach (1.5 sticky / 0.5 aim). button_scale
+  (Settings, 0.7-1.5): every button's size, rebuilt live, left-handed
+  layouts re-mirror. shake_scale (Settings, 0-1): reduced shake on
+  every impact. Two new comfort sliders beside HUD opacity. LEVERAGE
+  STRIKE keeps the full-meter SuperBtn tap (hold-Heavy charge deferred).
+
 ## B4.1 — the 4A feel targets, wired (2026-11-19)
 - The audit found every feel number registered in Tuning but unwired,
   and AttackData's cancel fields unread. Now live: parry window 300 ms
