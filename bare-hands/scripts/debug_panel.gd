@@ -45,6 +45,21 @@ func _ready() -> void:
 	_label.add_theme_color_override("font_color", Color(0.85, 0.95, 0.9, 0.95))
 	panel.add_child(_label)
 
+	# Batch 0 jumps: the live TUNING PANEL and the in-game TEST RUNNER
+	var jumps := HBoxContainer.new()
+	jumps.add_theme_constant_override("separation", 8)
+	panel.add_child(jumps)
+	var tune := Button.new()
+	tune.text = "TUNING PANEL"
+	tune.focus_mode = Control.FOCUS_NONE
+	tune.pressed.connect(_toggle_tool.bind("TuningPanel"))
+	jumps.add_child(tune)
+	var tests := Button.new()
+	tests.text = "TEST RUNNER"
+	tests.focus_mode = Control.FOCUS_NONE
+	tests.pressed.connect(_toggle_tool.bind("TestRunner"))
+	jumps.add_child(tests)
+
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("debug_panel"):
@@ -56,6 +71,21 @@ func _toggle() -> void:
 	panel.visible = not panel.visible
 	if panel.visible:
 		_refresh()
+
+
+## Lazily create and toggle the debug tools (prompt 9F: the debug menu can
+## jump to any system). Both are CanvasLayers built entirely in code.
+func _toggle_tool(name: String) -> void:
+	var tool := get_node_or_null("../" + name)
+	if tool == null:
+		if name == "TuningPanel":
+			tool = TuningPanel.new()
+			tool.name = "TuningPanel"
+		else:
+			tool = TestRunner.new()
+			tool.name = "TestRunner"
+		get_parent().add_child(tool)
+	tool.toggle()
 
 
 func _process(delta: float) -> void:
