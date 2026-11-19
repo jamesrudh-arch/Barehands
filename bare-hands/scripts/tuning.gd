@@ -27,6 +27,8 @@ const DEFAULTS := {
 	"hitstop_light_frames": 3.0,
 	"hitstop_heavy_frames": 8.0,
 	"input_buffer_ms": 350.0,  # shipped feel (the design guess was 200)
+	"posture_regen_per_s": 20.0,
+	"posture_break_seconds": 2.8,  # the finisher window
 	"attack_tokens_ring": 2.0,  # bible 4A: max concurrent attackers, 3-4 engaged
 	"attack_tokens_crowd": 3.0,  # bible 4A: max concurrent attackers, 5+ engaged
 	"parry_window_ms": 300.0,

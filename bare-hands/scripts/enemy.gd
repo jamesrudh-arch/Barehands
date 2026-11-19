@@ -29,6 +29,13 @@ var _edge := 0.0          # the intended per-kind silhouette glow
 var _edge_color := Color(1, 1, 1)
 var _struck := false
 var _topple := 0.0
+# posture (Batch 2, bible 4A): fills from landed hits and parries; at the
+# cap the enemy BREAKS - a long gold stagger that opens the finisher.
+var posture := 0.0
+var _posture_at := 0  # msec of the last posture damage (regen delay)
+var _posture_break := false
+var _stagger_dur := 1.4
+var _posture_fill: MeshInstance3D = null  # billboard gold bar
 var _combo_step := 0  # boss: where in the 3-hit combo we are
 var _next_is_grab := false  # boss: every third attack cycle is a grab
 var _cycle := 0
@@ -52,6 +59,7 @@ const LOOK := {
 
 
 func _ready() -> void:
+	_build_posture_bar()
 	add_to_group("enemy")
 	hp = max_hp
 	_spawn = global_position
@@ -127,6 +135,7 @@ func _physics_process(delta: float) -> void:
 		return  # selective hitstop: the target holds mid-impact
 	_t += delta
 	_state_t += delta
+	_posture_step(delta)
 	if not is_on_floor():
 		# a launched enemy falls HEAVIER: a floaty arc reads as a figure
 		# hovering over the HUD on the phone
@@ -179,7 +188,7 @@ func _physics_process(delta: float) -> void:
 				_enter(State.IDLE if kind == 0 else State.WALK)
 		State.STAGGER:
 			_brake(delta)
-			if _state_t > 1.4:
+			if _state_t > _stagger_dur:
 				_enter(State.RECOVER)
 		State.DOWN:
 			_brake(delta)
@@ -301,6 +310,7 @@ func _resolve_strike() -> void:
 ## Shared parry flow: the attacker is staggered, the counter window opens.
 func parried() -> void:
 	Fx.slow_mo(0.7, 0.35)
+	_posture_gain(Tuning.v("parry_posture_damage"))
 	var p := _player()
 	if p:
 		p.open_counter(1.3)
@@ -333,10 +343,11 @@ func take_hit(dir: Vector3, hit_kind: String) -> void:
 	dir.y = 0.0
 	dir = dir.normalized()
 	var dmg := _damage_of(hit_kind)
-	# knockback lives in res://attacks/<kind>.tres (x = push along the
-	# hit, y = lift, z = lateral); the match below keeps only the
-	# reaction identity - anim, flash, launches, DOWN states.
-	var knock := AttackData.for_attack(hit_kind).knockback.x
+	# knockback and posture both live in res://attacks/<kind>.tres
+	# (knockback: x = push, y = lift, z = lateral); the match below keeps
+	# only the reaction identity - anim, flash, launches, DOWN states.
+	var ad := AttackData.for_attack(hit_kind)
+	var knock := ad.knockback.x
 	match hit_kind:
 		"jab":
 			_play("Hit_Chest", 0.04, 1.5)
@@ -426,9 +437,11 @@ func take_hit(dir: Vector3, hit_kind: String) -> void:
 			_die(hit_kind)
 		return
 	velocity = dir * knock
+	if not armoured_hit:
+		_posture_gain(ad.posture_damage)
 	if hp <= 0:
 		_die(hit_kind)
-	elif hit_kind != "knee":
+	elif hit_kind != "knee" and not _posture_break:
 		_enter(State.FLINCH)
 
 
@@ -493,6 +506,86 @@ func release_grab(dir: Vector3, speed: float) -> void:
 func _enter(s: int) -> void:
 	state = s
 	_state_t = 0.0
+	if s != State.STAGGER:
+		_posture_break = false
+		_stagger_dur = 1.4
+
+
+## --- posture (Batch 2) ------------------------------------------------------------
+
+func posture_broken() -> bool:
+	return _posture_break
+
+
+## Posture damage from a landed hit or a parry. At the cap: the BREAK -
+## a long gold stagger that opens the finisher window.
+func _posture_gain(amount: float) -> void:
+	if amount <= 0.0 or state in [State.DOWN, State.GRABBED, State.LAUNCHED]:
+		return
+	_posture_at = Time.get_ticks_msec()
+	posture = minf(posture + amount, Tuning.v("posture_max"))
+	if posture >= Tuning.v("posture_max"):
+		posture = 0.0
+		_posture_break = true
+		_stagger_dur = Tuning.v("posture_break_seconds")
+		_enter(State.STAGGER)
+		_play("Hit_Head", 0.05, 0.8)
+		_flash_white(Color(1.0, 0.85, 0.2), 3.2)  # gold: the tell
+		Sound.play("metal_ring_1", -8.0, 0.7)
+		Fx.shake(0.3)
+		if _style():
+			_style().add("posture")
+		_posture_flash_bar()
+
+
+func _posture_step(delta: float) -> void:
+	# the bar eases back down once nothing has threatened it for a beat -
+	# slow enough that SUSTAINED pressure always reaches the break; only
+	# walking away (a whiffed string, a reset) lets it drain
+	if _posture_at > 0 and Time.get_ticks_msec() - _posture_at > 2500:
+		posture = maxf(posture - Tuning.v("posture_regen_per_s") * delta, 0.0)
+	if _posture_fill != null:
+		var frac := clampf(posture / Tuning.v("posture_max"), 0.0, 1.0)
+		_posture_fill.visible = frac > 0.06
+		_posture_fill.scale.x = maxf(frac, 0.01)
+		_posture_fill.position.x = -0.35 * (1.0 - frac)
+
+
+## A brief all-bar flash as the break lands (the bar empties, so the
+## flash is the cue the window opened).
+func _posture_flash_bar() -> void:
+	if _posture_fill == null:
+		return
+	var tw := create_tween()
+	_posture_fill.visible = true
+	_posture_fill.scale.x = 1.0
+	_posture_fill.position.x = 0.0
+	tw.tween_interval(0.35)
+	tw.tween_callback(func() -> void: _posture_fill.visible = false)
+
+
+## The billboard: two unshaded quads above the head, gold fill on dark.
+func _build_posture_bar() -> void:
+	var holder := Node3D.new()
+	holder.position = Vector3(0.0, 2.45, 0.0)
+	add_child(holder)
+	_bar_quad(holder, 0.74, Color(0.05, 0.05, 0.06, 0.85))
+	_posture_fill = _bar_quad(holder, 0.7, Color(1.0, 0.82, 0.25))
+	_posture_fill.visible = false
+
+
+func _bar_quad(parent: Node, size_x: float, color: Color) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	var q := QuadMesh.new()
+	q.size = Vector2(size_x, 0.07)
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	m.albedo_color = color
+	q.material = m
+	mi.mesh = q
+	parent.add_child(mi)
+	return mi
 
 
 func _brake(delta: float) -> void:

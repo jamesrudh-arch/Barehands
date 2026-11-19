@@ -19,6 +19,14 @@ var _pf := 0
 
 var _saw_punch_anim := false
 var _saw_slowmo := false
+var _posture_peak := 0.0
+var _posture_broke := false
+var _posture_hold := false
+var _posture_landed := 0
+var _posture_hp_last := 30
+var _posture_pf := -1
+var _posture_saw_heavy := false
+var _posture_opener := false
 var _tele_at := -1
 var _dodged := false
 var _counter_punched := false
@@ -74,6 +82,8 @@ func _physics_process(_delta: float) -> void:
 			_parry()
 		3:
 			_slam()
+		4:
+			_posture()
 		_:
 			_finish()
 
@@ -195,6 +205,84 @@ func _slam() -> void:
 		_check(_dummy.state == Enemy.State.DOWN, "cross slammed the dummy into the crate (state %d)" % _dummy.state)
 		_check(kind.begins_with("slam"), "style meter recorded the slam (got %s)" % kind)
 		_check(Engine.time_scale == 1.0, "time scale restored after the slam")
+		_next()
+
+
+# --- 4: posture break opens the finisher (Batch 2, bible 4A) ------------------
+
+
+func _posture() -> void:
+	if _pf == 1:
+		# a FRESH dummy with plenty of hp: the finisher must come from the
+		# posture break, not from a low-hp read
+		# far WEST, clear of the crate the slam phase left behind: the
+		# heavies knock the dummy east ~2 m each and the chase must have room
+		_dummy.global_position = Vector3(-14.5, 0.02, 0.5)
+		_dummy.velocity = Vector3.ZERO
+		_dummy.state = Enemy.State.IDLE
+		_dummy.set("hp", 30)
+		_dummy.set("posture", 0.0)
+		_player.global_position = Vector3(-15.6, 0.05, 0.5)
+		_player.velocity = Vector3.ZERO
+		_face_east()
+		_posture_peak = 0.0
+		_posture_broke = false
+		_posture_hold = false
+		_posture_landed = 0
+		_posture_hp_last = 30
+	# a fresh HEAVY only when free. The hold must outlast the 0.30 s
+	# heavy threshold - releasing early fires the LIGHT instead - so hold
+	# until the heavy swing has actually started, then release once it
+	# ends. Before each press the dummy is re-snapped in front of the
+	# hero: knockback drift must not decide whether the test can reach
+	# the bar (the street's props are not this phase's subject).
+	_set_move(Vector2(0, -1))
+	if _pf >= 10 and not _posture_hold \
+			and _player.state != Player.State.PUNCH and not _posture_broke:
+		_dummy.velocity = Vector3.ZERO
+		_dummy.global_position = _player.global_position + Vector3(1.1, 0.0, 0.0)
+		InputBus.punch_press()
+		_posture_hold = true
+	if _posture_hold:
+		if _player.state == Player.State.PUNCH and bool(_player.get("_punch_heavy")):
+			_posture_saw_heavy = true
+		if _posture_saw_heavy and _player.state != Player.State.PUNCH:
+			InputBus.punch_release()
+			_posture_hold = false
+			_posture_saw_heavy = false
+	_posture_peak = maxf(_posture_peak, float(_dummy.get("posture")))
+	if _dummy.state == Enemy.State.STAGGER and bool(_dummy.get("_posture_break")):
+		_posture_broke = true
+		if _posture_pf < 0:
+			_posture_pf = _pf
+	if _posture_broke and _pf == _posture_pf + 30:
+		InputBus.punch_release()
+		_set_move(Vector2.ZERO)
+		_check(_posture_peak >= 80.0, "heavies fill the posture bar (max %.0f)" % _posture_peak)
+		_check(float(_dummy.get("hp")) > 2.0, "finisher came from posture, not low hp (hp %.0f)" % float(_dummy.get("hp")))
+	# the opener: a HEAVY on a broken enemy - pressed ONCE when the hero is
+	# free (a press every frame would reset the hold age and the heavy
+	# threshold would never be reached; a press mid-swing buffers a light)
+	if _posture_broke and not _posture_opener and _pf > _posture_pf + 30 \
+			and _player.state != Player.State.PUNCH:
+		_posture_opener = true
+		_dummy.velocity = Vector3.ZERO
+		_dummy.global_position = _player.global_position + Vector3(1.1, 0.0, 0.0)
+		InputBus.punch_press()
+	if _posture_broke and _posture_opener and _posture_saw_heavy \
+			and _player.state != Player.State.PUNCH and _pf > _posture_pf + 40:
+		InputBus.punch_release()
+		_posture_opener = false
+	if _posture_broke and _pf == _posture_pf + 160:
+		InputBus.punch_release()
+		_check(_dummy.state == Enemy.State.DOWN, "the opener executes the broken enemy (state %d)" % _dummy.state)
+		_check(Engine.time_scale == 1.0, "time scale clean after the break flow")
+		_next()
+	if _pf == 800 and not _posture_broke:
+		# the break never came - fail honestly and move on
+		InputBus.punch_release()
+		_set_move(Vector2.ZERO)
+		_check(false, "the bar never broke (peak %.0f, landed pattern off)" % _posture_peak)
 		_next()
 
 

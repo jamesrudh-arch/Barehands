@@ -10,6 +10,7 @@ hitstop_frames = 4
 knockback = Vector3(0.5, 0.0, 0.0)
 shake_intensity = 0.2
 camera_punch = 1.5
+posture_damage = 6.0
 cancel_start_ms = 0.0
 cancel_end_ms = 0.0
 haptic_pattern = "light"

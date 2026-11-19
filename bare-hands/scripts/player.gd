@@ -654,7 +654,8 @@ func _swing_kind(target: CharacterBody3D, counter: bool) -> String:
 	if _punch_heavy:
 		if has_pipe:
 			return "pipe_heavy"
-		if target.hp <= 2 and target.state != Enemy.State.DOWN:
+		if (target.hp <= 2 or target.posture_broken()) \
+				and target.state != Enemy.State.DOWN:
 			return "finisher"
 		if target.state == Enemy.State.STAGGER or target.state == Enemy.State.FLINCH:
 			return "launcher"

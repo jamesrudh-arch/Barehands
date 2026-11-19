@@ -6,7 +6,7 @@ extends Control
 
 const BASE := {
 	"jab": 6.0, "cross": 10.0, "dodge": 8.0, "parry": 18.0,
-	"counter": 25.0, "slam": 35.0, "takedown": 15.0,
+	"counter": 25.0, "slam": 35.0, "takedown": 15.0, "posture": 22.0,
 }
 const RANKS := ["D", "C", "B", "A", "S"]
 const MULT := [1.0, 1.2, 1.5, 2.0, 3.0]
