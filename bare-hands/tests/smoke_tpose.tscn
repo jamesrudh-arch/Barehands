@@ -1,6 +1,6 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://tests/probe_tpose.gd" id="1"]
+[ext_resource type="Script" path="res://tests/smoke_tpose.gd" id="1"]
 
 [node name="ProbeTpose" type="Node"]
 script = ExtResource("1")
