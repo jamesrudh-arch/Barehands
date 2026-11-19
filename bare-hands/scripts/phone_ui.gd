@@ -13,6 +13,7 @@ var _banner: PanelContainer
 var _banner_name: Label
 var _banner_kind: Label
 var _banner_bar: ColorRect
+var _answer_btn: Button  # set at build; the beat cost renames it
 var _screen: Control  # call screen + app screens share the dim
 var _dim: ColorRect
 var _call_card: PanelContainer
@@ -98,7 +99,9 @@ func _build_banner() -> void:
 	buttons.add_theme_constant_override("separation", 12)
 	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
 	col.add_child(buttons)
-	buttons.add_child(_btn("ANSWER", CYAN, func(): Phone.answer()))
+	_answer_btn = _btn("ANSWER", CYAN, func(): Phone.answer())
+	_answer_btn.name = "AnswerBtn"
+	buttons.add_child(_answer_btn)
 	buttons.add_child(_btn("DECLINE", MAGENTA, func(): Phone.decline()))
 
 
@@ -167,6 +170,11 @@ func _build_apps() -> VBoxContainer:
 			Color(0.75, 0.6, 0.9), func(): _open_log())
 	log_b.name = "LogBtn"
 	grid.add_child(log_b)
+
+	var ledger_b := _app_button("LEDGER", "the debt book - live interest",
+			Color(0.85, 0.45, 0.3), func(): _open_ledger())
+	ledger_b.name = "LedgerBtn"
+	grid.add_child(ledger_b)
 
 	grid.add_child(_btn("CLOSE", Color(0.6, 0.6, 0.65), func(): Phone.close()))
 	return grid
@@ -310,7 +318,7 @@ func _open_log() -> void:
 		col.add_theme_constant_override("separation", 2)
 		row.add_child(col)
 
-		var who: Dictionary = Trust.FRIENDS.get(e.get("caller", ""), {})
+		var who: Dictionary = Phone.sender(str(e.get("caller", "")))
 		var head := HBoxContainer.new()
 		head.add_theme_constant_override("separation", 10)
 		col.add_child(head)
@@ -334,6 +342,98 @@ func _open_log() -> void:
 				_show_voicemail(e))
 			col.add_child(play)
 	_app_body.add_child(_btn("BACK", Color(0.6, 0.6, 0.65), func(): _show_grid()))
+
+
+## The debt book (bible 4G + the 30-min loop): lenders with live
+## balances, the day/beat strip, both pockets, laundering, and the
+## Trust column - "The Ledger always shows Trust" (bible line 106).
+func _open_ledger() -> void:
+	_show_app("LEDGER")
+	for child in _app_body.get_children():
+		child.queue_free()
+
+	var strip := _label("DAY %d  -  %s  -  %d BEAT(S) LEFT" % [Ledger.day,
+			Ledger.beat_name(), Ledger.beats_left], 14, Color(0.9, 0.8, 0.5))
+	strip.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_app_body.add_child(strip)
+
+	if Ledger.defaulted:
+		var d := _label("DEFAULT - THE CITY HUNTS", 20, MAGENTA)
+		d.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_app_body.add_child(d)
+	elif Ledger.missed_payments > 0:
+		var m := _label("MISSED PAYMENTS: %d of 3" % Ledger.missed_payments, 13, MAGENTA)
+		m.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_app_body.add_child(m)
+
+	for id in ["family", "corp", "crew"]:
+		_app_body.add_child(_lender_row(id))
+
+	var cash_row := HBoxContainer.new()
+	cash_row.add_theme_constant_override("separation", 14)
+	cash_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	_app_body.add_child(cash_row)
+	cash_row.add_child(_label("CLEAN $%d   DIRTY $%d" % [Wallet.cash, Wallet.dirty],
+			15, Color(0.7, 0.85, 0.75)))
+	var launder_b := _btn("LAUNDER DIRTY (-20%%)", CYAN, func():
+		Ledger.launder(Wallet.dirty)
+		_open_ledger())
+	launder_b.custom_minimum_size = Vector2(230, 40)
+	cash_row.add_child(launder_b)
+
+	_app_body.add_child(_trust_column())
+	_app_body.add_child(_btn("BACK", Color(0.6, 0.6, 0.65), func(): _show_grid()))
+
+
+func _lender_row(id: String) -> PanelContainer:
+	var who: Dictionary = Ledger.LENDERS[id]
+	var card := PanelContainer.new()
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.03, 0.04, 0.06, 0.9)
+	sb.border_color = who["color"]
+	sb.set_border_width_all(1)
+	sb.set_corner_radius_all(6)
+	sb.content_margin_left = 12.0
+	sb.content_margin_right = 12.0
+	sb.content_margin_top = 6.0
+	sb.content_margin_bottom = 6.0
+	card.add_theme_stylebox_override("panel", sb)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 12)
+	card.add_child(row)
+	row.add_child(_label(who["name"], 15, who["color"]))
+	var rate := "0%" if Ledger.rate_of(id) == 0.0 else "%d%%/day" % int(round(Ledger.rate_of(id) * 100.0))
+	row.add_child(_label("$%d  (%s)" % [int(round(Ledger.debt[id])), rate], 15,
+			Color(0.92, 0.93, 0.95)))
+	row.add_child(_label(who["line"], 10, Color(0.5, 0.52, 0.58)))
+	var spacer := Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(spacer)
+	if Ledger.debt[id] > 0.5:
+		var chip := int(Tuning.v("pay_chip"))
+		row.add_child(_btn("PAY $%d" % chip, CYAN, func():
+			Ledger.pay(id, chip)
+			_open_ledger()))
+		row.add_child(_btn("PAY ALL", MAGENTA, func():
+			Ledger.pay(id, int(Ledger.debt[id]) + 1)
+			_open_ledger()))
+	return card
+
+
+func _trust_column() -> VBoxContainer:
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 2)
+	col.add_child(_label("TRUST", 12, Color(0.6, 0.65, 0.7)))
+	for id in Trust.FRIENDS:
+		var f: Dictionary = Trust.FRIENDS[id]
+		var v := Trust.value(id)
+		var c := Color(0.4, 0.75, 0.5)
+		if v < 60.0:
+			c = Color(0.9, 0.75, 0.35)
+		if v < 30.0:
+			c = MAGENTA
+		col.add_child(_label("%s  %d  (%s)" % [f["name"], int(v), Trust.tier(id)], 12, c))
+	return col
 
 
 func _show_voicemail(entry: Dictionary) -> void:
@@ -388,6 +488,15 @@ func _on_state() -> void:
 		_banner_name.text = who.get("name", "?")
 		_banner_name.add_theme_color_override("font_color", who.get("color", Color.WHITE))
 		_banner_kind.text = Phone.call_kind().to_upper() + " CALL"
+		if _answer_btn:
+			# answering spends a Beat (the 30-min loop): say so, and go
+			# dark when the day has none left
+			if Phone.beats_left() > 0:
+				_answer_btn.text = "ANSWER - 1 BEAT"
+				_answer_btn.disabled = false
+			else:
+				_answer_btn.text = "NO BEATS LEFT"
+				_answer_btn.disabled = true
 		_screen.visible = false
 		return
 	_screen.visible = Phone.state in [Phone.State.ON_CALL, Phone.State.OPEN]

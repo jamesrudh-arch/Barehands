@@ -1,5 +1,22 @@
 # CHANGELOG.md — batch history (newest first)
 
+## B6 — the Ledger, Death = Debt (2026-11-19)
+- The debt book the 30-minute loop turns on: three lenders with a live
+  interest counter that never stops (slow-mo does not save you), a day
+  of three beats where ACTIONS spend the budget and only TIME turns
+  the day, missed-payment texts with the faint tick pulse, DEFAULT at
+  three misses (the whole city hostile, heat pinned, interest frozen),
+  Death = Debt on a lapsed offer (+800, The Family, no reload), S-rank
+  payoffs cutting 5% per banked rank, dirty/clean money with style
+  purses paying dirty and laundering through the Club Owner at 20%,
+  and the phone's LEDGER app showing it all - including the Trust
+  column the bible demands. Answering a call now spends a beat: burn
+  your three at Dusk and the phone refuses the answer until the day
+  turns. smoke_debt 36 green; economy re-greened for dirty purses.
+  First-pass calls marked: the 3500/1500 split of the bible's 5000,
+  the missed-payment rule. Deferred, marked: 4B FULL (lender gear,
+  in-fight collectors, scarred style) and gambling.
+
 ## B5 — the phone + Trust (2026-11-19)
 - The device the pressure loop runs through (bible 4C): calls interrupt
   fights - the ring never locks input, answer in seconds while enemies

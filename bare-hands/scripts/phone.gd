@@ -102,6 +102,25 @@ var _log: Array = []  # newest first, capped
 var _promises: Array = []  # accepted invitations, batch 7 redeems them
 var _visited: Dictionary = {}  # district -> true (fog of war)
 var _buzz_count := 0  # test hook: how many buzz pulses have fired
+
+## The Ledger's lenders text too (bible 4G): the pressure reaches the
+## pocket. Merged with friends by sender_id().
+const LEDGER_SENDERS := {
+	"family": {"name": "The Family", "color": Color(0.85, 0.35, 0.25)},
+	"corp": {"name": "The Corporation", "color": Color(0.4, 0.75, 1.0)},
+	"crew": {"name": "The Crew", "color": Color(0.9, 0.8, 0.35)},
+}
+
+
+## One lookup for every sender a text can come from.
+func sender(id: String) -> Dictionary:
+	if Trust.FRIENDS.has(id):
+		return Trust.FRIENDS[id]
+	return LEDGER_SENDERS.get(id, {})
+
+
+func beats_left() -> int:
+	return Ledger.beats_left
 var _next_buzz_msec := 0
 var _slow_next_msec := 0
 var _ambient_acc := 0.0
@@ -167,9 +186,14 @@ func ring_progress() -> float:
 	return clampf(float(left) / float(_ring_total_msec), 0.0, 1.0)
 
 
-## One answer per ring (bible 4C): answering consumes the ring.
+## One answer per ring (bible 4C): answering consumes the ring AND
+## spends a Beat (bible, 30-min loop: every call/job/hangout costs 1).
+## No beats left -> the answer is refused; the ring burns out alone.
 func answer() -> bool:
 	if state != State.RINGING:
+		return false
+	if not Ledger.spend_beat("call: %s" % _ring_caller):
+		Log.info("Phone: no beats left - the call waits in voicemail")
 		return false
 	_last_caller = _ring_caller
 	_last_kind = _ring_kind
@@ -343,7 +367,7 @@ func last_call_ready() -> bool:
 ## Countdown texts and every future ledger pressure ride this pipe: the
 ## log renders them; nothing fakes entries that do not exist.
 func push_text(caller: String, text: String, countdown_s := 0.0) -> void:
-	if not Trust.FRIENDS.has(caller):
+	if sender(caller).is_empty():
 		Log.warn("Phone: text from unknown '%s'" % caller)
 		return
 	_log_entry({"caller": caller, "kind": "text", "outcome": "text",

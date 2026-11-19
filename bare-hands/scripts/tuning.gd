@@ -37,6 +37,14 @@ const DEFAULTS := {
 	"phone_ring_seconds": 8.0,  # the answer window while enemies swing
 	"phone_demand_cost": 40.0,  # a demand call's ask
 	"phone_ambient_s": 180.0,  # calm-time minutes between ambient rings
+	"debt_start_family": 3500.0,  # first-pass split of the bible's 5000
+	"debt_start_corp": 1500.0,  # the Corporation's slice at boot
+	"rate_family": 0.03,  # Family interest per day (bible 14)
+	"rate_corp": 0.08,  # Corporation interest per day
+	"beat_real_seconds": 360.0,  # real minutes a beat lasts if nothing spends it
+	"s_rank_cut": 0.05,  # each banked S-rank cuts 5% of the balance
+	"launder_cut": 0.20,  # the Club Owner's take (bible 4G)
+	"pay_chip": 100,  # the Ledger screen's quick-pay chip
 	"posture_regen_per_s": 20.0,
 	"posture_break_seconds": 2.8,  # the finisher window
 	"attack_tokens_ring": 2.0,  # bible 4A: max concurrent attackers, 3-4 engaged

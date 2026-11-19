@@ -16,6 +16,7 @@ const PATTERNS := {
 	"ui": [10],             # a button press
 	"down": [70],           # the hero is knocked down
 	"buzz": [150, 110, 150], # a call: slow low pulse-pause-pulse (4C)
+	"tick": [6, 70, 6],  # a debt tick: faint repeating pulse (bible 7)
 }
 
 var _queue: Array = []  # [msec_to_wait, duration] steps

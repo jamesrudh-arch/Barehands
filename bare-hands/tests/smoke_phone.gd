@@ -61,6 +61,9 @@ func _ready() -> void:
 
 func _calm() -> void:
 	Phone.close()
+	# batch 6: answering costs beats - every phase starts with a fresh
+	# day's budget (the beat economy itself is smoke_debt's to test)
+	Ledger.reset_for_test()
 	for i in 120:
 		await _frame(1)
 		if _player.state == Player.State.GROUND and Phone.state == Phone.State.IDLE:

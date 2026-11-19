@@ -75,6 +75,26 @@ func _ready() -> void:
 	clr.focus_mode = Control.FOCUS_NONE
 	clr.pressed.connect(func(): Phone.reset_for_test())
 	jumps.add_child(clr)
+	# Batch 6: jump straight into the debt book's pressure
+	var debt_b := Button.new()
+	debt_b.text = "DEBT +500"
+	debt_b.focus_mode = Control.FOCUS_NONE
+	debt_b.pressed.connect(func():
+		Ledger.debt["family"] += 500.0
+		Ledger.changed.emit())
+	jumps.add_child(debt_b)
+	var day_b := Button.new()
+	day_b.text = "DAY END"
+	day_b.focus_mode = Control.FOCUS_NONE
+	day_b.pressed.connect(func():
+		while Ledger.beats_left > 0:
+			Ledger.spend_beat("debug"))
+	jumps.add_child(day_b)
+	var def_b := Button.new()
+	def_b.text = "DEFAULT NOW"
+	def_b.focus_mode = Control.FOCUS_NONE
+	def_b.pressed.connect(func(): Ledger.debug_default())
+	jumps.add_child(def_b)
 
 
 ## Batch 5: a random friend calls, right now, whatever the hero is doing.

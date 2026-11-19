@@ -55,14 +55,14 @@ func _ready() -> void:
 
 func _earnings() -> void:
 	Wallet.call("reset_for_test")
-	var before := Wallet.cash
+	var before := Wallet.dirty  # street show money pays DIRTY (batch 6)
 	_style.set("value", 0.0)  # rank D
 	_style.add("jab")
-	_check(Wallet.cash == before + 6, "rank D jab banks $6 ($+%d)" % (Wallet.cash - before))
+	_check(Wallet.dirty == before + 6, "rank D jab banks $6 dirty ($+%d)" % (Wallet.dirty - before))
 	_style.set("value", 450.0)  # rank S
 	_style.add("parry")
-	_check(Wallet.cash == before + 6 + 65, "rank S parry banks $65 with chain bonus ($+%d)" % (Wallet.cash - before))
-	_check(_style.cash == Wallet.cash, "style meter mirrors the wallet")
+	_check(Wallet.dirty == before + 6 + 65, "rank S parry banks $65 dirty with chain bonus ($+%d)" % (Wallet.dirty - before))
+	_check(_style.cash == Wallet.total(), "style meter mirrors the wallet")
 	var entry: Dictionary = Wallet.entries[-1]
 	_check(entry.kind == "earn" and entry.item == "parry", "earn entry written (%s/%s)" % [entry.kind, entry.item])
 

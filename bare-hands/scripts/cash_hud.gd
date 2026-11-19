@@ -19,7 +19,7 @@ func _ready() -> void:
 	add_to_group("cash_hud")
 
 	_label = Label.new()
-	_label.text = "$ %d" % Wallet.cash
+	_label.text = "$ %d" % Wallet.total()
 	_label.anchor_left = 1.0
 	_label.anchor_right = 1.0
 	_label.offset_left = -220.0
@@ -69,7 +69,7 @@ func _process(delta: float) -> void:
 
 
 func _on_cash(cash: int, delta: int) -> void:
-	_label.text = "$ %d" % cash
+	_label.text = "$ %d" % Wallet.total()
 	_pop_text = ("+$%d" % delta) if delta > 0 else ("-$%d" % -delta)
 	_pop.text = _pop_text
 	_pop.add_theme_color_override("font_color",

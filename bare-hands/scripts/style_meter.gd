@@ -30,7 +30,7 @@ var _toast_a := 0.0
 ## Cash now lives in the Wallet; the meter mirrors it for the HUD and tests.
 var cash: int:
 	get:
-		return Wallet.cash
+		return Wallet.total()  # both pockets: street money is dirty
 
 
 func _ready() -> void:
@@ -84,7 +84,7 @@ func add(move: String, mult := 1.0) -> float:
 	_last = move
 	_chain_until = _t() + 4.0
 	value = minf(value + gain, 500.0)
-	Wallet.earn(int(round(gain * rank_mult())), move)
+	Wallet.earn_dirty(int(round(gain * rank_mult())), move)  # street cash
 	_refresh()
 	return gain
 

@@ -75,6 +75,22 @@ batch boundary.
   round-trip (log/fog/trust). Signal gotcha found by the suite:
   City.entered_district carries (district, MOOD) - handlers must take
   both.
+- **B6 the Ledger (4G + 14 + the 30-min loop)**: smoke_debt (36 checks)
+  - the 5000 split (Family 3500 / Corp 1500, first-pass), live
+    interest in real time (slow-mo does not dodge it), S-rank payoffs
+    compound per banked rank (5% each, proportional), Death = Debt on
+    a lapsed offer (+800, The Family), the beat budget (answering
+    spends one; NO BEATS LEFT refuses and disables the banner), the
+    day clock (only time turns the day; beats refill at Dusk), missed
+    payments as phone texts + faint tick pulses, paid days pass,
+    clean-then-dirty draw order, laundering at the 20% cut (Estranged
+    refused), DEFAULT = all districts hostile + heat pinned >= 4 +
+    interest frozen + no beats, save v6 round-trip. Suite lesson: the
+    book's live counter means capture-then-compare needs tolerance
+    (interest keeps accruing under the assertion).
+- **smoke_economy re-greened**: style purses pay the DIRTY pool now
+  (bible 4G street money); the style-meter mirror reads the total.
+
 - **B4.2 accessibility four (bible 7)**: block_hold_ms (Tuning) is the
   hold-DODGE->block threshold and the input bus's tap-vs-hold split
   reads the same key (they can never disagree); autotarget_mult

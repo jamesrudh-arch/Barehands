@@ -11,6 +11,7 @@ extends CanvasLayer
 signal accepted
 
 var _t := 0.0
+var _lapsed := false
 
 
 func _ready() -> void:
@@ -53,3 +54,8 @@ func _process(delta: float) -> void:
 	# the accept input: PUNCH while the offer is live
 	if _t > 0.0 and InputBus.take_punch():
 		accepted.emit()
+	# the lapse is Death = Debt (bible 4G): no reload - the hero gets
+	# up owing whoever patched them up. The Family runs the clinic.
+	if _t <= 0.0 and not _lapsed:
+		_lapsed = true
+		Ledger.death_debt()

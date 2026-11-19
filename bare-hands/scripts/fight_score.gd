@@ -137,7 +137,7 @@ func _show_card(result: Dictionary, stats: Dictionary) -> void:
 	vbox.add_child(big)
 	if rk >= 4:
 		var debt := Label.new()
-		debt.text = "S-RANK - 5% off principal (Ledger pending)"
+		debt.text = "S-RANK - 5% of the balance, off the debt"
 		debt.add_theme_font_size_override("font_size", 15)
 		debt.add_theme_color_override("font_color", Color(1.0, 0.7, 0.3))
 		debt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
