@@ -120,7 +120,10 @@ func _physics_process(delta: float) -> void:
 	_t += delta
 	_state_t += delta
 	if not is_on_floor():
-		velocity.y = maxf(velocity.y - GRAVITY * delta, -30.0)
+		# a launched enemy falls HEAVIER: a floaty arc reads as a figure
+		# hovering over the HUD on the phone
+		var g := GRAVITY * (1.35 if state == State.LAUNCHED else 1.0)
+		velocity.y = maxf(velocity.y - g * delta, -30.0)
 
 	match state:
 		State.IDLE, State.RECOVER:

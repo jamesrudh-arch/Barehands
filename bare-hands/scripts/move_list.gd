@@ -67,6 +67,12 @@ func _refresh() -> void:
 			"A mid-range poke; pops staggered enemies up.", "level": 1})
 	_row(col, {"name": "Grab, knee, throw", "seq": ["Y"], "desc":
 			"Seize, hold, dispose. Face buttons: Y (again to throw).", "level": 1})
+	_row(col, {"name": "Lunge cross", "seq": ["stick fwd + PUNCH"], "desc":
+			"Step in with the stick; the cross becomes a lunging counter.",
+			"level": 1})
+	_row(col, {"name": "SUPER strike", "seq": ["SUPER (when full)"], "desc":
+			"Parries and counters fill the meter; spend it all on a slow-mo shockwave.",
+			"level": 1})
 	_row(col, {"name": "Dodge / Block / Parry", "seq": ["DODGE"], "desc":
 			"Evade with the stick; hold to guard; time it to parry.", "level": 1})
 

@@ -108,7 +108,7 @@ const ALL := [
 			{"anim": "Punch_Jab", "anim_t": 0.0, "speed": 0.55, "t": 0.38,
 					"kind": "launcher", "dmg": 3, "cam": 6.5, "snd": "metal_ring_0",
 					"snd_pitch": 1.3, "hap": "heavy", "shake": 0.5, "style": "launcher",
-					"slow": 0.25},
+					"slow": 0.12},
 		],
 	},
 	{

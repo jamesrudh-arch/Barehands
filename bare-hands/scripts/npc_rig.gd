@@ -8,7 +8,7 @@ var _players: Array[AnimationPlayer] = []
 
 
 ## pieces: paths to gltf scenes; tint: colour identity; accent: emissive edge.
-func build(pieces: Array, tint: Color, accent: Color, idle_clip := "Idle",
+func build(pieces: Array, tint: Color, accent: Color, idle_clip := "Idle_Loop",
 		idle_speed := 1.0) -> void:
 	for path in pieces:
 		var ps: PackedScene = load(path)

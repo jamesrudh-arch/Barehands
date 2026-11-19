@@ -136,7 +136,7 @@ func _windows() -> void:
 		mat.albedo_color = c * 0.25
 		mat.emission_enabled = true
 		mat.emission = c
-		mat.emission_energy_multiplier = e * 0.55  # the spill does the rest
+		mat.emission_energy_multiplier = e * 0.30  # phone bloom: panes must glow, not white out
 		var mi := MeshInstance3D.new()
 		var qm := QuadMesh.new()
 		qm.size = Vector2(0.9, 0.6)
@@ -150,7 +150,7 @@ func _windows() -> void:
 		add_child(mi)
 		# the soft spill: light blooming down the wall around the pane
 		var glow := _glow_quad(p + Vector3(0.0, -0.05, -0.06 if p.z < 0.0 else 0.06),
-				c, Vector2(2.0, 1.7), rot, 0.55 * e)
+				c, Vector2(1.8, 1.5), rot, 0.32 * e)
 		add_child(glow)
 
 
@@ -175,11 +175,11 @@ func _ac_units() -> void:
 ## Bloom halos behind the three neon signs (positions from main.tscn).
 func _sign_glows() -> void:
 	add_child(_glow_quad(Vector3(1.5, 3.35, -9.36), Color(1.0, 0.58, 0.13),
-			Vector2(2.8, 1.5), 0.0, 0.8))
+			Vector2(2.6, 1.4), 0.0, 0.5))
 	add_child(_glow_quad(Vector3(-7.0, 2.75, 8.96), Color(0.15, 0.9, 1.0),
-			Vector2(2.8, 1.5), PI, 0.8))
+			Vector2(2.6, 1.4), PI, 0.5))
 	add_child(_glow_quad(Vector3(13.86, 1.85, 0.0), Color(1.0, 0.16, 0.12),
-			Vector2(2.8, 1.5), -PI / 2.0, 0.8))
+			Vector2(2.6, 1.4), -PI / 2.0, 0.5))
 
 
 func _puddles() -> void:

@@ -493,12 +493,50 @@ stands by the dummy (a silhouette with the hook `try_train`; Stage B/C
 replaces it with the real fight-club content). `tests/smoke_progression.gd`
 23 checks PASS.
 
-### PART 4 - NOT STARTED
-The four phone-photo fixes (distant T-pose, white pixelated block stacks,
-figures floating near the HUD, blown-out white neon) have NOT been
-touched this pass - they were below Parts 1-3 in the queue order and the
-session ran out of budget. Next session starts there, then the full
-battery + stress re-run.
+### PART 4 - Phone-photo fixes (this commit)
+1. **Distant T-pose - ROOT CAUSE FOUND AND FIXED.** All four cast NPCs
+   idled on the clip name "Idle", which does not exist in the Universal
+   Animation Library (its clips are "Idle_Loop", "Idle_Talking_Loop",
+   ...), and UalBind.play_all's fallback clip was ALSO the nonexistent
+   "Idle" - so a miss fell back to nothing and the character stood in a
+   T-pose forever (the distant figure in the photo). Fix: the cast now
+   plays real clips (Idle_Loop / Idle_Talking_Loop per personality),
+   NpcRig's default idle is "Idle_Loop", the UalBind fallback is
+   "Idle_Loop", and a miss logs a warning so a bad clip name can never
+   hide as a silent T-pose again. Far characters still animate cheaply
+   (one idle clip, no AI) - just never frozen.
+2. **White pixelated block stacks - IDENTIFIED AND SOFTENED.** They are
+   the stacks of emissive window panes and their additive glow quads up
+   the facades (plus the two long WinB/WinE strips), which the phone's
+   bloom pushed into white pixelated rectangles. Pane emission cut
+   0.55x to 0.30x of each window's energy, the glow quads are smaller
+   and 0.32x strength, the sign halos 0.8 -> 0.5, the window strips'
+   energy 0.9 -> 0.45.
+3. **Figures floating near the HUD - FIXED.** They were launched
+   (knocked-up) enemies: the launcher combos' 0.25 s slow-mo stretched
+   the airborne arc to a multi-second hover across the top of the
+   screen, and normal gravity made the fall feel floaty. Launched
+   enemies now fall at 1.35x gravity and the launcher slow-mo is halved
+   (0.25 -> 0.12 s) - a snappy juggle instead of a hover. (The dialogue
+   portrait is a bottom-panel ColorRect-style block, never an overlay;
+   the HUD CanvasLayer always renders over 3D, so no render-layer bug
+   existed - it was the read of long-hanging airborne figures.)
+4. **Blown-out white neon - FIXED.** The three sign slabs ran at
+   emission energy 3.5 with glow HDR threshold 0.9 and 5.0-energy omni
+   lights - on the phone they clipped to white rectangles. Signs now
+   2.1 energy, omnis 3.2-3.4, glow intensity 0.85 -> 0.70, HDR threshold
+   0.9 -> 1.05. Neon reads as colour again.
+
+### The LEVERAGE bible arrived (same commit)
+The owner uploaded the real design file (LEVERAGE master prompt v4.0).
+`PROJECT_BIBLE.md` is the condensed canon (premise, pillars, loops,
+combat rules, phone/trust/leverage systems, district, controls, tech
+standards, tiers, balance defaults, batch order). `STATE.json` maps the
+bible's batch order onto what the repo has actually shipped and holds
+the continuation protocol. `docs/VISION.md` is reconciled (Bare Hands 3D
+was the working title; the fight club is the Block 2 gym + underground
+tournaments - no "Knuckle Room" exists in the design, and the trainer
+placeholder now points there).
 
 ### Pass verification status
 smoke_face 31, smoke_progression 23 PASS. smoke_combos' 39 checks were

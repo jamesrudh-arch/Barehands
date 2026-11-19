@@ -1,13 +1,14 @@
 class_name Trainer
 extends Node3D
-## The Knuckle Room trainer - PLACEHOLDER (combo pass PART 3). The real
-## fight club arrives with Stage C; until then its trainer stands by the
-## training dummy as a hook: walking up greets the player (a hint) and the
-## hero's GRAB near the trainer opens the MOVES screen to teach/practise.
-## Stage B/C wires the real dialogue through cast.gd and replaces this
-## body with the Knuckle Room boss rig.
+## The fight-club trainer - PLACEHOLDER (combo pass PART 3). The owner's
+## LEVERAGE bible (PROJECT_BIBLE.md) names no "Knuckle Room": the fight
+## club is the Block 2 gym + the underground tournaments. Until that batch
+## lands, the trainer stands by the training dummy as a hook: walking up
+## greets the player (a hint) and the hero's GRAB near the trainer opens
+## the MOVES screen to teach and practise. The gym/tournament batch wires
+## the real dialogue through cast.gd and replaces this silhouette.
 
-const RADIUS := 2.6
+const RADIUS := 1.4  # close enough that a combat grab near enemies is never hijacked
 
 var _player: Node3D
 var _hinted := false
@@ -61,9 +62,20 @@ func _physics_process(_delta: float) -> void:
 
 
 ## The hero's grab consumer calls this when the player grabs near us.
+## Guards: close, facing us, and no active fight nearby - a grab thrown in
+## combat must never open a menu instead of seizing the enemy.
 func try_train(hero: Node3D) -> bool:
 	if global_position.distance_to(hero.global_position) > RADIUS:
 		return false
+	var fwd := -(hero as Node3D).global_transform.basis.z
+	var to_us := (global_position - hero.global_position).normalized()
+	if fwd.dot(to_us) < 0.4:
+		return false
+	for e in get_tree().get_nodes_in_group("enemy"):
+		var enemy := e as Enemy
+		if enemy and enemy.state not in [Enemy.State.DOWN, Enemy.State.IDLE] \
+				and hero.global_position.distance_to(enemy.global_position) < 5.0:
+			return false
 	var moves := get_tree().get_first_node_in_group("moves")
 	if moves and moves.has_method("open"):
 		get_tree().paused = true

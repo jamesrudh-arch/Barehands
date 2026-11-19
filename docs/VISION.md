@@ -1,9 +1,20 @@
-# Bare Hands 3D — Vision
+# LEVERAGE (formerly Bare Hands 3D) — Vision
 
-> **STATUS: RECONSTRUCTED.** This file was written by the agent because
-> `docs/VISION.md` did not exist in the repo when Series 2 began. It is
-> assembled from the owner's Series 1 and Series 2 briefs. Upload the
-> original to `upload/` to replace it; the agent will reconcile.
+> **STATUS: RECONCILED 2026-11-19.** The owner's real design file arrived
+> (the LEVERAGE master prompt v4.0, in `upload/`). The full design now
+> lives condensed in `PROJECT_BIBLE.md`; continuation state in
+> `STATE.json`. This file keeps the Series history and the working rules
+> below; the bible wins for all FUTURE work.
+>
+> Reconciliation notes: the game is **LEVERAGE** — "Bare Hands 3D" was the
+> Series 1-2 working title for the same project (the fists-first pillar
+> survives verbatim). The bible's friends (Brother, Mechanic, Club Owner,
+> The Drunk) and factions (The Family, The Corporation, The Crew) are the
+> canon cast; the Series 2 placeholder cast (Velvet, Pilsner, Marrow, the
+> Duchess) stays as shipped street figures until the cast batch reworks
+> them. The bible names no "Knuckle Room": the fight-club space is the
+> Block 2 gym and the underground tournaments, so the combo-pass trainer
+> placeholder points there.
 
 ## The game
 

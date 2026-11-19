@@ -1,0 +1,48 @@
+{
+  "project": "LEVERAGE (working title during Series 1-2: Bare Hands 3D)",
+  "repo": "github.com/jamesrudh-arch/Barehands, main branch",
+  "godot": "4.7.2, MOBILE renderer, headless test harness at /tmp/godot",
+  "continuation_protocol": "read PROJECT_BIBLE.md + this file; resume at next_step",
+  "current_batch": "Combo Progression Pass PART 4 (phone-photo fixes) + LEVERAGE bible reconciliation",
+  "completed": [
+    "Series 1 (look and feel): stability, hero + cinematic camera, wet neon night, punches that hit, pose/stress suites",
+    "Series 2 Phase 1 audio (layered hits, puddle footsteps, volume sliders, mute)",
+    "Series 2 Phase 2 music (adaptive stems, combat rank layers, heat heartbeat, resolve phrase)",
+    "Series 2 Phase 3 combat (chains, block/parry, pipe, flanking, wall slams, haptics)",
+    "Series 2 Phase 4 Bullet Ledger (price-first gun offer, per-bullet spend print, thermal receipt)",
+    "Series 2 Phase 5 economy (style-scaled cash, heat stars, shop looks+stats, safehouse save/load round trip)",
+    "Series 2 Phase 6 city (reputation prices/greetings, district hostility, graffiti nickname, witness recall)",
+    "Series 2 Phase 7 cast (4 named characters, typewriter dialogue, portraits, subtitles, empty voice hooks)",
+    "Series 2 Phase 8 opening (scripted loss, title card, first mission, settings persist, stress numbers)",
+    "Stage A master queue (controls and feel: stick schemes, super meter, style meter, move list, visual pass, photo-fix session)",
+    "Combo pass PART 1 83ea5d0 (face-button layout, code-built Kick_Code, input buffering fix; smoke_face 31)",
+    "Combo pass PART 2 a56dcc8 (input buffer, 16-combo table, input strip, spam scaling, variety bonus; smoke_combos 39)",
+    "Combo pass PART 3 d9d9b09 (Progression XP/levels/unlocks L2-L15, perks, level bar + banner + demo, save v3, MOVES screen, trainer placeholder; smoke_progression 23)",
+    "Combo pass PART 4 (this session): distant T-pose root-caused (cast idles asked for nonexistent 'Idle' clip; UalBind fallback also missing) and fixed + warn-on-miss; white pixelated stacks = emissive window panes/glow quads/WinB-E strips, dimmed + softened; floating figures = launched enemies under 1.35x gravity + launcher slow-mo halved; blown-out neon = sign energy 3.5->2.1, omnis down, glow hdr 0.9->1.05, intensity 0.85->0.7",
+    "LEVERAGE bible arrived: PROJECT_BIBLE.md written (condensed), VISION.md reconciled, trainer comment points at the Block 2 gym / underground tournaments (no 'Knuckle Room' in the design)"
+  ],
+  "bible_batch_mapping": {
+    "batch_0_foundation": "mostly exists (tests battery, haptics abstraction, save system, debug overlay); missing: Tuning.gd consolidation, CI workflow, STATE.json (this file now closes it)",
+    "batch_1_the_punch": "shipped (Series 1-2) but hitstop is GLOBAL time_scale, not selective - migrate in Stage B/C",
+    "batch_2_rank_posture": "partial: style rank + flanking yes; attack tokens + posture bars + adaptive memory not yet",
+    "batch_3_styles_wheel": "partial: 16-combo table + levels/unlocks (combo pass); style wheel + 5 styles not yet",
+    "batch_4_controls": "shipped (Stage A + combo pass face buttons/classic, editor, presets, left-handed, accessibility)",
+    "batch_5_phone": "not started (calls/buzz/Last Call/map app)",
+    "batch_6_ledger_economy": "partial: Bullet Ledger, dirty/clean cash, heat, shops, Death-Debt hook; Beats/interest/lenders not yet",
+    "batch_7_friends_trust": "partial: cast of 4 named NPCs + dialogue; trust rules/hangouts/setups not yet",
+    "batch_8_district": "partial: one night street block, rain, neon, crowds/muscle, decals; 3 blocks + interiors + fog-of-war map not yet",
+    "batch_9_world_sim": "partial: city remembers (reputation, graffiti, witnesses); world-state table + event queue not yet",
+    "batch_10_jobs_web": "not started",
+    "batch_11_discoveries": "not started",
+    "batch_12_kidnap": "not started",
+    "batch_13_polish": "continuous (stress + pose + battery each pass)"
+  },
+  "known_issues": [
+    "smoke_combos full re-run after Part 3 was killed by a 400s timeout mid-suite with 0 failures; this session's battery re-runs it fully",
+    "hitstop uses global Engine.time_scale (bible demands selective hitstop) - Stage B/C migration",
+    "haptics on iOS still need a Core Haptics plugin (basic fallback works)",
+    "NPC LOD/imposter system not built (single block is small enough for now)",
+    "Tuning numbers live in script constants; consolidate into Tuning.gd + panel in Stage B"
+  ],
+  "next_step": "Stage B under the LEVERAGE bible, proposed order: (1) selective hitstop migration, (2) attack tokens + posture/Composure bars, (3) Beats + debt interest + lenders (the 30-minute loop), (4) phone buzz + calls skeleton, (5) world-state table + event queue. Each item ends with the battery green + stress re-run."
+}
