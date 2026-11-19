@@ -3,7 +3,7 @@
   "repo": "github.com/jamesrudh-arch/Barehands, main branch",
   "godot": "4.7.2, MOBILE renderer, headless test harness at /tmp/godot",
   "continuation_protocol": "read PROJECT_BIBLE.md + this file; resume at next_step",
-  "current_batch": "PRIORITY ZERO (v5.0 master prompt) - P0.1 done, P0.3 done, P0.2 battery running",
+  "current_batch": "PRIORITY ZERO COMPLETE - next: Batch 1 audit (selective hitstop, AttackData) per the v5.0 batch order",
   "completed": [
     "Series 1 (look and feel): stability, hero + cinematic camera, wet neon night, punches that hit, pose/stress suites",
     "Series 2 Phase 1 audio (layered hits, puddle footsteps, volume sliders, mute)",
@@ -21,7 +21,8 @@
     "Combo pass PART 4 (this session): distant T-pose root-caused (cast idles asked for nonexistent 'Idle' clip; UalBind fallback also missing) and fixed + warn-on-miss; white pixelated stacks = emissive window panes/glow quads/WinB-E strips, dimmed + softened; floating figures = launched enemies under 1.35x gravity + launcher slow-mo halved; blown-out neon = sign energy 3.5->2.1, omnis down, glow hdr 0.9->1.05, intensity 0.85->0.7",
     "LEVERAGE bible arrived: PROJECT_BIBLE.md written (condensed), VISION.md reconciled, trainer comment points at the Block 2 gym / underground tournaments (no 'Knuckle Room' in the design)",
     "P0.1 (b47a29d): distant T-pose root cause - enemies spawning beyond the 10 m think radius never had play() called (far branch only plays Idle when leaving Walk). Every enemy plays Idle in _ready. smoke_tpose regression suite walks every AnimationPlayer (hero pieces, cast bases+outfits, dummy, thug, muscle) and fails if any is not playing: 20/20 green. Also reverted the wrong missing-clip fix: runtime library uses SHORT names (Idle, Walk, Idle_Talking)",
-    "P0.3 (830b9ba + ddccd1e): Tuning.gd autoload + debug TUNING PANEL (live sliders, user://tuning_overrides.json, reset) + in-game TEST RUNNER (RUN ALL TESTS, 8 logic tests, copyable report user://test_report.txt, debug-menu jumps) + .github/workflows/godot-check.yml (import + run_tests + fast suites + artifacts) + TESTING.md + CHANGELOG.md + bible v5.0. Audited present already: Haptics.gd, save_game.gd, sound bank, FPS/draw overlay"
+    "P0.3 (830b9ba + ddccd1e): Tuning.gd autoload + debug TUNING PANEL (live sliders, user://tuning_overrides.json, reset) + in-game TEST RUNNER (RUN ALL TESTS, 8 logic tests, copyable report user://test_report.txt, debug-menu jumps) + .github/workflows/godot-check.yml (import + run_tests + fast suites + artifacts) + TESTING.md + CHANGELOG.md + bible v5.0. Audited present already: Haptics.gd, save_game.gd, sound bank, FPS/draw overlay",
+    "P0.2 (19ac51a): full 18-suite battery from clean isolated per-suite user dirs. In-battery green: smoke, pose 90, cast, audio, music, stick, controls, face, combat, depth, a4 25, city, ledger, progression 23, combos 39, stress. Two real bugs found and fixed: (1) smoke_tpose.tscn pointed at the dead probe_tpose.gd path after a rename (suite hung to its timeout; fixed path, re-run TPOSE PASS 20/20); (2) smoke_economy's decay check raced its own reinforcement system at heat 2.0 (responders are working as designed there); decay check moved to 1.5, verified twice in isolation (33 checks). 18/18 verified after fixes."
   ],
   "bible_batch_mapping": {
     "batch_0_foundation": "mostly exists (tests battery, haptics abstraction, save system, debug overlay); missing: Tuning.gd consolidation, CI workflow, STATE.json (this file now closes it)",
@@ -40,10 +41,11 @@
     "batch_13_polish": "continuous (stress + pose + battery each pass)"
   },
   "known_issues": [
-    "smoke_tpose.tscn pointed at the dead probe_tpose.gd path after the rename (suite hung to its timeout once); fixed this session, re-run pending",
+    "A non-fatal script error printed once during smoke_combos (player.gd:366 _punch_step, via _physics_process) - the suite still passed 39/39; inspect next session",
     "Tuning wiring: scripts still hold their own constants; migrate per system to Tuning.v() (first pass marked in TESTING.md)",
     "hitstop uses global Engine.time_scale (bible demands selective hitstop) - Batch 1 audit item",
     "haptics on iOS still need a Core Haptics plugin (basic fallback works)"
   ],
-  "next_step": "P0.2 close: when the 18-suite isolated battery finishes (/tmp/battery-v5.log), re-run smoke_tpose with the fixed tscn, record every suite's result by name in STATE.json, fix any failure without weakening it, push. Then Batch 1 audit (selective hitstop, AttackData resources) per the v5.0 batch order."
+  "next_step": "Batch 1 audit per v5.0: (1) selective hitstop - pause attacker+target only, never Engine.time_scale; (2) AttackData resources (damage, hitstop_frames, knockback, shake, posture, cancel window, haptic, audio layers); (3) migrate core combat constants to Tuning.v(); re-run smoke/combos/depth/stress after each. Then Batch 2 (attack tokens, posture/Composure, S-rank, arena retry, adaptive memory).",
+  "battery_last_full_run": "2026-11-19 P0: 18/18 green (see completed list); run pattern: HOME=<fresh dir> per suite, timeout 420, never killed"
 }
