@@ -40,7 +40,7 @@ const STYLES := [
 	{
 		"id": "drunken", "name": "DRUNKEN BOXING", "teacher": "the Drunk",
 		"unlock_level": 7, "color": Color(0.85, 0.75, 0.3),
-		"counters_kind": 4,
+		"counters_kind": 4, "parry_mult": 1.5,
 		"desc": "Looks like falling, fights like a prophecy. Sways, spins and counters nobody can read twice.",
 	},
 	{
@@ -113,6 +113,13 @@ func counters_kind(kind: int) -> bool:
 ## The soft bonus multiplier on style points vs a countered kind.
 func counter_style_mult(kind: int) -> float:
 	return 1.3 if counters_kind(kind) else 1.0
+
+
+## How much wider this style's parry window is (bible 4A: "parry generous
+## with the right style"). The Drunk reads punches like a prophecy - 1.5x
+## the base window; every other style parries at the base Tuning value.
+func parry_mult() -> float:
+	return float(current_def().get("parry_mult", 1.0))
 
 
 ## --- persistence --------------------------------------------------------------

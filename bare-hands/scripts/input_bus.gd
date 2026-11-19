@@ -180,6 +180,14 @@ func take_dodge() -> bool:
 	return _take("_dodge_at")
 
 
+## Is a dodge waiting, and when was it tapped? (GAME-time stamp, like the
+## queue itself.) Peek WITHOUT consuming: dodge leniency (bible 4A) holds
+## a too-early tap under its ORIGINAL stamp so the queue's life keeps
+## running from the real tap - leniency can never extend the buffer.
+func dodge_stamp() -> float:
+	return _dodge_at if _game_msec - _dodge_at <= QUEUE_LIFE_MSEC else -99999.0
+
+
 func queue_grab() -> void:
 	_grab_at = _game_msec
 

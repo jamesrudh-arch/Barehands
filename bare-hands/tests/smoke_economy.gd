@@ -113,11 +113,15 @@ func _heat_cycle() -> void:
 	while frames < 9.0 * 60:
 		await get_tree().physics_frame
 		frames += 1
-		if frames % 30 == 0:
-			for e in get_tree().get_nodes_in_group("enemy"):
-				var en := e as Node3D
-				if en.global_position.distance_to(_player.global_position) < 15.0:
-					en.global_position = Vector3(19.0, 0.02, 19.0)
+		# EVERY frame, not every 30th: an enemy dipping inside 15 m on an
+		# off-frame restarts the calm timer and freezes the decay (bit the
+		# Batch 2 battery twice, this battery once - always heat parked at
+		# exactly 1.50). A per-frame sweep of a handful of nodes is free
+		# and closes the race window entirely.
+		for e in get_tree().get_nodes_in_group("enemy"):
+			var en := e as Node3D
+			if en.global_position.distance_to(_player.global_position) < 15.0:
+				en.global_position = Vector3(19.0, 0.02, 19.0)
 	_check(Heat.heat < 1.5, "heat decays out of sight (%.2f)" % Heat.heat)
 
 

@@ -63,6 +63,20 @@ batch boundary.
   (23 resources) and the TestRunner validates fields, ranges and audio
   slots; enemy reaction identity (anim/flash/launches) still lives in
   `enemy.take_hit` by design — only the numbers moved.
+- **B4.1 feel targets (the bible 4A numbers, wired)**: parry window
+  300 ms (Tuning; DRUNKEN 1.5x), dodge leniency 120 ms (a too-early tap
+  is held under its original stamp - it fires the first free frame and
+  never extends the 400 ms queue life), the light-cancel window 150-350
+  ms lights-only (AttackData cancel fields finally read: dodge
+  interrupts a light swing only inside the window; heavies/kick/super
+  commit - their taps lapse after the queue life), and the buffered
+  chain flows at max(window, impact) with target tracking so knockback
+  does not eat the next link. Unbuffered swings keep the full lock (the
+  first draft cut single punches to 200 ms and broke the A4
+  lunge/backfist - the buffered gate fixed it). smoke_controls 47 (+12):
+  leniency hold/fire/drop, pre-window wait + window cancel, heavy
+  commitment, chain 10 frames vs ~25 at the old lock, 200 ms parry,
+  drunken 350 ms parry.
 - **B4.0 hotfix (the wheel crawl)**: the style wheel's world-crawl
   refresh beat ran on the scaled delta (2.8 s of beat time = 9.3 s real
   at 0.3 speed), so the crawl lapsed at its 3.5 s expiry (world-speed

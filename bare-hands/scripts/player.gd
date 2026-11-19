@@ -40,9 +40,33 @@ const HEAVY_LOCK := 0.75
 ## owner can slide live from the debug TUNING PANEL.
 func _buffer_time() -> float:
 	return Tuning.v("input_buffer_ms") / 1000.0
+
+
+## The parry window (bible 4A: generous, ~300 ms) - live-tunable from the
+## debug TUNING PANEL. DRUNKEN reads punches like a prophecy: the style's
+## mult (styles.gd) widens it; everyone else parries at the base window.
+func _parry_window() -> float:
+	return Tuning.v("parry_window_ms") / 1000.0 * Styles.parry_mult()
+
+
+## The light-cancel window (bible 4A: 150-350 ms, lights only). WHETHER a
+## swing may cancel is per-attack DATA (AttackData cancel_end_ms > 0 -
+## heavies, the kick, the super and the combo string are 0 = committed);
+## WHEN the window sits is the owner's live feel dial (Tuning). A dodge
+## inside the window aborts the swing (a deliberate whiff-cancel); the
+## buffered chain flows from max(window_start, impact) so a cancel never
+## eats the hit itself.
+func _cancel_open() -> bool:
+	if _punch_heavy or _punch_stage >= 4:
+		return false
+	var id := "jab" if _punch_stage == 1 else ("cross" if _punch_stage == 2 else "hook")
+	if AttackData.for_attack(id).cancel_end_ms <= 0.0:
+		return false
+	return _punch_t >= Tuning.v("cancel_start_ms") / 1000.0 \
+			and _punch_t <= Tuning.v("cancel_end_ms") / 1000.0
 const DODGE_SPEED := 6.5
 const DODGE_TIME := 0.42
-const BLOCK_PARRY_WINDOW := 0.15  # a block this young parries
+const BLOCK_PARRY_WINDOW := 0.15  # legacy floor; see _parry_window()
 const GRAB_TIME := 1.2  # how long a seize holds before auto-release
 
 enum State { GROUND, AIR, CLIMB, PUNCH, DODGE, BLOCK, GRAB }
@@ -238,8 +262,8 @@ func _combat_input() -> void:
 		_start_punch(3, true)
 	elif can_act and InputBus.take_kick():
 		_try_kick()
-	elif InputBus.take_dodge():
-		_try_dodge()
+	elif InputBus.dodge_stamp() > -99999.0:
+		_try_dodge()  # peek: leniency decides inside whether to eat it
 	elif can_act and InputBus.take_punch():
 		_try_punch()
 	elif InputBus.take_grab():
@@ -363,8 +387,15 @@ func _punch_step(delta: float) -> void:
 			return
 		_combo_step(delta)
 		return
-	if InputBus.take_dodge():
-		_try_dodge()  # dodge cancels a swing
+	# dodge-cancel of a swing: LIGHTS ONLY, inside the cancel window (bible
+	# 4A). Outside it (a heavy, the kick/super, or before/after a light's
+	# window) the tap is not eaten here - it stays queued under its
+	# original stamp. A light's window soon opens or its short lock ends,
+	# so the tap lands moments later; a heavy's 750 ms lock outlasts the
+	# 400 ms queue life, so the tap lapses: commitment costs the timing,
+	# and the player re-taps after the swing.
+	if _cancel_open() and InputBus.take_dodge():
+		_try_dodge()
 		return
 	if InputBus.take_punch():
 		_punch_buffered_at = _t
@@ -375,11 +406,34 @@ func _punch_step(delta: float) -> void:
 	if not _punch_hit_done and _punch_t >= _impact_time():
 		_punch_hit_done = true
 		_land_punch()
+	# while a chain link is buffered and this swing's hit has landed, keep
+	# stepping toward the target so the early chain connects: the cross's
+	# knockback must not eat the hook (same rule as the stage-6 strings)
+	if _punch_hit_done and not _punch_heavy and _punch_stage < 3 \
+			and _t - _punch_buffered_at < _buffer_time():
+		var track := _punch_target(0.2, 0.5)
+		if track:
+			var to2 := (track as Node3D).global_position - global_position
+			to2.y = 0.0
+			if to2.length() > 1.0:
+				to2 = to2.normalized()
+				velocity.x = to2.x * 2.8
+				velocity.z = to2.z * 2.8
 	move_and_slide()
 	if state != State.PUNCH:
 		return
-	if _punch_t >= _lock_time():
-		if not _punch_heavy and _punch_stage < 3 and _t - _punch_buffered_at < _buffer_time():
+	# The light chain flows at the CANCEL WINDOW, not the full lock (bible
+	# 4A: 150-350 ms, lights only): with a follow-up BUFFERED, the swing's
+	# recovery is the next swing's wind-up and the chain ripples early -
+	# never before this swing's impact lands. With nothing buffered the
+	# swing still runs its FULL lock (the lunge travel and the recovery
+	# pose are part of the single punch's feel).
+	var buffered := not _punch_heavy and _punch_stage < 3 \
+			and _t - _punch_buffered_at < _buffer_time()
+	var chain_at := maxf(Tuning.v("cancel_start_ms") / 1000.0, _impact_time()) \
+			if buffered and _cancel_open() else _lock_time()
+	if _punch_t >= chain_at:
+		if buffered:
 			_start_punch(_punch_stage + 1, false)  # the light chain
 		else:
 			state = State.GROUND
@@ -850,7 +904,7 @@ func take_hit(dir: Vector3, from: CharacterBody3D = null) -> String:
 		return "hit"  # resolved by the enemy via dodge_age() before this
 	if state == State.BLOCK and not Composure.guard_broken():
 		# a broken guard stops nothing: the strike goes through
-		if _block_t <= BLOCK_PARRY_WINDOW:
+		if _block_t <= _parry_window():
 			if from and from.has_method("parried"):
 				from.parried()
 			Tactics.record_player_move("parry")
@@ -884,12 +938,27 @@ func take_hit(dir: Vector3, from: CharacterBody3D = null) -> String:
 
 
 func _try_dodge() -> void:
-	Tactics.record_player_move("dodge")
 	if state == State.GRAB:
+		InputBus.take_dodge()  # the throw is the dodge's answer
+		Tactics.record_player_move("dodge")
 		_grab_throw()
 		return
 	if state not in [State.GROUND, State.PUNCH, State.BLOCK] or _t < _hitstun_until:
+		# Dodge leniency (bible 4A ~120 ms): a tap a beat too early is
+		# not lost. If the hero comes free inside the window - hitstun
+		# about to end, or mid-air about to land - the tap stays queued
+		# under its ORIGINAL stamp (the queue's life keeps running from
+		# the real tap; leniency never extends the buffer) and fires the
+		# first frame the hero can move. Too early even for leniency:
+		# eat the tap, as before. (Mid-dodge needs nothing here: nothing
+		# polls the queue in DODGE, so the tap simply waits it out.)
+		var soon := state == State.AIR \
+				or _hitstun_until - _t <= Tuning.v("dodge_window_ms") / 1000.0
+		if not soon:
+			InputBus.take_dodge()
 		return
+	InputBus.take_dodge()
+	Tactics.record_player_move("dodge")
 	var stick := _stick()
 	var dir: Vector3
 	if stick != Vector2.ZERO:

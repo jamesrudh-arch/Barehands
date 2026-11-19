@@ -1,5 +1,17 @@
 # CHANGELOG.md — batch history (newest first)
 
+## B4.1 — the 4A feel targets, wired (2026-11-19)
+- The audit found every feel number registered in Tuning but unwired,
+  and AttackData's cancel fields unread. Now live: parry window 300 ms
+  (DRUNKEN 1.5x - the style reads punches), dodge leniency 120 ms (a
+  tap a beat too early is held, not eaten; fires the first free frame,
+  never extends the buffer), light-cancel window 150-350 ms lights-only
+  (heavies commit - re-tap after the swing), and the buffered light
+  chain flows at the cancel window instead of the full lock, with
+  target tracking so the cross's knockback does not eat the hook.
+  Unbuffered punches keep their full lock and lunge. All four numbers
+  slide live on the TUNING PANEL. smoke_controls 47 (+12 checks).
+
 ## B4.0 hotfix — the style-wheel crawl (2026-11-19)
 - The owner's phone log ("errors" at player.gd:366, round 2) was the
   style wheel's world-crawl fighting Fx: the refresh beat ran on the
