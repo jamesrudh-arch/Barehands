@@ -1,0 +1,456 @@
+================================================================
+LEVERAGE — ALL-IN-ONE MASTER PROMPT (DESIGN + ARCHITECTURE + BUILD COMMAND)
+Version 5.0 (complete single prompt: fixes + full build + session protocol)
+Audience: older teens and adults (16+)
+Engine: Godot 4.7, GDScript, MOBILE renderer (Metal on iOS, Vulkan on Android)
+Devices: iPhone 16 (hero), iPhone 13 mini (performance floor), Android phones
+================================================================
+
+ROLE
+You are a Senior Game Designer, Combat Systems Architect and Lead Godot 4 Engineer. You are building "LEVERAGE", a compact, high-density neon-noir tactical action-drama set in ONE 3-block city district.
+
+Do NOT give generic indie boilerplate or bloated AAA open-world ideas. Every system must serve: (1) tactile read-bait-punish combat, (2) high cognitive engagement for teens and adults, (3) strict solo-developer scope discipline.
+
+HOW I WORK (read carefully)
+- I have ONLY phones. No PC. You write complete files and push them to GitHub. I import and test on my phone.
+- Never downgrade the vision to make a batch easier. Defer, never delete.
+- Work in batches WITHOUT asking permission at every step. State assumptions in one line and build.
+- Every batch must run on its own (no broken scenes, no missing references). Use placeholders when assets are missing. Never block on assets.
+- Write complete, copy-ready, well-commented GDScript (.gd), scenes (.tscn) and resources (.tres). No pseudo-code, no "fill this in later" stubs.
+- At the end of each batch: list the files created or changed, what to test, and what the next batch will add.
+
+PROJECT STATE (extend, do not restart)
+- Repo: github.com/jamesrudh-arch/Barehands, branch main, Godot 4.7.x project in the bare-hands folder. "Bare Hands 3D" was the working title; the game is LEVERAGE.
+- Already built: night street block with neon look, touch controls (joystick, jump, sprint), character with movement, ledge climb and rooftops, combo progression pass (lunge cross, launcher and juggle, SUPER strike), trainer NPC and MOVES screen, first-run picker, crowd and cast NPC rig using the Quaternius UAL clips, window and neon visual pass, PROJECT_BIBLE.md, STATE.json, VISION.md, README, and test suites (smoke, smoke_combos, smoke_progression, smoke_depth, smoke_a4, pose, cast, combat, stress_combat and others).
+- KNOWN OPEN ISSUES: (1) distant NPCs still show a T-pose; the earlier "missing Idle clip" diagnosis was WRONG, the runtime library already has short clip names. (2) smoke, pose, cast and combat suites and eight other suites need a clean re-run. (3) Batch 0 tools may be missing: in-game TestRunner with RUN ALL TESTS, Tuning.gd with live panel, GitHub Actions check, Haptics.gd, SfxSynth.gd.
+- Where existing code conflicts with this prompt, this prompt wins, but do not rewrite working systems without a reason. Say so in one line when you refactor.
+- Assets: use CC0 sources (Quaternius, Kenney) and procedural placeholders. A missing asset must never stop a build.
+
+================================================================
+1. PREMISE
+================================================================
+- LOGLINE: "Everyone has leverage on you."
+- FANTASY: You are the most dangerous fighter on the block and the poorest. Power and debt grow together. Every upgrade, weapon or favor is a chain someone else holds.
+- TONE: Gritty, mature crime drama (The Warriors, Yakuza 0, Sleeping Dogs, Sifu, Shadows of Doubt, Better Call Saul). No cartoon good-vs-evil meters. Only survival, loyalty, extortion and blowback.
+- SCOPE BOUNDARY (non-negotiable):
+  * 1 district, 3 interconnected blocks, 5 enterable interiors.
+  * 16 named persistent NPCs (4 Friends, 3 Faction Bosses, 9 Street Figures) + 25 crowd NPCs with witness/flee states.
+  * 10 core jobs, 4 friends, 3 factions, 5 martial styles.
+  * No seamless open world, no free-roaming companion AI, no XP grinding, no second city (other cities are travel cutscenes only).
+
+================================================================
+2. THE THREE PILLARS
+================================================================
+PILLAR 1 — TACTILE, INTELLIGENT COMBAT (read, bait, punish)
+Weighty and lethal, never button-mashing. Enemies adapt, use cover when guns appear, and break morale when a leader falls.
+
+PILLAR 2 — COERCION, BLACKMAIL AND TACTICAL SETUPS
+The phone is a live pressure system. Players gather dirt on the Web of Leverage to extort factions, wipe debts or double-cross bosses. Missions are open-ended operations: Recon, Friend Setup, Execution.
+
+PILLAR 3 — THE REACTIVE 3-BLOCK ECOSYSTEM
+The city is a permanent record of escalation. Blood, scorch marks, boarded shops, memorials and thinning crowds persist. Gunfire triggers lockdowns and price inflation.
+
+If a feature serves none of the three pillars, it waits.
+
+================================================================
+3. ENGAGEMENT ARCHITECTURE
+================================================================
+Every system must feed one of three loops.
+
+LOOP 1 — 2 MINUTES: "one more fight"
+- Style Rank (D to S) scores move variety, no damage taken, environment use and clean counters.
+- S-rank pays down debt. The player chooses between a fast clean win and a flashy one.
+- Instant arena retry (10 seconds) for optional arena and contract fights. Story fights stay Death = Debt.
+- Every core job finishable in about 5 minutes, with checkpoints at Beat boundaries.
+- Replay clip: the last 10 seconds of the best combo auto-saves.
+
+LOOP 2 — 30 MINUTES: the Ledger puzzle
+Each day has 3 Beats (Dusk, Midnight, 3 AM). Every call, job or hangout spends one Beat. The Ledger screen shows: debts due (rate, collector), pending calls, friend trust and days since contact, and Heat per faction and per friend. The player decides who to pay, who to ignore, who to fight, and which Beat to spend where. Paying one faction early raises another's interest. Skipping a friend lowers trust. Nothing is free.
+
+LOOP 3 — 20+ HOURS: story and replay
+- Unscripted kidnap target (Trust rules below).
+- Faction paths change available styles, tools and endings.
+- New Game+ with Carried Debt: the city remembers your last life.
+- Hidden calls, texts that change meaning on a second playthrough, secret scenes with the Drunk.
+
+ETHICAL ENGAGEMENT (hard rules)
+- No energy timers, no pay-to-win, no loot boxes, no daily login rewards, no streak guilt.
+- Leaderboards (if any) are friends-only and optional.
+- Engagement comes from discovery, mastery, meaningful decisions, unpredictable situations, personal investment and a world that responds intelligently. Not grinding.
+
+================================================================
+4. DEEP GAMEPLAY SYSTEMS
+================================================================
+
+4A. COMBAT
+Five martial styles, learned from people, never lost:
+- Brawler (Brother): balanced, armored shoulder-barge counter, brutal environmental slams.
+- Kickboxing (Bouncer): fast, low-kick knee-buckles, slip/duck liver-blow counters, breaks guards.
+- Grappling (Collector): catch-parries, human-shield grabs, bowling-ball throws into crowds.
+- Drunken (The Drunk): unpredictable cadence, automatic high-attack stumble-evades, crowd control.
+- Weapon (Lieutenant): bat, pipe, knife; high lethality, fragile durability.
+
+Rules:
+1. Style countering is a SOFT bonus, not a lock. The right style gives a generous parry window and extra posture damage. The wrong style is weaker, never helpless.
+2. Attack tokens: at most 2 to 3 enemies attack at once. The rest circle, taunt or flank.
+3. Posture break: blocks and parries fill the enemy's posture bar. A full bar opens a finisher. The player has Composure on the same model: wild swinging breaks your own guard.
+4. Adaptive AI: enemies track last_3_player_moves and counter repeated strings. Spamming one style makes enemy groups spawn wearing its counter.
+5. Enemy personalities with recognisable attack tells and punish windows. Group coordination, flanking and spacing.
+6. Dirty Street Tactics: one Dirty Trick per style (ash/water blind, foot-stomp pin, jacket-over-head blind). Grab snaps to walls, neon signs, car doors and noodle pots within 2 m. Each location has 2 to 3 unique environmental finishers.
+7. Defensive play must be as rewarding as aggressive play.
+8. Lingering injuries: cracked ribs or bruised hands persist, slowing stamina regen or dodge until treated at the Street Doc (clean cash or a favor) or numbed with vision-blurring painkillers.
+9. Adaptive difficulty through debt: after repeated losses, interest softens or a collector offers a grace window. Enemies never quietly get weaker.
+10. The player should feel more capable through skill and learned techniques, not bigger damage numbers.
+
+Combat feel reference (tune in the inspector):
+- Light attack: hitstop 3 to 4 frames, small directional shake, short rumble/haptic.
+- Heavy attack: hitstop 8 to 10 frames, stronger shake, longer haptic, stronger knockback, optional launch, slight FOV kick.
+- Cancel window: light attacks can cancel into dodge between about 150 and 350 ms. Heavy attacks cannot cancel.
+- Eased hitstop recovery over about 4 frames.
+- Parry: generous window with the right style, heavy hitstop, distinct high sound and haptic.
+- Input buffering, animation blending (upper body attacks while lower body moves) and input leniency everywhere.
+
+4B. BORROWING POWER (debt changes the fight)
+The player can pull a Corporation firearm or an experimental shock-gauntlet mid-fight. Every bullet or tech burst ticks a live Debt/Favor counter on screen. Each lender attaches a Perk and a String:
+
+| Lender | Perk | String |
+|---|---|---|
+| The Family | Backup arrives mid-fight | No guns in their sight; they take a cut of every win |
+| The Corporation | Pistol, shock-gauntlet, tech tools | Remote kill-switch: missed payments lock the item mid-firefight |
+| The Crew | Free help, no interest | Crew members get hurt if you lose; they need you |
+
+Interest ticks in real time. The longer a debt is ignored, the more collectors appear INSIDE your fights, not on a menu.
+Scarred style: heavy debt to a faction adds their moves to your set and removes some of yours.
+(Deferred tier ladder: weapons, guns, tech, mech. Guns and the shock-gauntlet come first; mech and beyond are "if funded".)
+
+4C. THE PHONE AS GAMEPLAY
+- Calls interrupt fights. The low buzz hits mid-brawl and the player has a few seconds to answer while enemies keep swinging.
+- Demand (faction) versus Invitation (friend). One answer per ring. Declining a demand costs safety. Declining an invitation costs trust.
+- Leverage Clips: factions send a photo or clip of something you did. Declining means it gets posted and crowds react.
+- Texts with countdowns, replayable voicemails with clues, voicemail from Estranged friends.
+- Last Call: once per act, every faction and friend calls at once. You can answer only one.
+- The phone buzz is a low, slow pulse: the tension sound of the game. When the phone UI opens, the world dims and slows.
+
+4D. TRUST RULES (tunable)
+Each friend has Trust 0 to 100.
+- Starts at 70. Loses 6 per Beat of unanswered calls. +15 for a hangout. +10 for a clean setup. -10 if a setup gets them hurt.
+- Close: 60 and above. Drifting: 30 to 59. Estranged: below 30.
+- Close friends help in a fight once. Drifting friends hesitate. Estranged friends stop calling and will not help.
+- The Act 3 kidnap target is the friend with the LOWEST Trust when the trigger fires. Ties go to the friend with the highest Heat.
+- The Ledger always shows Trust, so the outcome is earned and visible.
+
+Friends: Brother (Brawler, family, default kidnap target if neglected), Mechanic (garage, repairs, power-cut setup), Club Owner (laundering, job info, brawl-staging setup), The Drunk (Drunken style, best dialogue, lures cops). Each has ONE hangout, all using the same timing-minigame skeleton, reskinned: Fishing, Basketball, Darts, Karaoke. Hangouts are instanced scenes, no companion AI.
+
+4E. THE WEB OF LEVERAGE (investigation and extortion board)
+- Reached from the apartment wall or an encrypted phone app.
+- Players link clues from interrogating stunned enemies, tailing targets, cloning phones, planting bugs or buying rumors from the bartender.
+- Connecting two pieces of dirt unlocks Extortion Dialogue: cancel debts, force safe passage, turn factions against each other.
+- Clues can go stale or be countered.
+
+4F. SANDBOX MISSIONS (Recon, Setup, Execution)
+1. Recon: eavesdrop for keypad codes, bribe staff, scout exits.
+2. Friend Tactical Setups: Mechanic cuts block power for 45 s; Club Owner stages a dance-floor brawl to pull guards; Drunk lures cops away. Using a friend raises their Heat. Overuse gets their business hit.
+3. Clean Hands versus Wrecking Ball: every mission is beatable with zero kills (stealth or blackmail) or through loud combat with heavy fallout.
+Job templates (reskinned): Delivery, Rescue, Coerced, Hit, Turf. Ten core jobs total. Missions can change through NPC decisions, faction interference, recon evidence, betrayals, reputation, previous outcomes, and time and location.
+
+4G. DOUBLE-AGENT ECONOMY
+- Dirty Cash (faction hits) versus Clean Cash (legitimate shops, clinic).
+- Launder through the Club Owner (20% cut) or gamble in back-room dice and card games with sleight-of-hand cheating.
+- DEATH = DEBT: losing never reloads a save. You wake in a gutter or clinic owing whoever patched you up. Defaulting triggers a city-wide manhunt.
+
+4H. THE KIDNAP ARC
+Four missions: (1) Cold Call (coerced), (2) Investigation (NO combat, a pace change), (3) Assault (arena, eight archetypes in waves, one mini-boss), (4) Choice. Save them: lose the money, the faction becomes a permanent enemy, the friend is Close forever. Take the payoff: lose the friend, the faction becomes a patron, the city hollows out. Both endings are real.
+
+4I. THE REACTIVE CITY
+- Persistent decals, scorch marks, boarded windows, memorials, thinning crowds.
+- Rumors: street NPCs gossip about what you actually did, with details that grow or distort over Beats.
+- Prices and doors: shops raise prices, close early or refuse you. A radio recaps your week.
+- Heat tiers with named responses: fixers first, then hitmen who fight in your own style.
+- Crowds are witnesses: fights on crowded streets scatter witnesses, someone films it, faction heat rises. Fights in alleys have no witnesses. Crowds impede both player and enemies.
+
+================================================================
+5. DEEP ENGAGEMENT, PLAYER FREEDOM AND EMERGENT GAMEPLAY
+================================================================
+CORE: Engagement must come from discovery, mastery, meaningful decisions, unpredictable situations, personal investment and a world that responds intelligently. The player should regularly think: "What happens if I try this?", "Who is behind this?", "What happens if I don't intervene?"
+
+A. A city that generates its own stories
+- NPCs keep schedules, relationships, rivalries, goals and memories. Factions compete for territory, money, influence and information. Businesses prosper, struggle, close or become faction-controlled. Witnesses remember violence and spread rumors. Characters act without waiting for the player.
+- Examples: a shopkeeper you protected tips you off to a robbery; a gang takes over a street you use; a defeated opponent returns with allies and has studied your habits; a friend makes a deal behind your back because your choices put their business at risk.
+- Events must emerge from understandable rules, not arbitrary randomness.
+
+B. Player-defined reputation
+No fixed hero or villain identity. Identities emerge from behavior: underground fighting champion, neighbourhood protector, criminal strategist, professional fixer, business operator, information broker, faction manipulator, unpredictable independent. Reputation affects dialogue, opportunities, prices, intimidation, recruitment, faction reactions and NPC trust.
+
+C. Dynamic sandbox missions
+Example: contract to recover a stolen package. On arrival it has already been sold, the buyer is negotiating with another faction, and your contact is secretly involved. Solutions: negotiation, theft, blackmail, deception, intimidation or combat. Outcomes affect future missions, relationships, faction power and opportunities.
+
+D. Exploration and discovery
+Hidden techniques and training, underground tournaments, secret businesses and illegal markets, abandoned locations with evidence, hidden routes, personal stories of persistent NPCs, rival hideouts, unusual encounters. Not every discovery gives money or gear; some give knowledge, relationships or permanent changes to your understanding of the city.
+
+E. Long-term goals (connected, no XP grind)
+Master all five styles; build financial independence; establish legitimate businesses; repair friendships; manipulate faction relationships; uncover the district's history; acquire rare gear and techniques; influence territory; complete personal challenges; change the district's future.
+
+F. THE EMERGENT RULE
+One player action should create several connected consequences. Example: you win an underground tournament -> a recording spreads -> a promoter offers a contract -> a rival challenges you -> a faction offers to rig the next tournament -> a friend warns the promoter is exploiting you.
+
+G. Implementation: no city simulation. Use ONE shared world-state table (named variables), an EVENT QUEUE, data-driven NPC schedules (Resources), reusable AI behaviors and mission templates. Simulate a small district deeply enough to feel alive.
+
+THE LEVERAGE DESIGN STANDARD
+Combine immediate, short-term, long-term and emergent engagement. The player must never feel the only thing to do is follow the next marker. Every major feature must answer: What does the player do? What makes it interesting? What decisions exist? How does the system respond? What changes afterward? Why replay it? Avoid features that sound impressive but play shallow.
+
+================================================================
+6. THE DISTRICT MAP AND NAVIGATION
+================================================================
+Proposed layout (adjust during grey-boxing):
+
+BLOCK 1 — YOUR NEIGHBOURHOOD: the alley (game begins and ends here), the home street, your apartment (above the noodle shop) and the bar (the Drunk lives here). Safe base and tutorials.
+BLOCK 2 — THE CLUB DISTRICT: the main street (densest crowds), the club (Club Owner), the gym with the Mechanic's garage attached. Social hub, witnesses, rumors, setups.
+BLOCK 3 — THE DOCKS: the docks, the empty lot, the warehouse (where the kidnapped friend is held; the final choice happens). Danger zone.
+
+Connections: Block 1 to Block 2 by the main street; Block 2 to Block 3 by an underpass. Rooftops and back alleys are shortcuts, some hidden and revealed by exploration, rumors or friends.
+
+Map rules:
+- The map lives inside the PHONE app, not as a HUD arrow. Checking it costs attention while the buzz keeps ringing.
+- Minimap (toggleable) shows nearby streets, the active job marker and crowds.
+- Fog of war per block. Interiors and shortcuts appear only once found.
+- Toggle layers: jobs and calls, faction control (Family, Corporation, Crew colors), heat, friends' locations, persistent damage (memorials, boarded shops).
+- Faction control shifts visibly as territory changes hands.
+- No fast travel. The blocks are small and the walk is where rumors, witnesses and discoveries happen.
+- Waypoints can be pinned from the phone map.
+- Each block is one streamed scene with baked occlusion. Interiors load as separate scenes with a short fade.
+
+================================================================
+7. CONTROLS (TOUCH-FIRST)
+================================================================
+Layouts, chosen at first launch and changeable in Settings:
+- A, Floating Joystick (default): left thumb moves; right thumb has Light, Heavy, Dodge. Context buttons (Grab, Interact, Dirty Trick) appear only when usable.
+- B, D-pad: fixed four-direction pad on the left, same right cluster.
+- C, Custom: drag, resize, change opacity, mirror for left-handed play, up to 3 saved presets.
+- Optional Bluetooth controller: X light, Y heavy, B dodge, A jump/vault, RT grab, LT guard/parry, LB style wheel, RB sprint, D-pad quick items.
+Other:
+- Style wheel: hold the style button, flick toward a style, release. World slows to about 30% while open. Edge-swipe quick swap for veterans. Flat screen-space wheel.
+- Swipe gestures for heavy attacks and dodges as an alternative to buttons.
+- Soft auto-target snaps strikes to the nearest enemy.
+- Timing windows are looser than controller: input buffer about 200 ms, parry about 300 ms, dodge about 120 ms.
+- Combos: Light chains up to 3 hits; Light into Heavy gives a finisher; each style has its own string.
+- LEVERAGE STRIKE (super strike): a meter fills from perfect parries, clean counters and style variety (never from grinding). Hold Heavy and release at full meter for a style-specific super strike that breaks guards and posture.
+- Physical-feeling buttons: haptic tick on press, softer tick on release, stronger pulse on a successful chain. Strength adjustable.
+- Haptic language: light hit = one short tick; heavy hit = long low thump; parry = sharp double tap; phone buzz = slow low pulse; debt tick = faint repeating pulse.
+- Accessibility: hold-to-block toggle, button size, auto-target strength, reduced screen shake.
+- Music stems layer with intensity: bass at idle, drums when spotted, melody at high combo rank.
+
+================================================================
+8. GODOT 4 TECHNICAL AND VISUAL STANDARDS
+================================================================
+RENDERING AND PERFORMANCE
+- Renderer: MOBILE. Never Forward+ for phone exports.
+- Frame budget: 60 fps on iPhone 16, locked 30 fps on iPhone 13 mini. Physics at 30 ticks/second. Lower crowd cap on the floor device. Expose a quality setting.
+- Textures VRAM compressed (ETC2 and ASTC enabled).
+- Baked occlusion for the blocks (Mobile has no depth prepass). LODs for NPCs, imposters for distant buildings.
+- Lights: one baked or emissive neon look, at most 2 to 3 dynamic lights near the player. Blob shadows for NPCs. Lower shadow quality first when frames dip.
+- Shader pre-warming on scene load to avoid first-use stutter.
+- CPU particles for blood and sparks (work on every renderer).
+- Include an on-screen FPS and draw-call debug toggle so I can report numbers from my phone.
+
+VISUAL STYLE
+- High-contrast neon noir: deep blue-black shadows, wet asphalt, emissive Magenta #FF007F and Cyan #00F0FF accents. Always night, always rain.
+- Low-poly characters, Fresnel rim lighting, inverted-hull outlines for a comic-noir read.
+- One post-process pass only: contrast, bloom, light chromatic aberration.
+- Impact frames: a one-frame white or inverted flash and brief speed lines on heavy hits. Finishers get a letterbox and slow-mo camera.
+- Weather: camera-anchored vertex-shader rain with indoor masking, screen-space droplets, ground ripple decals. No heavy particle rain.
+- Wet asphalt: low roughness plus scrolling ripple normal maps. No SSR.
+- Height fog so distant blocks dissolve into pink and cyan haze.
+
+COMBAT ARCHITECTURE
+- Custom AttackData Resource: damage, hitstop_frames, knockback_vector, shake_intensity, posture_damage, cancel_start_ms, cancel_end_ms, haptic_pattern, audio_layers.
+- SELECTIVE hitstop: pause attacker and target AnimationTree and velocity for 3 to 8 frames. NEVER use global Engine.time_scale for hitstop. Rain, particles and audio keep running.
+- Animation-driven hitboxes (AnimationPlayer method tracks) on Area3D. Hurtbox on layer 20 with monitorable = true; Hitbox checks get_overlapping_areas() on its activation frame.
+- 8-directional stagger reactions (start with 4, expand later). Directional camera shake. Eased hitstop recovery.
+- Ring-buffer pooling for persistent blood decals (cap 150).
+- Reuse state machines, data Resources and mission templates.
+
+AUDIO
+- Six-layer impact: whoosh, cloth, impact, sub-bass bone thud, voice grunt, room tail. Build 3 layers first (impact, bone, voice) then add the rest. Use generated placeholder sounds if no files exist.
+- Route through AudioEffectCompressor plus Limiter. Duck rain and music by -4 dB on heavy hits.
+- Low drone under everything that rises in pitch near danger. The phone buzz is the tension sound.
+
+================================================================
+9. SELF-TESTING AND QUALITY SYSTEMS (REQUIRED, BUILT IN BATCH 0 AND EXTENDED EVERY BATCH)
+================================================================
+I cannot test between batches, so the game must test ITSELF and tell me clearly what is broken.
+
+9A. IN-GAME TEST RUNNER
+- Scene TestRunner.tscn, reachable from the debug menu with one big button: RUN ALL TESTS.
+- Each test shows PASS or FAIL on screen, with a one-line reason. The full report is saved to user://test_report.txt and shown as selectable text so I can copy and paste it back to you.
+- Tests required (add more every batch):
+  * Every .tscn loads and instantiates with no errors. Every Resource (.tres) validates: AttackData fields in range, referenced animation names exist, referenced audio slots exist.
+  * Hit test: spawn player and enemy, force a hit, assert hitstop paused ONLY attacker and target, Engine.time_scale stayed 1.0, and animation and velocity resumed afterward.
+  * Input buffer test, cancel window test (light cancels to dodge in the window, heavy never does).
+  * Attack token test: with 8 enemies, never more than 3 attack at once.
+  * Posture test: parry fills posture, a full bar opens the finisher.
+  * Ledger math: interest accrues per Beat, payments reduce debt, nothing goes NaN or below the allowed floor.
+  * Trust test: values clamp 0 to 100, state thresholds correct (Close 60+, Drifting 30 to 59, Estranged under 30).
+  * Kidnap target test: lowest Trust is chosen, ties go to highest Heat, a case with all friends Close still resolves with a valid target.
+  * Death = Debt test: losing creates debt, never reloads, never softlocks.
+  * Save and load round trip: save, change state, load, compare. Old save versions migrate or fail safely.
+  * Event queue determinism: with a fixed random seed the same actions give the same events.
+  * 100-DAY SIMULATION (headless, no rendering): run 100 in-game days with scripted random player choices, check invariants: no negative-time loops, no empty options (the player always has at least one valid action), no infinite event chains, all numbers in range. Log any violation with the day and state.
+  * Performance sample: run a scripted scene for 10 seconds and log average frame time, worst frame, draw calls, node count and memory. Compare to budgets in Section 13.
+
+9B. CONTINUOUS INTEGRATION (so errors show up on GitHub without a PC)
+- Add .github/workflows/godot-check.yml that downloads Godot 4.7 (headless), imports the project, runs res://tests/run_tests.gd headless, fails on any script or parse error, and uploads the report as an artifact.
+- Headless tests cover logic only (no rendering). Fix every error it reports before moving to the next batch.
+
+9C. ERROR-SAFE CODE RULES
+- Typed GDScript everywhere. Godot 4 syntax only (no Godot 3 calls). If unsure an API exists in 4.7, use the safest known alternative and leave a comment.
+- Never assume a node exists: use exported NodePaths or %UniqueNames and guard with is_instance_valid. Never crash on missing assets: log a warning and use a placeholder.
+- Disconnect signals on exit. Free pooled objects correctly. No unbounded arrays (cap logs, events, decals).
+- Never use Engine.time_scale for hitstop. Never use await inside tight per-frame loops.
+- Wrap file and JSON operations in checks and return safe defaults.
+- After writing each batch, do an ADVERSARIAL SELF-REVIEW: reread your own code and list the 10 most likely bugs (null refs, signal leaks, infinite loops, wrong layer masks, wrong time_scale use, off-by-one in windows, state machines that can't exit). Fix them before sending.
+
+9D. ONE TUNING FILE
+- Tuning.gd (autoload) or tuning.tres holds EVERY gameplay number: hitstop frames, shake, windows, damage, HP, posture, token counts, interest rates, trust decay, Beat costs, prices, crowd caps.
+- A debug TUNING PANEL (toggle from the debug menu) lets me change values live with sliders and save overrides to user://tuning_overrides.json. No gameplay number may be hard-coded elsewhere.
+
+9E. ANTI-DRIFT PROJECT MEMORY
+- Put this entire prompt (condensed) into PROJECT_BIBLE.md in the repo. Re-read it at the start of every batch.
+- Keep STATE.json: current batch, completed batches, files per batch, known issues, next step.
+- Continuation protocol: if I say "continue", read STATE.json and resume at the exact next part. Start each batch with a one-line recap and the pillars it serves.
+
+9F. DEFINITION OF DONE (every batch)
+- The project opens from Main.tscn with no errors in the log.
+- TestRunner passes for everything built so far.
+- Debug menu can jump to the new feature.
+- TESTING.md, CHANGELOG.md and STATE.json updated.
+- The game stays playable. A batch never leaves the previous features broken.
+
+================================================================
+10. SCOPE TIERS (so the game is always shippable)
+================================================================
+Build every feature in tiers. Reach CORE across all systems before FULL. Reach FULL before STRETCH. Never cut a tier silently: mark first-pass features clearly in TESTING.md.
+
+| System | CORE (always shippable) | FULL | STRETCH |
+|---|---|---|---|
+| Styles | Brawler + Kickboxing complete; others first pass using shared moves | All five distinct | Unique finishers per style |
+| Combat | Light, heavy, dodge, parry, posture, tokens, 4-direction reactions | Cancel windows, Dirty Tricks, Leverage Strike | 8-direction reactions, adaptive enemy nemesis |
+| Phone | Calls, demand/invitation, accept/decline, interrupt call | Leverage Clips, texts, voicemail, Last Call | Rich branching call scripts |
+| Ledger | Beats, debts, interest, Death = Debt | Borrowing Power, laundering, gambling | Defaulting manhunt escalations |
+| Friends | 4 friends, trust states, kidnap target | 4 hangouts, 3 setups | Voiced hangout dialogue |
+| City | 3 blocks, 5 interiors, decals, crowds | Rumors, prices, doors, heat tiers | Memorial and radio detail |
+| Jobs | 5 templates, 10 jobs, 2 approaches each | 3+ approaches, recon, setups | Dynamic mid-mission twists |
+| Emergent | World-state table, event queue, 10 event chains | 30 chains, NPC schedules | Full reputation identity reactions |
+| Discovery | 3 tournaments or secrets | 8 discoveries | Hidden history arc |
+| Endings | Both kidnap endings | New Game+ Carried Debt | Extra epilogue variants |
+
+================================================================
+11. ANIMATION PLAN (honest about the asset gap)
+================================================================
+The free Quaternius library will not contain five full fighting styles. Plan for that:
+- Make every move an ANIMATION SLOT: a named entry in a data Resource that points to a clip, speed, start offset, blend, hit frame and cancel frames. Better clips can be dropped in later without code changes.
+- Per style, define the minimum move set: Light 1, Light 2, Light 3, Heavy, Dodge, Grab, Throw, Counter, Dirty Trick, Finisher, Hit reaction front/back/left/right.
+- Reuse and recombine available clips with different speed, offsets and mirrored versions per style, and layer procedural motion on top (lean, hip rotation, camera push, hand scale on impact) so styles feel different even with shared base clips.
+- Enemy reactions: 4 directional reactions from 2 clips plus mirroring first. Expand later.
+- Create ANIMATION_SLOTS.md listing every slot, the clip currently used and the ideal clip wanted, so I know exactly what to source later.
+
+================================================================
+12. AUDIO PLAN (no sound files required to start)
+================================================================
+- Write SfxSynth.gd that SYNTHESIZES all impact layers at first launch into cached AudioStreamWAV resources:
+  * Whoosh: filtered noise sweep. Cloth: short high-frequency noise burst.
+  * Impact: noise burst plus short low sine. Bone thud: 60 to 90 Hz decaying sine.
+  * Voice: short pitched grunt placeholder with random variation. Tail: send to a reverb bus.
+- Vary pitch (about plus or minus 8%) and volume per hit so no two hits sound identical.
+- Style signatures: Brawler dull and meaty; Kickboxing sharp and snapping; Grappling low and resonant; Gunshots sudden with a long echo.
+- Procedural music stems: a simple sequencer with bass pulse, hi-hat and pad layers that fade in with intensity. Drone rises in pitch near danger. Phone buzz is a slow low pulse.
+- Create AUDIO_SLOTS.md listing each slot so real CC0 files can replace the synthesized ones later with no code changes.
+
+================================================================
+13. ROBUSTNESS, PLATFORM AND PERFORMANCE BUDGETS
+================================================================
+PLATFORM
+- Landscape locked. Respect safe areas (notch, home indicator). Pause cleanly when the app goes to the background and resume safely.
+- Haptics.gd abstraction: use the best available vibration on each platform with fallbacks. iOS Core Haptics may need a plugin; build the abstraction first, use basic vibration as fallback.
+- Save system: JSON, versioned, autosave at every Beat boundary and on pause. Settings and control layouts persist.
+- Auto quality: if frame time exceeds budget for 5 seconds, lower shadows, then crowd cap, then post-process, and tell me in the debug overlay.
+- Content: mature crime themes with stylized violence, no sexual content, no real brands. Target a 16+ age rating.
+
+BUDGETS (starting values, tune with the Tuning panel)
+| Metric | iPhone 16 | iPhone 13 mini |
+|---|---|---|
+| Frame rate | 60 fps | locked 30 fps |
+| Draw calls (visible) | 400 max | 250 max |
+| Dynamic lights near player | 3 | 2 |
+| Crowd NPCs active | 25 | 15 |
+| CPU particles alive | 600 | 300 |
+| Decals alive | 150 | 80 |
+| Shadow quality | medium | low or blob only |
+
+================================================================
+14. STARTING BALANCE DEFAULTS (so the first run is playable)
+================================================================
+Put all of these in Tuning.gd. They are guesses meant to be tuned.
+- Player HP 100, Composure 100. Thug 40 HP, Guard 70, Heavy 160, Gunman 50.
+- Light damage 6, heavy 16, parry posture damage 30, posture bar 100.
+- Hitstop: light 3 frames, heavy 8. Input buffer 200 ms, parry 300 ms, dodge 120 ms, cancel window 150 to 350 ms.
+- Attack tokens: 2 on Kickboxing/Brawler fights, 3 with guns.
+- Starting debt 5000. Interest 5% per day per lender (Family 3%, Corporation 8%, Crew 0%). Missed 3 payments = default.
+- Beat costs: call 1, job 1, hangout 1. Three Beats per day.
+- Trust values as in Section 4D.
+- A job pays 400 to 1500 dirty cash. S-rank reduces debt by 5% of the principal.
+- Death debt: 800 to the clinic or fixer.
+
+================================================================
+15. THE COMPLETE BUILD COMMAND (ONE PROMPT, WHOLE GAME)
+================================================================
+This single prompt is everything. I will not send further prompts for the fixes, the tests or the batches. Work through ALL of it, in order, autonomously, across as many sessions as it takes. I will only say "continue" if a session ends.
+
+PRIORITY ZERO — STABILISE THE FOUNDATION (do this first, before any new feature)
+ 1. Fix the distant NPC T-pose for real. For each distant NPC log: the clip it requests, the clips that exist in the runtime library, whether the AnimationPlayer or AnimationTree is playing, and whether it is being culled, paused or reset by LOD. Fix the true cause. Add a regression test that fails if any visible NPC is not playing an animation.
+ 2. Run the FULL test battery from a clean user data directory. Never kill a running suite (it corrupts shared test state). Give every suite its own isolated user directory and make every suite set first_run_done explicitly. Report every failing suite by name and fix all failures. Do not delete or weaken failing tests.
+ 3. Check whether Batch 0 exists. Build whatever is missing: PROJECT_BIBLE.md (condensed from this prompt), STATE.json, Tuning.gd with live panel, TestRunner scene with RUN ALL TESTS and a copyable report, Haptics.gd, SfxSynth.gd, save system, GitHub Actions workflow, FPS and draw-call overlay, debug menu that can jump to any system.
+ 4. Update STATE.json and push. Only then start new features.
+
+BATCH ORDER (after Priority Zero)
+ 1. The Punch: selective hitstop (attacker and target only, never Engine.time_scale), shake, haptics, 3-layer audio, knockback, input buffer, AttackData resources. Verify and fix what already exists.
+ 2. Rank and posture: attack tokens, posture break, Composure, S-rank scoring, instant arena retry, adaptive enemy memory.
+ 3. Styles and wheel: five styles (tiered per Section 10), soft counters, style wheel, combos, Leverage Strike.
+ 4. Controls: three layouts, layout editor, haptic language, accessibility, optional controller map.
+ 5. The Phone: calls, buzz, demand and invitation, interrupt calls, Leverage Clips, texts, voicemail, Last Call, map app.
+ 6. Ledger and economy: Beats, debts and interest, Borrowing Power (Perk and String), Dirty and Clean cash, laundering, gambling, Death = Debt, default manhunt.
+ 7. Friends and Trust: rules, four friends, four hangouts, setups.
+ 8. The District: three blocks, five interiors, rain, neon look, outlines, impact frames, occlusion, crowds with witness and flee, decals, rumors, prices and doors, heat tiers, map layers and fog of war.
+ 9. World simulation: world-state table, event queue, schedules, faction territory, business states, reputation identities, consequence chains.
+10. Jobs and the Web of Leverage: five templates, ten jobs, recon, setups, evidence board, extortion dialogue.
+11. Discoveries: techniques, tournaments, secret businesses, hidden routes, hideouts, persona stories.
+12. Kidnap Arc: four missions, both endings, New Game+ with Carried Debt.
+13. Polish: audio to six layers, music stems, replay clip, performance pass for the iPhone 13 mini, settings, bug-fix pass.
+
+Where a batch is already partly built in the repo, audit it against this prompt, fix gaps, then mark it DONE in STATE.json. Do not rebuild working code.
+
+HOW TO RUN ACROSS SESSIONS (sessions end suddenly)
+- Commit and push after every completed sub-step, not only at the end of a batch.
+- Keep STATE.json current: current batch, sub-step, completed work, failing tests, next exact step. If the session is about to end, commit, update STATE.json and write "NEXT STEP" first.
+- At the start of every session: read PROJECT_BIBLE.md and STATE.json, re-import the project (run --import so the class cache is rebuilt), run the quick smoke tests, then resume at NEXT STEP.
+- Run long test batteries in chunks with a time budget. Run the critical suites for the area you changed first and the full battery at batch boundaries.
+- If a batch is too large for one session, split it into numbered parts and keep going. Never summarise instead of writing real code.
+
+INTERNAL QUALITY GATES (you enforce these, not me)
+- After Batch 2: all tests pass. Reread the punch code and confirm timing values match Section 4A and Tuning.gd.
+- After Batch 6: run the 100-day simulation and fix every invariant violation. Confirm the phone, ledger and Death = Debt loop works without softlocks.
+- After Batch 8: confirm the Section 13 performance budgets with the on-device sample and fix anything over budget.
+- Before declaring the game complete: run the full TestRunner and report any failing test honestly.
+
+RULES FOR EVERY BATCH
+- Start with a one-line recap and name which loop and pillar each new feature serves. If none, defer it.
+- Follow Section 9F (Definition of Done). Never leave an earlier feature broken.
+- Be honest in reports: say what is verified, what is first-pass, and what is still open. Never claim a fix that is not verified by a test.
+
+DEFINITION OF COMPLETE
+- CORE tier of every system in Section 10 is done and tested. Then FULL. Then STRETCH as time allows.
+- The full loop works end to end: fight, phone call, ledger, Death = Debt, friends and trust, a job, the kidnap arc and both endings.
+- Performance budgets met on both target phones.
+- The final report includes: percent complete per batch from STATE.json, which systems are CORE, FULL or STRETCH, ONE combined test checklist for me ordered by system with expected results, known issues, the three fixes you recommend first, and the list of animation and audio slots that most need real assets.
+
+START NOW. Acknowledge in one line, state your assumptions in one line, then begin Priority Zero.
+================================================================

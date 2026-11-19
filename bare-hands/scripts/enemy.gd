@@ -56,6 +56,12 @@ func _ready() -> void:
 	hp = max_hp
 	_spawn = global_position
 	_own_materials()
+	# P0.1 T-pose fix: an enemy that spawns beyond the 10 m think radius
+	# never entered WALK, so _think's idle branch skipped it and NOTHING
+	# ever called play() - the mannequin stood in the glb rest pose
+	# (a T-pose) until the player walked close. Idle from the first frame,
+	# wherever the enemy stands, dummy or alive.
+	_play("Idle", 0.0)
 	var tun: Array = TUNING[kind]
 	_apply_look()
 	if kind == 0:

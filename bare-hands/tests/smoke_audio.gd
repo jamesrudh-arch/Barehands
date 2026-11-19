@@ -16,6 +16,7 @@ func _check(ok: bool, what: String) -> void:
 
 
 func _ready() -> void:
+	Settings.set_value("first_run_done", true)  # isolated user dir: no first-run picker
 	var main: Node = load("res://scenes/main.tscn").instantiate()
 	add_child(main)
 	var opening := get_tree().get_first_node_in_group("opening") as OpeningShot

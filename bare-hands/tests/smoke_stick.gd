@@ -20,6 +20,7 @@ func _check(ok: bool, what: String) -> void:
 
 
 func _ready() -> void:
+	Settings.set_value("first_run_done", true)  # isolated user dir: no first-run picker
 	get_window().size = Vector2i(1280, 720)
 	await get_tree().process_frame
 	var main: Node = load("res://scenes/main.tscn").instantiate()

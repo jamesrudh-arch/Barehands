@@ -22,23 +22,23 @@ func _ready() -> void:
 			["res://assets/cast/Superhero_Female_FullBody.gltf",
 			 "res://assets/cast/Female_Ranger_Body.gltf",
 			 "res://assets/cast/Female_Ranger_Legs.gltf"],
-			"Idle_Loop", 1.0, [], "velvet_lines")
+			"Idle", 1.0, [], "velvet_lines")
 	_spawn("Pilsner", PILSNER, "pilsner",
 			Vector3(9.8, 0.0, -6.8), -PI * 0.35, 0.98,
 			["res://assets/hero/Superhero_Male_FullBody.gltf",
 			 "res://assets/cast/Male_Peasant_Body.gltf"],
-			"Idle_Talking_Loop", 1.0, ["glasses"], "pilsner_lines")
+			"Idle_Talking", 1.0, ["glasses"], "pilsner_lines")
 	_spawn("Marrow", MARROW, "marrow",
 			Vector3(3.0, 0.0, -7.6), PI, 1.22,
 			["res://assets/hero/Superhero_Male_FullBody.gltf",
 			 "res://assets/cast/Male_Knight_Body_Armor.gltf"],
-			"Idle_Loop", 0.85, [], "marrow_lines")
+			"Idle", 0.85, [], "marrow_lines")
 	_spawn("The Duchess", DUCHESS, "duchess",
 			Vector3(9.0, 3.42, -4.9), PI, 1.05,
 			["res://assets/cast/Superhero_Female_FullBody.gltf",
 			 "res://assets/cast/Female_Ranger_Body.gltf",
 			 "res://assets/cast/Female_Ranger_Legs.gltf"],
-			"Idle_Talking_Loop", 0.9, ["circlet"], "duchess_lines")
+			"Idle_Talking", 0.9, ["circlet"], "duchess_lines")
 
 
 func _spawn(display: String, color: Color, voice_id: String, pos: Vector3,

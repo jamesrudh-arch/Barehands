@@ -41,6 +41,7 @@ func _set_move(v: Vector2) -> void:
 
 
 func _ready() -> void:
+	Settings.set_value("first_run_done", true)  # isolated user dir: no first-run picker
 	_main = load("res://scenes/main.tscn").instantiate()
 	add_child(_main)
 	_stick = _main.get_node("UI/Joystick")

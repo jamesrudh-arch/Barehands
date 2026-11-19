@@ -19,6 +19,7 @@ func _wait_bars(n: float) -> void:
 
 
 func _ready() -> void:
+	Settings.set_value("first_run_done", true)  # isolated user dir: no first-run picker
 	# layers exist and are playing on the Music bus
 	for stem in ["music_bed", "music_tension", "music_combat", "music_heartbeat"]:
 		var vol := Music.layer_vol(stem)

@@ -95,13 +95,12 @@ static func play_all(players: Array[AnimationPlayer], clip: String, blend := 0.2
 		if p.has_animation(clip):
 			p.play(clip, blend)
 			p.speed_scale = speed
-		elif p.has_animation("Idle_Loop"):
-			# a miss used to fall back to "Idle", which does not exist in
-			# this pack either - the character stood in a T-pose. Fall back
-			# to the real idle and say so, so a bad name never hides again.
-			if not p.has_animation(clip):
-				Log.warn("UalBind: clip '%s' missing - falling back to Idle_Loop" % clip)
-			p.play("Idle_Loop", blend)
+		elif p.has_animation("Idle"):
+			# the runtime library carries short names (Idle, Walk, ...).
+			# A miss falls back to the pack idle and SAYS so - a bad clip
+			# name must never silently T-pose a character again.
+			Log.warn("UalBind: clip '%s' missing - falling back to Idle" % clip)
+			p.play("Idle", blend)
 			p.speed_scale = speed
 		else:
 			Log.warn("UalBind: clip '%s' missing and no idle available" % clip)
