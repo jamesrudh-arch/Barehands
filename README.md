@@ -7,6 +7,40 @@ The whole project is plain text (`.gd`, `.tscn`, `project.godot`) plus CC0 asset
 **SERIES 1: THE LOOK AND FEEL** — phase reports below (1 Stability · 2 Hero & Camera · 3 Wet Neon Night · 4 Punches That Hit).
 **SERIES 2: SOUND, SOUL AND DEPTH** — reports continue below (1 Audio · 2 Music · 3 Combat · 4 Ledger · 5 Economy · 6 City · 7 Cast · 8 Opening). Design docs: docs/VISION.md, docs/WOW_GATE.md (reconstructed — originals never arrived).
 
+## Priority Zero — COMPLETE (v5.0 master prompt, 2026-11-19)
+
+The v5.0 master prompt arrived (full design + session protocol + build
+command). Priority Zero is done:
+
+- **P0.1 The distant T-pose, fixed for real (b47a29d).** The diagnostic
+  suite logs every AnimationPlayer in the tree: requested clip, whether
+  it exists in the runtime library, is_playing, distance, visibility,
+  frustum. Root cause: enemies spawning beyond the 10 m think radius
+  never had play() called (the far branch only plays Idle when leaving
+  Walk), so distant mannequins stood in the glb rest pose. Every enemy
+  now plays Idle from _ready. The suite (smoke_tpose) fails if any
+  character AnimationPlayer is not playing: 20/20 green. Side finding:
+  the runtime library carries SHORT clip names (Idle, Walk,
+  Idle_Talking) - the previous "missing Idle clip" diagnosis was wrong
+  and has been reverted cleanly.
+- **P0.2 The clean battery (19ac51a).** All 18 suites re-run from
+  isolated per-suite user dirs (never killed, every suite sets
+  first_run_done). 18/18 verified after two honest fixes: the renamed
+  smoke_tpose.tscn pointed at a dead script path, and smoke_economy's
+  decay check raced its own reinforcement system at heat 2.0 (at 2.0
+  responders arriving IS the design; the check now runs at 1.5).
+- **P0.3 Batch 0 completed (830b9ba, ddccd1e).** Tuning.gd (one table
+  for every gameplay number + persistence), the debug TUNING PANEL (live
+  sliders, instant save, reset), the in-game TEST RUNNER (RUN ALL TESTS,
+  8 logic tests, copyable report at user://test_report.txt), GitHub
+  Actions CI (import + logic tests + fast suites + report artifacts),
+  TESTING.md, CHANGELOG.md, bible updated to v5.0. Audited as already
+  present: Haptics.gd, save system, synthesized sound bank, FPS/draw
+  overlay, debug menu.
+
+Next: Batch 1 audit (selective hitstop, AttackData resources, Tuning
+wiring), per STATE.json's next_step.
+
 ## What's in the game (through Series 1 Phase 2)
 
 Everything from Batches 1-2 (night street block with neon, the pack's mannequin hero with analog run/sprint/jump, code-faked ledge climbing, parkour roofs and crates, wall-safe camera, one-time "Jump while moving to climb" hint, forgiving ledge grab) plus **Batch 3, combat feel**:
