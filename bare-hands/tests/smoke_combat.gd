@@ -27,6 +27,7 @@ var _posture_hp_last := 30
 var _posture_pf := -1
 var _posture_saw_heavy := false
 var _posture_opener := false
+var _marks_c := {}  # the composure phase's little state machine
 var _tele_at := -1
 var _dodged := false
 var _counter_punched := false
@@ -84,6 +85,8 @@ func _physics_process(_delta: float) -> void:
 			_slam()
 		4:
 			_posture()
+		5:
+			_composure()
 		_:
 			_finish()
 
@@ -284,6 +287,71 @@ func _posture() -> void:
 		_set_move(Vector2.ZERO)
 		_check(false, "the bar never broke (peak %.0f, landed pattern off)" % _posture_peak)
 		_next()
+
+
+# --- 5: Composure - the guard breaks and heals (Batch 2, bible 4A) ------------
+
+
+func _composure() -> void:
+	if _pf == 1:
+		_thug.global_position = _player.global_position + Vector3(1.4, 0.02, 0.0)
+		_thug.velocity = Vector3.ZERO
+		_thug.state = Enemy.State.IDLE
+		_thug.set("hp", 40)
+		_player.velocity = Vector3.ZERO
+		_set_move(Vector2.ZERO)
+		_face_east()
+		_marks_c = {"broke": false, "hitstun_while_broken": false, "healed": false}
+		InputBus.dodge_press()  # hold DODGE: the block stance
+		# speed the story up: leave a sliver, one blocked strike breaks it
+		Composure.reset()
+		Composure.drain(Composure.value - Tuning.v("composure_block_drain") - 1.0, "test")
+	# The suite has been fighting for minutes by now and the CITY keeps
+	# sending heat responders - this phase tests Composure, not the
+	# street. Sweep every outsider across the map on every tick and cool
+	# the heat; while the guard story plays out the suite thug is held
+	# close instead (knockback drift is not this phase's subject).
+	var calm_phase: bool = _marks_c.get("broke", false) and _marks_c.get("hitstun_while_broken", false)
+	if _pf % 15 == 0:
+		Heat.heat = 0.0
+		for e in get_tree().get_nodes_in_group("enemy"):
+			if calm_phase or e != _thug:
+				e.global_position = Vector3(19.0, 0.02, 19.0)
+				e.velocity = Vector3.ZERO
+	if not calm_phase and _pf % 30 == 0:
+		_thug.global_position = _player.global_position + Vector3(1.4, 0.0, 0.0)
+		_thug.velocity = Vector3.ZERO
+	if not _marks_c["broke"]:
+		if Composure.guard_broken():
+			_marks_c["broke"] = true
+			_marks_c["broke_pf"] = _pf
+		if _pf > 900:  # ~15 s without a break: something is wrong
+			_check(false, "the guard never broke (composure %.1f)" % Composure.value)
+			InputBus.dodge_release()
+			_next()
+	elif not _marks_c["hitstun_while_broken"]:
+		# still holding the (dead) guard: the next strike must GO THROUGH
+		if _player.get("_hitstun_until") > _player.get("_t"):
+			_marks_c["hitstun_while_broken"] = true
+			_marks_c["heal_pf"] = _pf
+			_check(true, "a broken guard stops nothing: the strike landed")
+		if _pf - _marks_c["broke_pf"] > 360:
+			_check(false, "no strike landed while the guard was broken")
+			InputBus.dodge_release()
+			_next()
+	else:
+		# release and let the break heal + calm regen refill the bar
+		# (the sweep above has cleared the whole street by now)
+		InputBus.dodge_release()
+		if _pf % 60 == 0:
+			print("CPDEBUG pf=%d val=%.1f broken=%s since_drain=%d" % [_pf,
+					Composure.value, Composure.guard_broken(),
+					Time.get_ticks_msec() - Composure._last_drain_msec])
+		if _pf - _marks_c["heal_pf"] > 480 and not _marks_c["healed"]:
+			_marks_c["healed"] = true
+			_check(not Composure.guard_broken(), "the break heals on its timer")
+			_check(Composure.value > 50.0, "calm regen refills Composure (%.0f)" % Composure.value)
+			_next()
 
 
 func _finish() -> void:

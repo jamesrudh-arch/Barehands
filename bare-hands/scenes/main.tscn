@@ -10,6 +10,7 @@
 [ext_resource type="Script" path="res://scripts/move_list.gd" id="21_moves"]
 [ext_resource type="Script" path="res://scripts/input_strip.gd" id="22_strip"]
 [ext_resource type="Script" path="res://scripts/level_bar.gd" id="23_level"]
+[ext_resource type="Script" path="res://scripts/composure_bar.gd" id="24_composure"]
 [ext_resource type="Script" path="res://scripts/trainer.gd" id="24_trainer"]
 [ext_resource type="PackedScene" path="res://scenes/enemy.tscn" id="5_enemy"]
 [ext_resource type="Script" path="res://scripts/style_meter.gd" id="6_style"]
@@ -692,6 +693,9 @@ script = ExtResource("21_moves")
 
 [node name="InputStrip" type="Control" parent="UI" groups=["input_strip"]]
 script = ExtResource("22_strip")
+
+[node name="ComposureBar" type="Control" parent="UI"]
+script = ExtResource("24_composure")
 
 [node name="LevelBar" type="Control" parent="UI"]
 script = ExtResource("23_level")

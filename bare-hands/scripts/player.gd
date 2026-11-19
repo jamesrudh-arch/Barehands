@@ -98,6 +98,7 @@ const COAT_COLORS := {
 
 
 func _ready() -> void:
+	Composure.guard_broke.connect(_on_guard_broke)
 	ComboInput.matched.connect(_on_combo_matched)
 	ComboInput.variety_bonus.connect(_on_variety)
 	# XP lands with every hit; parries and takedowns pay better (PART 3)
@@ -777,6 +778,14 @@ func block_age() -> float:
 
 ## An enemy strike connects. Returns what happened so the attacker can react:
 ## "hit", "blocked" or "parried" (a young block = perfect parry).
+func _on_guard_broke() -> void:
+	# the guard shatters: out of the stance, a stagger beat, the tell
+	if state == State.BLOCK:
+		state = State.GROUND
+	_rig.play("Hit_Chest", 0.04, 1.1)
+	_hint_once("guardbreak", "GUARD BROKEN - EVADE")
+
+
 func take_hit(dir: Vector3, from: CharacterBody3D = null) -> String:
 	if state == State.CLIMB or state == State.GRAB:
 		return "hit"
@@ -784,23 +793,27 @@ func take_hit(dir: Vector3, from: CharacterBody3D = null) -> String:
 	dir = dir.normalized()
 	if state == State.DODGE:
 		return "hit"  # resolved by the enemy via dodge_age() before this
-	if state == State.BLOCK:
+	if state == State.BLOCK and not Composure.guard_broken():
+		# a broken guard stops nothing: the strike goes through
 		if _block_t <= BLOCK_PARRY_WINDOW:
 			if from and from.has_method("parried"):
 				from.parried()
 			return "parried"
-		# a solid block: pushed back, no stun, no damage feel
+		# a solid block: pushed back, no stun, no damage feel - but it
+		# chips Composure (bible 4A: the defensive economy)
 		velocity.x = dir.x * 2.0
 		velocity.z = dir.z * 2.0
 		Fx.burst(global_position + Vector3.UP * 1.2 + \
 				-_body.global_transform.basis.z * 0.5, Color(0.6, 0.8, 1.0))
 		Fx.haptic(30)
 		Fx.emit_hit("block", global_position + Vector3.UP * 1.2)
+		Composure.drain(Tuning.v("composure_block_drain"), "block")
 		return "blocked"
 	velocity.x = dir.x * 4.5
 	velocity.z = dir.z * 4.5
 	velocity.y = 1.5
 	_hitstun_until = _t + 0.45 * _gear_stun()
+	Composure.drain(Tuning.v("composure_hit_drain"), "hit")
 	state = State.GROUND
 	_rig.play("Hit_Chest", 0.04, 1.6)
 	Fx.shake(0.4)

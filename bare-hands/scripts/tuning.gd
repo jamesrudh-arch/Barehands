@@ -15,6 +15,11 @@ const DEFAULTS := {
 	# --- combat: damage and health (section 14) ---
 	"player_hp": 100.0,
 	"composure_max": 100.0,
+	"composure_hit_drain": 18.0,  # a landed hit on the hero
+	"composure_block_drain": 7.0,  # a blocked strike chips it
+	"composure_regen_per_s": 12.0,  # calm regen
+	"composure_regen_delay_s": 2.5,  # nothing has bitten the hero for this long
+	"guard_break_seconds": 4.0,  # block is dead for this long
 	"thug_hp": 40.0,
 	"guard_hp": 70.0,
 	"heavy_hp": 160.0,
