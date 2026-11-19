@@ -74,6 +74,8 @@ func _physics_process(_delta: float) -> void:
 			_boss()
 		11:
 			_tactics()
+		12:
+			_tokens()
 		_:
 			_finish()
 
@@ -431,6 +433,39 @@ func _tactics() -> void:
 			_check(Tactics.engaged_count() >= 2, "tactics sees the group (%d)" % Tactics.engaged_count())
 			(a as Node).queue_free()
 			(b as Node).queue_free()
+			_next()
+
+
+# --- 12: attack tokens - the ring shares a 2-3 budget (bible 4A) ---------------------------
+
+
+func _tokens() -> void:
+	if _pf == 1:
+		for i in 4:
+			var ang := TAU * float(i) / 4.0
+			_marks["e%d" % i] = _spawn_kind(1,
+					Vector3(2.4 * cos(ang), 0.02, 0.5 + 2.4 * sin(ang)), 8)
+		_player.global_position = Vector3(0.0, 0.02, 0.5)
+		_player.velocity = Vector3.ZERO
+		_marks["maxattack"] = 0
+		_marks["ever2"] = false
+	if _marks.has("e0"):
+		var attacking := 0
+		for i in 4:
+			var e: CharacterBody3D = _marks["e%d" % i]
+			if e and is_instance_valid(e) and e.state in [Enemy.State.TELEGRAPH, Enemy.State.STRIKE]:
+				attacking += 1
+		_marks["maxattack"] = maxi(_marks["maxattack"], attacking)
+		if attacking >= 2:
+			_marks["ever2"] = true
+		if _pf == 300:
+			var cap: int = Tactics.token_cap()
+			_check(Tactics.engaged_count() >= 3, "token phase: the ring is engaged (%d)" % Tactics.engaged_count())
+			_check(_marks["maxattack"] <= cap, "at most the token cap attack at once (max %d, cap %d)" % [_marks["maxattack"], cap])
+			for i in 4:
+				var e: CharacterBody3D = _marks["e%d" % i]
+				if e and is_instance_valid(e):
+					(e as Node).queue_free()
 			_next()
 
 

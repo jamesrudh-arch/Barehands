@@ -62,7 +62,7 @@ func _unfreeze(n: Node) -> void:
 	for ap in f["players"]:
 		if is_instance_valid(ap):
 			ap.speed_scale = 0.3
-			ap.resume()
+			ap.play()  # no-arg play() resumes a paused animation (Godot 4)
 			var tw := create_tween()
 			tw.tween_property(ap, "speed_scale", 1.0, 0.08)
 
