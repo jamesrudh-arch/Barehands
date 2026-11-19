@@ -221,7 +221,88 @@ const ALL := [
 					"hap": "heavy", "shake": 0.4, "style": "sweep"},
 		],
 	},
+	# --- Dirty Street Tactics (Batch 3, bible 4A: one per style) ------------------
+	# The signature special of each style: bigger posture bite, a cinematic
+	# beat, real style points. Sequences avoid shared prefixes with plain
+	# strings (a plain token matches any stick direction, so [B, f+B] can
+	# never collide with [B, A] or [B, B]).
+	{
+		"id": "glass_jaw", "name": "GLASS JAW", "seq": ["B", "f+B"],
+		"level": 6, "style": "brawler", "dst": true,
+		"desc": "Feint the heavy, then put everything through their jaw. The Brother's answer to a staredown.",
+		"dmg": 4, "lunge": 1.4,
+		"hits": [
+			{"anim": "Punch_Jab", "anim_t": 0.0, "speed": 1.8, "t": 0.18, "kind": "tap",
+					"dmg": 1, "cam": 2.0, "snd": "punch_med_0", "snd_pitch": 1.2,
+					"hap": "light", "shake": 0.2, "style": "jab"},
+			{"anim": "Punch_Cross", "anim_t": 0.24, "speed": 0.7, "t": 0.66,
+					"kind": "heavy", "dmg": 3, "cam": -7.5, "snd": "bell_heavy_0",
+					"snd_pitch": 0.75, "hap": "super", "shake": 0.85, "style": "glass_jaw",
+					"slow": 0.25},
+		],
+	},
+	{
+		"id": "chin_check", "name": "CHIN CHECK", "seq": ["X", "f+X"],
+		"level": 8, "style": "kickboxing", "dst": true,
+		"desc": "Step in like you are backing off, then switch the hips and check the chin. Bouncer work.",
+		"dmg": 3, "lunge": 1.6,
+		"hits": [
+			{"anim": "Kick_Code", "anim_t": 0.0, "speed": 1.9, "t": 0.20, "kind": "tap",
+					"dmg": 1, "cam": 2.0, "snd": "cloth_0", "snd_pitch": 1.2,
+					"hap": "light", "shake": 0.2, "style": "kick"},
+			{"anim": "Kick_Code", "anim_t": 0.26, "speed": 0.75, "t": 0.62,
+					"kind": "launcher", "dmg": 2, "cam": 6.5, "snd": "body_heavy_0",
+					"snd_pitch": 0.85, "hap": "super", "shake": 0.7, "style": "chin_check",
+					"slow": 0.2},
+		],
+	},
+	{
+		"id": "collector_toss", "name": "COLLECTOR'S TOSS", "seq": ["Y", "X", "B"],
+		"level": 9, "style": "grappling", "dst": true, "requires_grab": true,
+		"desc": "While holding them: a knee to soften, a turn of the hips, and the pavement does the collecting.",
+		"dmg": 4,
+		"hits": [
+			{"anim": "Punch_Jab", "anim_t": 0.0, "speed": 1.6, "t": 0.22, "kind": "tap",
+					"dmg": 1, "cam": 2.5, "snd": "body_med_0", "snd_pitch": 1.0,
+					"hap": "light", "shake": 0.25, "style": "knee"},
+			{"anim": "Punch_Cross", "anim_t": 0.30, "speed": 0.65, "t": 0.70,
+					"kind": "throw_slam", "dmg": 3, "cam": -8.0, "snd": "wood_heavy_0",
+					"snd_pitch": 0.75, "hap": "super", "shake": 0.95, "style": "collector_toss",
+					"slow": 0.3},
+		],
+	},
+	{
+		"id": "liquor_legs", "name": "LIQUOR LEGS", "seq": ["f+A", "f+B"],
+		"level": 11, "style": "drunken", "dst": true,
+		"desc": "Stumble in like a lost bet - then the spin they never see twice. The Drunk taught it for wine money.",
+		"dmg": 4, "lunge": 1.2, "spin": true,
+		"hits": [
+			{"anim": "Punch_Jab", "anim_t": 0.0, "speed": 1.6, "t": 0.20, "kind": "tap",
+					"dmg": 1, "cam": 2.0, "snd": "cloth_1", "snd_pitch": 1.0,
+					"hap": "light", "shake": 0.2, "style": "jab"},
+			{"anim": "Punch_Cross", "anim_t": 0.26, "speed": 0.8, "t": 0.68,
+					"kind": "counter", "dmg": 3, "cam": -7.0, "snd": "glass_med_0",
+					"snd_pitch": 0.9, "hap": "super", "shake": 0.8, "style": "liquor_legs",
+					"slow": 0.28},
+		],
+	},
+	{
+		"id": "full_swing", "name": "FULL SWING", "seq": ["X", "f+B"], "pipe": true,
+		"level": 10, "style": "weapon", "dst": true,
+		"desc": "Shin, then a full-body 360 with the pipe. Everyone in the arc learns about respect.",
+		"dmg": 5, "lunge": 1.0, "spin": true, "aoe": 2.4,
+		"hits": [
+			{"anim": "Kick_Code", "anim_t": 0.0, "speed": 1.5, "t": 0.22, "kind": "tap",
+					"dmg": 1, "cam": 2.5, "snd": "wood_med_0", "snd_pitch": 1.0,
+					"hap": "light", "shake": 0.25, "style": "kick"},
+			{"anim": "Punch_Cross", "anim_t": 0.30, "speed": 0.7, "t": 0.72,
+					"kind": "pipe_heavy", "dmg": 4, "cam": -7.5, "snd": "metal_ring_0",
+					"snd_pitch": 0.8, "hap": "super", "shake": 0.9, "style": "full_swing",
+					"slow": 0.25},
+		],
+	},
 ]
+
 
 ## Lookup by id.
 static func by_id(id: String) -> Dictionary:

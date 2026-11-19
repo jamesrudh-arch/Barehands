@@ -7,6 +7,9 @@ extends Control
 const BASE := {
 	"jab": 6.0, "cross": 10.0, "dodge": 8.0, "parry": 18.0,
 	"counter": 25.0, "slam": 35.0, "takedown": 15.0, "posture": 22.0,
+	# the Dirty Street Tactics (Batch 3): signature specials bank big
+	"glass_jaw": 30.0, "chin_check": 30.0, "collector_toss": 35.0,
+	"liquor_legs": 32.0, "full_swing": 34.0,
 }
 const RANKS := ["D", "C", "B", "A", "S"]
 const MULT := [1.0, 1.2, 1.5, 2.0, 3.0]
