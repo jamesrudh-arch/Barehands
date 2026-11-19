@@ -473,7 +473,8 @@ func _die(cause: String) -> void:
 		elif cause == "finisher":
 			_style().add("finisher")
 		elif cause != "counter":
-			_style().add("takedown")
+			# the takedown pays the soft style-counter bonus too (4A)
+			_style().add("takedown", Styles.counter_style_mult(kind))
 	Tactics.release(self)
 
 

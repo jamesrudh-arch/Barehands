@@ -68,9 +68,11 @@ func _process(delta: float) -> void:
 
 
 ## Register a landed move; returns the points gained (for tests).
-func add(move: String) -> float:
+func add(move: String, mult := 1.0) -> float:
 	FightScore.move(move)
-	var gain: float = BASE.get(move, 5.0)
+	# the optional mult is the SOFT style-counter bonus (bible 4A: style
+	# points, never damage - the school that reads this kind pays extra)
+	var gain: float = BASE.get(move, 5.0) * maxf(mult, 0.0)
 	if move == _last:
 		_repeats += 1
 		gain *= 0.35 if _repeats == 1 else 0.12  # same move twice, then spam

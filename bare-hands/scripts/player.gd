@@ -477,7 +477,7 @@ func _combo_hit(hit: Dictionary) -> void:
 	Sound.play(hit.get("snd", "punch_med_0"), -3.0, float(hit.get("snd_pitch", 1.0)))
 	Haptics.fire(hit.get("hap", "light"))
 	Heat.on_violence("hit", global_position)
-	_style_add(hit.get("style", kind))
+	_style_add(hit.get("style", kind), targets[0] if not targets.is_empty() else null)
 	SuperMeter.gain(SuperMeter.GAIN_HIT, kind)
 	hit_landed.emit(kind, dmg)
 
@@ -539,7 +539,7 @@ func _land_punch() -> void:
 		Fx.camera_punch(5.0)
 		Fx.haptic(80)
 		Fx.emit_hit("launcher", hit_pos)
-		_style_add("launcher")
+		_style_add("launcher", target)
 		SuperMeter.gain(SuperMeter.GAIN_TAKEDOWN, "launcher")
 		Progression.add_xp(8.0, "takedown")
 		hit_landed.emit("launcher", 1)
@@ -555,7 +555,7 @@ func _land_punch() -> void:
 		Fx.camera_punch(-7.0)  # punch IN
 		Fx.haptic(160)
 		Fx.emit_hit("finisher", hit_pos)
-		_style_add("finisher")
+		_style_add("finisher", target)
 		SuperMeter.gain(SuperMeter.GAIN_TAKEDOWN, "finisher")
 		Progression.add_xp(8.0, "takedown")
 		hit_landed.emit("finisher", 99)
@@ -577,7 +577,7 @@ func _land_punch() -> void:
 		Sound.play("body_heavy_0", -3.0, 0.75, 0.04)
 		Fx.emit_hit("kick", hit_pos)
 		Heat.on_violence("hit", global_position)
-		_style_add("kick")
+		_style_add("kick", target)
 		SuperMeter.gain(SuperMeter.GAIN_HIT, "kick")
 		hit_landed.emit("kick", 2)
 		return
@@ -593,7 +593,7 @@ func _land_punch() -> void:
 		Fx.haptic(60)
 	Fx.emit_hit(kind, hit_pos)
 	Heat.on_violence("hit", global_position)
-	_style_add(kind)
+	_style_add(kind, target)
 	SuperMeter.gain(SuperMeter.GAIN_HIT, kind)
 	hit_landed.emit(kind, _swing_damage(kind))
 	if kind in ["backfist", "backfist_counter"]:
@@ -1280,9 +1280,14 @@ func _punch_target(min_dot: float, reach_slack: float) -> CharacterBody3D:
 	return target
 
 
-func _style_add(kind: String) -> void:
+func _style_add(kind: String, target: CharacterBody3D = null) -> void:
 	if _style():
-		_style().add(kind)
+		# the soft style counter (bible 4A): the hero's school reads some
+		# kinds better - extra STYLE POINTS only, never damage
+		var mult := 1.0
+		if target is Enemy:
+			mult = Styles.counter_style_mult((target as Enemy).kind)
+		_style().add(kind, mult)
 	# the street remembers a stylish win better than a beating
 	if kind in ["counter", "finisher", "launcher"] or kind.begins_with("slam"):
 		City.on_stylish_win(global_position, kind)

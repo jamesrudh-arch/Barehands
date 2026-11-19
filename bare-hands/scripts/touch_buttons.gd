@@ -22,6 +22,7 @@ const CLASSIC_SPECS := [
 	["GrabBtn", "GRAB", "", Color(0.75, 1.0, 0.6, 0.95), 284.0, 420.0, 116.0],
 	["LockBtn", "LOCK", "", Color(0.8, 0.8, 0.85, 0.9), 416.0, 300.0, 86.0],
 	["SuperBtn", "SUPER", "", Color(1.0, 0.62, 0.2, 1.0), 152.0, 428.0, 116.0],
+	["StyleBtn", "STYLE", "", Color(0.9, 0.7, 0.4, 0.9), 416.0, 428.0, 86.0],
 ]
 
 const FACE_SPECS := [
@@ -35,6 +36,7 @@ const FACE_SPECS := [
 	["SprintBtn", "SPRINT", "", Color(0.55, 0.95, 1.0, 0.95), 452.0, 348.0, 84.0],
 	["LockBtn", "LOCK", "", Color(0.8, 0.8, 0.85, 0.9), 322.0, 330.0, 74.0],
 	["SuperBtn", "SUPER", "", Color(1.0, 0.62, 0.2, 1.0), 106.0, 330.0, 96.0],
+	["StyleBtn", "STYLE", "", Color(0.9, 0.7, 0.4, 0.9), 452.0, 448.0, 74.0],
 ]
 
 var hint_shown := false
@@ -51,6 +53,7 @@ var _vp: Vector2
 
 
 func _ready() -> void:
+	add_to_group("hud_buttons")
 	_vp = get_viewport().size
 	_build_buttons()
 	_build_hint()
@@ -130,6 +133,8 @@ func _on_down(name: String) -> void:
 			_toggle_lock()
 		"SuperBtn":
 			InputBus.queue_super()
+		"StyleBtn":
+			_open_wheel()
 		"FaceA":
 			InputBus.stamp_action("punch_down")
 			InputBus.queue_punch()
@@ -153,6 +158,18 @@ func _on_up(name: String) -> void:
 			InputBus.punch_release()
 		"DodgeBtn":
 			InputBus.dodge_release()
+
+
+## The style wheel (Batch 3): one shared instance, code-built.
+func _open_wheel() -> void:
+	var w := get_tree().root.get_node_or_null("StyleWheel") as StyleWheel
+	if w == null:
+		w = StyleWheel.new()
+		w.name = "StyleWheel"
+		get_tree().root.add_child.call_deferred(w)
+		await get_tree().process_frame
+	if w:
+		w.open()
 
 
 func _toggle_lock() -> void:

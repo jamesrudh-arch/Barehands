@@ -130,7 +130,7 @@ const ALL := [
 					"dmg": 1, "cam": 3.0, "snd": "punch_med_1", "snd_pitch": 1.1,
 					"hap": "light", "shake": 0.3, "style": "jab"},
 			{"anim": "Kick_Code", "anim_t": 0.30, "speed": 1.5, "t": 0.48, "kind": "tap",
-					"dmg": 2, "cam": 4.0, "snd": "body_med_1", "snd_pitch": 1.0,
+					"dmg": 2, "cam": 4.0, "snd": "body_med_0", "snd_pitch": 1.0,
 					"hap": "light", "shake": 0.35, "style": "kick"},
 			{"anim": "Punch_Cross", "anim_t": 0.56, "speed": 1.3, "t": 0.74, "kind": "hook",
 					"dmg": 2, "cam": 5.0, "snd": "body_heavy_1", "snd_pitch": 0.95,

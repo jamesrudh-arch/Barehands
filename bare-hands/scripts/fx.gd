@@ -71,6 +71,13 @@ func slow_mo(duration := 0.7, scale := 0.35) -> void:
 	_apply_scale(duration, scale)
 
 
+## End the current slow-mo on the next process tick (the wheel closes:
+## the pick is made, the fight resumes at speed). A fresh slow_mo cannot
+## do this - _apply_scale MERGES active slow-mos and would extend it.
+func end_slow_mo() -> void:
+	_scale_until = Time.get_ticks_msec()
+
+
 ## One call point for every landed impact: routes to the sound hook in Series 2.
 func emit_hit(kind: String, pos: Vector3) -> void:
 	hit_landed.emit(kind, pos)

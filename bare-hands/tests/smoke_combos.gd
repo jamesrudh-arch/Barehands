@@ -60,6 +60,7 @@ func _ready() -> void:
 	await _test_gating()
 	await _test_spam_scaling()
 	await _test_variety()
+	await _test_style_wheel()
 	await _test_strip()
 
 	if _fails == 0:
@@ -425,6 +426,60 @@ func _test_variety() -> void:
 				break
 	_check(_variety_fired.size() >= 1, "three distinct combos pay the variety bonus (%d)" %
 			_variety_fired.size())
+
+
+# --- the style wheel + the soft counter bonus (Batch 3) --------------------------------------
+
+
+func _test_style_wheel() -> void:
+	# the wheel: open (world slows), pick a learned style, pick a locked
+	# one (refused, stays open), close (time restored)
+	Styles.reset_for_test()
+	Styles.unlock_all_for_test()  # every sector pickable first
+	var w := StyleWheel.new()
+	w.name = "StyleWheel"
+	get_tree().root.add_child(w)
+	await _frame(2)
+	w.open()
+	await _frame(2)
+	_check(w.is_open(), "the wheel opens")
+	var slowed := false
+	for i in 30:
+		await _frame(1)
+		if Engine.time_scale < 1.0:
+			slowed = true
+	_check(slowed, "the world slows while the wheel is open")
+	# a LEARNED sector switches (brawler is index 0, kickboxing index 1)
+	w._pick(1)
+	await _frame(2)
+	_check(Styles.current == "kickboxing", "picking a learned sector switches style (%s)" % Styles.current)
+	_check(not w.is_open(), "the wheel closes on a pick")
+	# locked: refused, the wheel stays open for another look
+	Styles.reset_for_test()
+	w.open()
+	await _frame(2)
+	w._pick(4)  # weapon, locked at level 9
+	await _frame(2)
+	_check(Styles.current == "brawler", "a locked pick changes nothing (%s)" % Styles.current)
+	_check(w.is_open(), "a locked pick keeps the wheel open")
+	w.close()
+	await _frame(2)
+	_check(not w.is_open(), "the wheel closes")
+	_check(Engine.time_scale == 1.0, "time restored after the wheel")
+	w.queue_free()
+	await _frame(2)
+	# the soft style counter (bible 4A): style POINTS only, never damage -
+	# the meter's mult math, straight from the live meter
+	Styles.unlock_all_for_test()
+	Styles.switch_to("brawler")
+	var style := get_tree().get_first_node_in_group("style")
+	ComboInput.reset_for_test()
+	var base_gain: float = style.add("jab", 1.0)
+	var soft_gain: float = style.add("parry", 1.3)
+	_check(soft_gain >= 18.0 * 1.3 - 0.01,
+			"the soft counter multiplies style points (%.1f >= %.1f)" % [soft_gain, 18.0 * 1.3])
+	_check(base_gain > 0.0, "plain adds still bank (%.1f)" % base_gain)
+	Styles.reset_for_test()
 
 
 # --- the on-screen strip -----------------------------------------------------------------------

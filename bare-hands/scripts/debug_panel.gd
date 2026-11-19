@@ -59,6 +59,18 @@ func _ready() -> void:
 	tests.focus_mode = Control.FOCUS_NONE
 	tests.pressed.connect(_toggle_tool.bind("TestRunner"))
 	jumps.add_child(tests)
+	var style := Button.new()
+	style.text = "STYLE WHEEL"
+	style.focus_mode = Control.FOCUS_NONE
+	style.pressed.connect(_open_style_wheel)
+	jumps.add_child(style)
+
+
+## Batch 3: the debug menu jumps straight to the style wheel.
+func _open_style_wheel() -> void:
+	var tb := get_tree().get_first_node_in_group("hud_buttons")
+	if tb and tb.has_method("_open_wheel"):
+		tb.call("_open_wheel")
 
 
 func _input(event: InputEvent) -> void:
