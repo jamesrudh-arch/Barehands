@@ -201,9 +201,12 @@ func _test_last_call() -> void:
 
 func _test_map_and_button() -> void:
 	await _calm()
-	_check(Phone.has_visited("market"), "the spawn block (market) is walked (fog lifts)")
-	_check(not Phone.has_visited("foundry") and not Phone.has_visited("riverside"),
-			"unwalked blocks stay fogged (riverside, foundry)")
+	# batch 8: the home block is never fogged; walks lift the rest
+	_check(Phone.has_visited("riverside"), "the home block is never fogged")
+	_check(not Phone.has_visited("market") and not Phone.has_visited("foundry"),
+			"unwalked blocks stay fogged (market, foundry)")
+	City.set_current_district("market")
+	_check(Phone.has_visited("market"), "a walked block lifts its fog")
 	# the HUD button opens the apps; the map unfogs by walk, tints by heat
 	var hud := get_tree().get_first_node_in_group("hud") as TouchButtons
 	if hud == null:

@@ -40,9 +40,12 @@ func _ready() -> void:
 
 
 func _districts() -> void:
-	_check(City.district_at(Vector3(-9, 0, 0)) == "riverside", "west third is riverside")
-	_check(City.district_at(Vector3(0, 0, 0)) == "market", "middle is market")
-	_check(City.district_at(Vector3(9, 0, 0)) == "foundry", "east third is foundry")
+	# batch 8: one block = one district; the loaded block answers
+	_check(Blocks.current() == "riverside", "the home block loads first")
+	City.set_current_district("market")
+	_check(City.district_now() == "market", "the walk switches districts")
+	_check(City.district_at(Vector3(9, 0, 0)) == "market",
+			"district_at answers the loaded block, not the x band")
 	City.on_violence("knockdown", Vector3(0, 0, 0))
 	_check(absf(City.rep["market"] + 8.0) < 0.01, "knockdown costs 8 rep in market (%.1f)" % City.rep["market"])
 	_check(City.rep["riverside"] == 0.0, "other districts untouched")
@@ -52,6 +55,7 @@ func _districts() -> void:
 
 
 func _hostility() -> void:
+	City.set_current_district("riverside")
 	# grind riverside down to hostile
 	for i in 14:
 		City.on_violence("knockdown", Vector3(-9, 0, 0))
@@ -65,8 +69,8 @@ func _hostility() -> void:
 		if e is Enemy and e.kind == 1:
 			muscle += 1
 	_check(muscle >= 2, "hostile district keeps brawlers on you (%d)" % muscle)
-	# leaving calms it; the muscle stands down
-	_player.global_position = Vector3(9.0, 0.02, 0.0)
+	# leaving calms it; the muscle stands down (the walk, not the x band)
+	City.set_current_district("market")
 	await _wait(1.2)
 	var still: int = City.get("_muscle").size()
 	_check(still == 0, "muscle stands down when you leave (%d)" % still)
@@ -94,16 +98,17 @@ func _toast() -> void:
 	await get_tree().physics_frame
 	var toast: Label = _style.get_node_or_null("ToastLabel")
 	_check(toast != null, "toast label exists")
-	_player.global_position = Vector3(-9.0, 0.02, 0.0)
+	City.set_current_district("riverside")
 	await get_tree().physics_frame
 	await get_tree().physics_frame
-	_check(toast and toast.text.contains("RIVERSIDE"), "crossing into a district toasts (%s)" % toast.text)
+	_check(toast and toast.text.contains("RIVERSIDE"), "crossing into a block toasts (%s)" % toast.text)
 	_check(toast.text.to_lower().contains("wary") or toast.text.to_lower().contains("hostile")
 			or toast.text.to_lower().contains("indifferent") or toast.text.to_lower().contains("friendly"),
 			"toast carries the mood (%s)" % toast.text)
 
 
 func _shopkeep() -> void:
+	City.set_current_district("market")
 	# prices: friendly district discounts, hostile markups, heat premium
 	City.rep["market"] = 50.0
 	Heat.heat = 0.0

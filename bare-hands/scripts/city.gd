@@ -10,6 +10,16 @@ signal changed()
 signal entered_district(district: String, mood: String)
 
 const DISTRICTS := ["riverside", "market", "foundry"]
+
+## What each block IS (bible 6), for the map and the rumors.
+const BLOCK_INFO := {
+	"riverside": {"name": "RIVERSIDE ROW",
+		"blurb": "your block - the alley, the noodle shop, the bar"},
+	"market": {"name": "THE CLUB QUARTER",
+		"blurb": "main street, the gym, the Mechanic's garage"},
+	"foundry": {"name": "THE DOCKS",
+		"blurb": "the warehouse, the water, the shut door"},
+}
 const HOSTILE_AT := -50.0
 const GRAFFITI_SPOTS := {
 	"riverside": Vector3(-10.5, 1.6, -8.86),
@@ -39,10 +49,8 @@ func _physics_process(_delta: float) -> void:
 	if _player == null or not is_instance_valid(_player):
 		_player = get_tree().get_first_node_in_group("player") as CharacterBody3D
 		return
-	var d := district_at(_player.global_position)
-	if d != _district_now:
-		_district_now = d
-		entered_district.emit(d, mood_of(d))
+	# batch 8: districts change only through the Blocks walk -
+	# set_current_district is authoritative, no position scan fights it
 	_hostile_watch()
 
 
@@ -55,11 +63,62 @@ func district_now() -> String:
 
 
 func district_at(pos: Vector3) -> String:
-	if pos.x < -6.0:
-		return "riverside"
-	if pos.x > 6.0:
-		return "foundry"
-	return "market"
+	# batch 8: one block = one district; the walk sets _district_now
+	# authoritatively and everything reads the same answer
+	return _district_now
+
+
+## The walk between blocks lands here (fog, music and moods ride the
+## signal). Guarded so nothing re-broadcasts the same block.
+func set_current_district(d: String) -> void:
+	if d == _district_now:
+		return
+	_district_now = d
+	entered_district.emit(d, mood_of(d))
+	changed.emit()
+
+
+## The scars a block carries (bible 6 damage layer): where bodies
+## dropped, and where the hero died. LOCAL to each block.
+var _damage: Dictionary = {}   # block -> [{pos: Vector3}]
+var _deaths: Dictionary = {}   # block -> [{pos: Vector3}]
+const DAMAGE_CAP := 12
+
+
+func note_damage(pos: Vector3, kind: String) -> void:
+	var d := district_at(pos)
+	var local := Vector3(pos.x - Blocks.BLOCK_X[d], pos.y, pos.z)
+	var list: Array = _damage.get(d, [])
+	list.append({"pos": local, "kind": kind})
+	while list.size() > DAMAGE_CAP:
+		list.pop_front()
+	_damage[d] = list
+	changed.emit()
+
+
+func note_death(pos: Vector3) -> void:
+	var d := district_at(pos)
+	var local := Vector3(pos.x - Blocks.BLOCK_X[d], pos.y, pos.z)
+	var list: Array = _deaths.get(d, [])
+	list.append({"pos": local})
+	while list.size() > 6:
+		list.pop_front()
+	_deaths[d] = list
+	Log.info("City: someone died in the %s - the block remembers" % d)
+
+
+func damage_points(d: String) -> Array:
+	var pts: Array = []
+	for e in _damage.get(d, []):
+		pts.append(e["pos"])
+	return pts
+
+
+func death_points(d: String) -> Array:
+	var pts: Array = []
+	for e in _deaths.get(d, []):
+		pts.append(e["pos"])
+	return pts
 
 
 func mood_of(d: String) -> String:
@@ -86,8 +145,10 @@ func on_violence(kind: String, pos: Vector3) -> void:
 	match kind:
 		"knockdown":
 			add_rep(d, -8.0, "a body dropped in the " + d)
+			note_damage(pos, "scorch")
 		"shot":
 			add_rep(d, -4.0, "a gunshot in the " + d)
+			note_damage(pos, "scorch")
 		"hit":
 			add_rep(d, -0.8)
 		"win":
@@ -244,8 +305,38 @@ func greeting(pos: Vector3) -> String:
 # --- persistence ---------------------------------------------------------------------------
 
 
+## What the street whispers on a given block: the mood, the last
+## thing anyone saw, and the block's own weather.
+func rumor(d: String) -> Array:
+	var pool: Array = []
+	match mood_of(d):
+		"your street":
+			pool.append("this block still says your name right")
+			pool.append("nobody starts anything on this street")
+		"friendly":
+			pool.append("good night for it, they say")
+			pool.append("the %s's been quiet since you cleaned it up" % d)
+		"wary":
+			pool.append("people cross the road when you pass lately")
+		"turning hostile":
+			pool.append("stay off this block a while. just a while")
+		"hostile":
+			pool.append("you shouldn't be walking here")
+	var heard := last_heard(d)
+	if not heard.is_empty():
+		pool.append("they're saying: " + heard)
+	return pool if not pool.is_empty() else ["quiet night"]
+
+
+## One line, for the wanderers' bubbles.
+func rumor_line(d: String) -> String:
+	var pool := rumor(d)
+	return pool[randi() % pool.size()]
+
+
 func to_dict() -> Dictionary:
-	return {"rep": rep, "hostile": hostile, "witnessed": witnessed, "nickname": nickname}
+	return {"rep": rep, "hostile": hostile, "witnessed": witnessed,
+			"nickname": nickname, "damage": _damage, "deaths": _deaths}
 
 
 func from_dict(d: Dictionary) -> void:
@@ -253,6 +344,8 @@ func from_dict(d: Dictionary) -> void:
 	hostile = d.get("hostile", {})
 	witnessed = d.get("witnessed", {})
 	nickname = d.get("nickname", nickname)
+	_damage = d.get("damage", {})
+	_deaths = d.get("deaths", {})
 	for dd in DISTRICTS:
 		if not rep.has(dd):
 			rep[dd] = 0.0

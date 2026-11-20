@@ -261,6 +261,30 @@ func _open_map() -> void:
 	_app_body.add_child(_btn("BACK", Color(0.6, 0.6, 0.65), func(): _show_grid()))
 
 
+## The bible's map layers, minus jobs (no source until the jobs batch -
+## no dead chips): mood, heat, friends, damage.
+func _map_layers(district: String, is_now: bool) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	var who: Array = []
+	for fid in Trust.FRIENDS:
+		if Blocks.FRIEND_HOMES.get(fid, "") == district:
+			who.append(Trust.FRIENDS[fid]["name"])
+	var chips := [
+		["MOOD " + City.mood_of(district), Color(0.6, 0.8, 0.65)],
+		["HEAT " + "*".repeat(roundi(clampf(Heat.heat, 0.0, 5.0))),
+				Color(0.95, 0.55, 0.3)],
+		["FRIENDS " + ("+".join(who) if not who.is_empty() else "-"),
+				Color(0.55, 0.75, 0.9)],
+		["DAMAGE %d" % City.damage_points(district).size(),
+				Color(0.85, 0.5, 0.5)],
+	]
+	for c in chips:
+		var chip := _label(c[0], 9, c[1] if is_now else c[1].darkened(0.35))
+		row.add_child(chip)
+	return row
+
+
 func _map_card(district: String, is_now: bool) -> PanelContainer:
 	var card := PanelContainer.new()
 	var sb := StyleBoxFlat.new()
@@ -285,9 +309,13 @@ func _map_card(district: String, is_now: bool) -> PanelContainer:
 	col.add_theme_constant_override("separation", 4)
 	card.add_child(col)
 	if Phone.has_visited(district):
-		col.add_child(_label(district.to_upper(), 16,
+		col.add_child(_label(City.BLOCK_INFO[district]["name"], 15,
 				Color(0.92, 0.95, 0.98)))
-		col.add_child(_label("here" if is_now else " ", 12, CYAN if is_now else Color(0.4, 0.4, 0.45)))
+		col.add_child(_label(City.BLOCK_INFO[district]["blurb"], 10,
+				Color(0.55, 0.58, 0.62)))
+		col.add_child(_map_layers(district, is_now))
+		col.add_child(_label("here" if is_now else " ", 11,
+				CYAN if is_now else Color(0.4, 0.4, 0.45)))
 	else:
 		col.add_child(_label("???", 16, Color(0.3, 0.3, 0.35)))
 		col.add_child(_label("not yet walked", 12, Color(0.3, 0.3, 0.35)))

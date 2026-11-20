@@ -59,3 +59,7 @@ func _process(delta: float) -> void:
 	if _t <= 0.0 and not _lapsed:
 		_lapsed = true
 		Ledger.death_debt()
+		# the block remembers where it happened (bible 6 memorials)
+		var p := get_tree().get_first_node_in_group("player") as Node3D
+		if p:
+			City.note_death(p.global_position)

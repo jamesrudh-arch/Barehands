@@ -5,8 +5,10 @@ extends Node3D
 ## club is the Block 2 gym + the underground tournaments. Until that batch
 ## lands, the trainer stands by the training dummy as a hook: walking up
 ## greets the player (a hint) and the hero's GRAB near the trainer opens
-## the MOVES screen to teach and practise. The gym/tournament batch wires
-## the real dialogue through cast.gd and replaces this silhouette.
+## the MOVES screen to teach and practise. The real gym is in the club
+## quarter (walk east through the gate; bible 6 places the fight club
+## there with the underground tournaments) - the tournament batch wires
+## its door and replaces this silhouette.
 
 const RADIUS := 1.4  # close enough that a combat grab near enemies is never hijacked
 

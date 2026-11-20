@@ -127,6 +127,8 @@ var _ambient_acc := 0.0
 
 
 func _ready() -> void:
+	# your home block is never fogged (bible 6 fog of war)
+	_visited["riverside"] = true
 	City.entered_district.connect(_on_district)
 	# the UI builds itself onto a canvas layer; no scene wiring needed
 	var ui: CanvasLayer = load("res://scripts/phone_ui.gd").new()
@@ -487,6 +489,7 @@ func reset_for_test() -> void:
 		_unlock()
 	state = State.IDLE
 	_log = []
+	_visited["riverside"] = true  # the home block is never fogged
 	_promises = []
 	# _visited SURVIVES: the walked map is ground truth about the city,
 	# not phone state - CLEAR PHONE forgets calls, not streets

@@ -212,7 +212,12 @@ func _move_step(delta: float) -> void:
 	var was_air := not is_on_floor()
 	move_and_slide()
 	_face_travel(delta)
-	global_position.x = clampf(global_position.x, -BOUND, BOUND)
+	# batch 8: the fence follows the loaded block (the walk between
+	# blocks is the bible's travel); interiors keep themselves in with
+	# their own walls, no street fence reaches in there
+	var cx: float = Blocks.BLOCK_X.get(Blocks.current(), 0.0)
+	if not Interior.is_inside_interior(self):
+		global_position.x = clampf(global_position.x, cx - BOUND, cx + BOUND)
 	global_position.z = clampf(global_position.z, -BOUND, BOUND)
 
 	if is_on_floor():

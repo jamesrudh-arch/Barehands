@@ -91,6 +91,24 @@ batch boundary.
 - **smoke_economy re-greened**: style purses pay the DIRTY pool now
   (bible 4G street money); the style-meter mirror reads the total.
 
+- **B8 the district (6)**: smoke_district (44 checks)
+  - boot fog (home never fogged, others fogged), the full walk
+    1->2->3->2->1 through gates with fades and arrival-spot checks,
+    block landmarks (gym, garage, warehouse, water, underpass),
+    crowds by mood (2 on an indifferent street), the noodle shop
+    GRAB-in/walk-out through fades, scars + memorials + the save
+    roundtrip, the map's layers and its no-fast-travel single button,
+    and a hostile block boarding up + emptying. Suite lessons: a
+    depenetration shove at a wall can push the hero INTO a gate box -
+    Area enter-events never re-fire; land arrivals clear of furniture
+    (gate - 2.6). The single-street fence (BOUND 18.5) clamps every
+    physics frame - after a block walk it snapped the hero 204m home
+    one frame later; the fence now follows the loaded block and skips
+    interiors. Travel fades must set_ignore_time_scale(true) or a
+    just-closed phone's slow-mo stretches them 4x. smoke_city adapted:
+    district_at answers the loaded block, set_current_district
+    replaces x-band crossings.
+
 - **B7 friends/trust (4D)**: smoke_friends (30 checks)
   - the invite flow end-to-end (Ledger chip -> phone closes -> beat
     spent -> hangout overlay), the three timing grades pay 15/15/8,

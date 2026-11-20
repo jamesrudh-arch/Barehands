@@ -1,5 +1,31 @@
 # CHANGELOG.md — batch history (newest first)
 
+## B8 — the district (2026-11-20)
+- Three blocks, walked: Riverside Row (your block), the Club Quarter
+  (club fronts, the IRON PALM gym, the Mechanic's garage), the Docks
+  (the Meridian Freight warehouse and its shut final-choice door,
+  containers, the water, the crane). Gates fade the walk between
+  them; the quarter and the docks wear the underpass at their ends.
+  No fast travel - the map says so and has no button to prove it
+  wrong. Fog lifts only where your feet have been; each card reads
+  name, blurb, and the live layers: MOOD, HEAT, FRIENDS (who lives
+  where), DAMAGE.
+- The blocks remember: knockdowns and gunshots scorch their spots,
+  the hero's deaths leave candle memorials, a hostile block boards
+  its shopfronts and empties its street (crowds thin with the mood,
+  wanderers talk - the mood, and what the street last saw). All of it
+  rides the save.
+- The noodle shop: GRAB at the Golden Luck front, fade, and you are
+  inside - the counter, the pot that's been on since the fire, the
+  owner who talks, the stairs to the rooms above. The first real
+  interior, the pattern the rest will follow.
+- Under the hood: the street fence follows the loaded block (the old
+  single-street clamp snapped the hero home mid-walk), interiors keep
+  themselves in with walls, travel fades ignore the world's time
+  scale. smoke_district: 44 green. Deferred, marked: the gym door
+  waits for the tournament batch, the warehouse door for the story,
+  the jobs map layer for the jobs batch.
+
 ## B7 — friends who show up (2026-11-20)
 - Trust stops being a number: hangouts and saves. One hangout per
   friend on one timing skeleton wearing four skins - Fishing with the
