@@ -66,6 +66,10 @@ func value(friend: String) -> float:
 
 
 func add(friend: String, delta: float, why: String) -> void:
+	if gone.get(friend, false):
+		return  # the dead do not drift
+	if locked.get(friend, false) and _t.get(friend, 100.0) + delta < 60.0:
+		delta = maxf(delta, 60.0 - _t.get(friend, 100.0))  # the floor holds
 	if not FRIENDS.has(friend):
 		Log.warn("Trust: unknown friend '%s'" % friend)
 		return
@@ -79,7 +83,32 @@ func add(friend: String, delta: float, why: String) -> void:
 
 ## Close >=60 / Drifting 30-59 / Estranged <30 (bible 4D). The phone
 ## mutes rings from Estranged friends - they stop calling.
+## Locked (bible 4H): saved from the kidnappers - the bond is Close
+## forever and cannot decay. Gone: taken for good (paid them off, or
+## the clock ran out) - the calls stop, the number goes dead.
+var locked := {}
+var gone := {}
+
+
+func lock(friend: String) -> void:
+	locked[friend] = true
+	if _t.get(friend, 0.0) < 60.0:
+		_t[friend] = 60.0  # Close floor
+	changed.emit(friend)
+
+
+func lose(friend: String) -> void:
+	gone[friend] = true
+	changed.emit(friend)
+
+
+func is_gone(friend: String) -> bool:
+	return gone.get(friend, false)
+
+
 func tier(friend: String) -> String:
+	if gone.get(friend, false):
+		return "gone"
 	var v := value(friend)
 	if v >= 60.0:
 		return "close"
@@ -98,7 +127,8 @@ func callers() -> Array:
 
 
 func to_dict() -> Dictionary:
-	return {"values": _t.duplicate(), "last_seen": _last_seen.duplicate()}
+	return {"values": _t.duplicate(), "last_seen": _last_seen.duplicate(),
+		"locked": locked.duplicate(), "gone": gone.duplicate()}
 
 
 func from_dict(d: Dictionary) -> void:
@@ -109,9 +139,13 @@ func from_dict(d: Dictionary) -> void:
 	var seen: Dictionary = d.get("last_seen", {})
 	for id in FRIENDS:
 		_last_seen[id] = int(seen.get(id, 1))
+	locked = d.get("locked", {}).duplicate()
+	gone = d.get("gone", {}).duplicate()
 
 
 func reset_for_test() -> void:
+	locked = {}
+	gone = {}
 	for id in FRIENDS:
 		_t[id] = 70.0
 		_last_seen[id] = 1

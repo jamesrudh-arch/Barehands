@@ -42,11 +42,19 @@ func _physics_process(delta: float) -> void:
 		_calm_since = _t + DECAY_DELAY  # violence seen: the timer restarts
 	elif _t >= _calm_since:
 		add(-DECAY_RATE * delta)  # out of sight and calm: the street forgets
+	_enemy_floor()  # the permanent enemy never lets it fully cool
 	Music.set_heat(heat)
 	_response(delta, p)
 
 
 ## Public violence feeds the meter. Loud things cost more.
+## The kidnap arc's permanent enemy (bible 4H): the heat never fully
+## cools while they own the streets' fear.
+func _enemy_floor() -> void:
+	if Kidnap.permanent_enemy and heat < float(Tuning.v("kidnap_enemy_floor")):
+		heat = float(Tuning.v("kidnap_enemy_floor"))
+
+
 func add(amount: float) -> void:
 	var was := heat
 	heat = clampf(heat + amount, 0.0, MAX)

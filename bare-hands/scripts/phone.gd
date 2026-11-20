@@ -26,6 +26,24 @@ const SLOW_KEEP_MSEC := 2500.0        # re-issue the slow-mo, watchdog-safe
 ## First-pass voice for the four friends (bible 4D roster); the lines
 ## are authored, not templated - they read like people, not signage.
 const CALLS := {
+	"kidnapper": {
+		"cold": {
+			"lines": [
+				"UNKNOWN NUMBER: \"We have the one you call by name.\"",
+				"UNKNOWN NUMBER: \"No cops. Twelve hundred by Friday, or we stop feeding them.\"",
+				"UNKNOWN NUMBER: \"You have three days. Decide.\"",
+			],
+			"choice": {"pay_ransom": "PAY $1200", "trace": "NO COPS - I'LL FIND THEM"},
+		},
+		"payoff": {
+			"lines": [
+				"UNKNOWN NUMBER: \"The boss liked your work. Shame about the rest.\"",
+				"UNKNOWN NUMBER: \"Walk away. Three thousand, and we keep them. Nobody's enemy.\"",
+				"UNKNOWN NUMBER: \"Last decision. Make it.\"",
+			],
+			"choice": {"save": "CUT THEM DOWN", "take": "TAKE THE MONEY"},
+		},
+	},
 	"brother": {
 		"demand": {
 			"lines": [
@@ -109,6 +127,7 @@ const LEDGER_SENDERS := {
 	"family": {"name": "The Family", "color": Color(0.85, 0.35, 0.25)},
 	"corp": {"name": "The Corporation", "color": Color(0.4, 0.75, 1.0)},
 	"crew": {"name": "The Crew", "color": Color(0.9, 0.8, 0.35)},
+	"kidnapper": {"name": "UNKNOWN NUMBER", "color": Color(0.8, 0.55, 0.3)},
 }
 
 
@@ -160,10 +179,12 @@ func _process(delta: float) -> void:
 ## Ring a friend. A ring while busy waits (one slot); Estranged friends
 ## do not get through at all (bible 4D: they stop calling).
 func ring(caller: String, kind := "demand") -> bool:
-	if not Trust.FRIENDS.has(caller):
+	# friends, plus registered strangers (the kidnap arc's UNKNOWN
+	# NUMBER, bible 4H) - anything else is noise
+	if not Trust.FRIENDS.has(caller) and not CALLS.has(caller):
 		Log.warn("Phone: unknown caller '%s'" % caller)
 		return false
-	if Trust.tier(caller) == "estranged":
+	if Trust.FRIENDS.has(caller) and Trust.tier(caller) == "estranged":
 		Log.info("Phone: %s is estranged - no ring" % Trust.FRIENDS[caller]["name"])
 		return false
 	if state != State.IDLE:
@@ -176,7 +197,7 @@ func ring(caller: String, kind := "demand") -> bool:
 	_ring_deadline_msec = Time.get_ticks_msec() + _ring_total_msec
 	_next_buzz_msec = 0  # the first buzz lands this frame
 	_set_state(State.RINGING)
-	Log.info("Phone: RING - %s (%s)" % [Trust.FRIENDS[caller]["name"], kind])
+	Log.info("Phone: RING - %s (%s)" % [sender(caller).get("name", caller), kind])
 	return true
 
 
@@ -318,6 +339,11 @@ func choose(option: String) -> void:
 			Trust.add(caller_id(), Trust.REFUSED_DEMAND, "backed out")
 			_log_entry({"caller": caller_id(), "kind": call_kind(),
 				"outcome": "backed out"})
+	# the kidnap arc's choices (bible 4H): the arc owns the outcomes
+	if caller_id() == "kidnapper":
+		Kidnap.on_call_choice(call_kind(), option)
+		_log_entry({"caller": "kidnapper", "kind": call_kind(),
+			"outcome": option})
 	hang_up()
 
 

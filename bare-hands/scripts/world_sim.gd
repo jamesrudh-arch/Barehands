@@ -54,6 +54,8 @@ func _on_day_rolled(new_day: int, interest_charged: float, missed: bool) -> void
 	# friends: someone always texts; skipped friends drift
 	lines.append_array(_friend_night(new_day))
 	# the street: rumors age out of retelling
+	for line in Kidnap.morning_lines():
+		lines.append(line)
 	var pruned := City.age_rumors(new_day)
 	if pruned > 0:
 		lines.append("the street let %d old rumor(s) go" % pruned)
@@ -66,6 +68,7 @@ func _on_day_rolled(new_day: int, interest_charged: float, missed: bool) -> void
 	if not cold.is_empty():
 		lines.append("\"%s\" went cold - that was someone's name on it" % cold)
 	Jobs.on_day_rolled(new_day)
+	Kidnap.on_day_rolled(new_day)
 	if _sleeping:
 		_pending = lines
 	elif _fighting():

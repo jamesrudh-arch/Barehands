@@ -91,6 +91,21 @@ batch boundary.
 - **smoke_economy re-greened**: style purses pay the DIRTY pool now
   (bible 4G street money); the style-meter mirror reads the total.
 
+- **B11 kidnap arc**: smoke_kidnap (62 checks) - eligibility (day,
+  trust, the one you trust most), the cold call both paths (ransom
+  paid exactly / broke-hunts-anyway), the three-sign no-combat
+  investigation, the site reveal, waves + boss, both endings checked
+  for what they cost (lock floor, permanent heat floor, dirty payoff,
+  gone-forever friend, the city hollowing rep drops), the 3-day clock,
+  persistence with marker respawn. Suite lessons: ANSWERS COST BEATS -
+  top up beats per call; a ring while the phone is busy queues
+  silently - wait for THE RIGHT ring and decline friend rings (the
+  kidnapper redials); calling an async helper (_at) without await
+  teleports fine but returns immediately - the check then reads stale
+  state (Godot 4 does not warn); clue markers need spots clear of
+  street furniture (depenetration shoves the player out of touch
+  range).
+
 - **B10 battery regressions**: (1) the map grew TAKE buttons - the
   B8 'one button only' assertion kept its intent (no fast travel) and
   now allows TAKE+BACK. (2) stress_combat died once and a buffered

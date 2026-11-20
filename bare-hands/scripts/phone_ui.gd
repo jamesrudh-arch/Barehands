@@ -583,7 +583,7 @@ func _on_state() -> void:
 	var ringing := Phone.state == Phone.State.RINGING
 	_banner.visible = ringing
 	if ringing:
-		var who: Dictionary = Trust.FRIENDS.get(Phone.caller_id(), {})
+		var who: Dictionary = Phone.sender(Phone.caller_id())
 		_banner_name.text = who.get("name", "?")
 		_banner_name.add_theme_color_override("font_color", who.get("color", Color.WHITE))
 		_banner_kind.text = Phone.call_kind().to_upper() + " CALL"
@@ -610,7 +610,7 @@ func _on_state() -> void:
 func _refresh_call() -> void:
 	if Phone.state != Phone.State.ON_CALL:
 		return
-	var who: Dictionary = Trust.FRIENDS.get(Phone.caller_id(), {})
+	var who: Dictionary = Phone.sender(Phone.caller_id())
 	_call_name.text = who.get("name", "?")
 	_call_line.text = str(Phone.call_lines()[Phone.call_line_i()])
 	for child in _call_choices.get_children():

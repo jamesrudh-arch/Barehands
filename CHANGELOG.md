@@ -1,5 +1,30 @@
 # CHANGELOG.md — batch history (newest first)
 
+## B11 — the kidnap arc (2026-11-20)
+- The story spine (bible 4H). From day 3, if someone matters enough
+  (trust 40+), an UNKNOWN NUMBER calls: they took the one you trust
+  most. Pay $1200 and they walk home. Refuse and you get three days.
+- The investigation is feet and eyes - no combat until you earn it:
+  three signs on three blocks (drag marks by the water, a van witness
+  at the market, a burner phone in the foundry). Three signs point at
+  the old press hall.
+- The assault: three waves, then the boss alone - the kind-4 combo
+  machine. When he falls, the phone rings with the choice.
+- Both endings are real. CUT THEM DOWN: no money, a permanent enemy
+  (the heat never fully cools again), and the bond locks Close
+  forever - nothing decays it. TAKE THE MONEY: $3000 dirty, their
+  patron, the friend is gone for good (the calls stop, the number
+  dies), and every block's rep drops - the city hollows with you.
+- The clock is real too: three days of anything else and they stop
+  feeding them. No enemy, no money, just the loss. The morning report
+  carries the arc every day it runs.
+- The kidnapper redials while you dodge them; a ring queued behind a
+  friend call still comes. The phone now names non-friend callers
+  (UNKNOWN NUMBER) on the ring banner and the call screen. Trust
+  learned two permanent states: locked (Close forever, floor 60) and
+  gone (the dead do not drift).
+- smoke_kidnap: 62 green. Docs: STATE/TESTING/CHANGELOG.
+
 ## B10 — the jobs (2026-11-20)
 - The board is open. Ten core jobs across the three blocks, two per
   template: DELIVERY walks a case to a glowing drop (hard drops

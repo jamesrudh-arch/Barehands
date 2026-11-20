@@ -45,7 +45,13 @@ const DEFAULTS := {
 	"overnight_heat_cool": 1.0,  # stars the night takes off (world sim)
 	"trust_skip_drift": 2.0,  # magnitude: what a day unseen costs a Warm+ friend (the sign lives in trust.gd)
 	"rumor_age_days": 2,  # days a street rumor stays in retelling
-	"job_overuse_at": 3,  # setups through one friend before their business eats it  # real minutes a beat lasts if nothing spends it
+	"job_overuse_at": 3,  # setups through one friend before their business eats it
+	"kidnap_min_day": 3,  # the arc waits until the loop has teeth
+	"kidnap_min_trust": 40,  # someone must matter enough to take
+	"kidnap_days": 3,  # days before they stop feeding them
+	"kidnap_ransom": 1200,  # the cold call's price
+	"kidnap_payoff": 3000,  # the devil's offer
+	"kidnap_enemy_floor": 1.5,  # permanent enemy: heat never cools below  # real minutes a beat lasts if nothing spends it
 	"s_rank_cut": 0.05,  # each banked S-rank cuts 5% of the balance
 	"launder_cut": 0.20,  # the Club Owner's take (bible 4G)
 	"pay_chip": 100,  # the Ledger screen's quick-pay chip
