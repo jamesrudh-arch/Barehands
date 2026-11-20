@@ -1,5 +1,33 @@
 # CHANGELOG.md — batch history (newest first)
 
+## B10 — the jobs (2026-11-20)
+- The board is open. Ten core jobs across the three blocks, two per
+  template: DELIVERY walks a case to a glowing drop (hard drops
+  ambush you - the case lands only once the drop is clear), RESCUE
+  clears guards off a held body, COERCED leans on a shopkeeper
+  (words on a calm block; a hot one gets you a guard), HIT marks a
+  named target, TURF holds a corner through three waves. Pay is
+  400-1500 dirty.
+- Every job costs a Beat. Recon is the walk: the marker sharpens
+  from a block to a spot once you've stood on it. The day is the
+  deadline - sleep with a job live and it goes cold on the friend
+  whose name set it up, and the morning report says so.
+- Clean Hands vs Wrecking Ball: finish without dropping anyone and
+  the friend's trust rises; leave bodies and it burns them and heats
+  the block. Run three setups through one friend and their business
+  eats it - a scorch mark on their home block and a warning text.
+- The phone's map grows THE BOARD (today's offers, the live job) and
+  a JOBS chip per block; the HUD carries a small objective line.
+  S-ranks in a job's fights cut the debt through the Ledger's own
+  banked-rank system.
+- Real bugs the suite caught on the way: the down-counter crashed on
+  first access (nobody ever counted); a finished job blocked the
+  next take forever; the ambush and the hot-block guard both failed
+  to block completion; the offer rotation could cycle forever
+  without covering the pool; downed job enemies now get dragged off
+  so they never stand back up into the next wave.
+- smoke_jobs: 65 green. Docs: STATE/TESTING/CHANGELOG.
+
 ## B9 — the world sim (2026-11-20)
 - The day turns and the city answers. When the Ledger closes a day -
   the beats burnt out, or slept away - heat cools a notch, one or two

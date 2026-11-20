@@ -90,7 +90,12 @@ const DAMAGE_CAP := 12
 
 
 func note_damage(pos: Vector3, kind: String) -> void:
-	var d := district_at(pos)
+	note_damage_in(district_at(pos), pos, kind)
+
+
+## A mark on a block you are NOT standing in (a friend's business
+## eating your overuse, world events elsewhere).
+func note_damage_in(d: String, pos: Vector3, kind: String) -> void:
 	var local := Vector3(pos.x - Blocks.BLOCK_X[d], pos.y, pos.z)
 	var list: Array = _damage.get(d, [])
 	list.append({"pos": local, "kind": kind})
@@ -253,6 +258,13 @@ func _check_graffiti(d: String) -> void:
 		text = nickname.to_upper() + " GO HOME"
 	else:
 		return
+	# a scene reload frees the labels; the autoload cache must prune,
+	# and a freed object can never be erased from a typed array by value
+	var alive: Array[Label3D] = []
+	for g in _graffiti:
+		if is_instance_valid(g):
+			alive.append(g)
+	_graffiti = alive
 	for g in _graffiti:
 		if g.get_meta("district", "") == d:
 			g.text = text
@@ -280,7 +292,8 @@ func _spawn_graffiti(d: String, text: String) -> void:
 func graffiti_texts() -> Array[String]:
 	var out: Array[String] = []
 	for g in _graffiti:
-		out.append(g.text)
+		if is_instance_valid(g):
+			out.append(g.text)
 	return out
 
 

@@ -72,13 +72,15 @@ func on_violence(kind: String, pos: Vector3 = Vector3.ZERO) -> void:
 
 func _response(_delta: float, p: CharacterBody3D) -> void:
 	# the response only stands while the heat stands
+	# freed responders can't be erased from a typed array by value -
+	# filter the array instead, or the dead entry errors every frame
+	var valid: Array[CharacterBody3D] = []
+	for r in _responders:
+		if is_instance_valid(r):
+			valid.append(r)
+	_responders = valid
 	for r in _responders.duplicate():
-		# a freed responder must be dropped WITHOUT being passed to a
-		# typed function - the bind itself errors and the erase never
-		# runs, so the dead entry would error every frame forever
-		if not is_instance_valid(r):
-			_responders.erase(r)
-		elif r.state == Enemy.State.DOWN:
+		if r.state == Enemy.State.DOWN:
 			_responder_gone(r)
 		elif heat < 1.0:
 			(r as Node).queue_free()

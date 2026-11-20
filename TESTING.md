@@ -91,6 +91,33 @@ batch boundary.
 - **smoke_economy re-greened**: style purses pay the DIRTY pool now
   (bible 4G street money); the style-meter mirror reads the total.
 
+- **B10 battery regressions**: (1) the map grew TAKE buttons - the
+  B8 'one button only' assertion kept its intent (no fast travel) and
+  now allows TAKE+BACK. (2) stress_combat died once and a buffered
+  punch ACCEPTED the retry offer - reload_current_scene() restarted
+  the whole suite from _ready mid-run, doubling its runtime into the
+  timeout while the freed scene left stale autoload caches: city's
+  graffiti array (Cannot call get_meta on freed) and heat's typed
+  responder array (erasing a freed object from a TypedArray fails
+  silently and repeats every frame). Both are REAL-GAME bugs - the
+  retry reload is a shipping path and autoloads survive it. Fixed by
+  rebuilding the arrays (filter valid, never erase-by-freed-value)
+  and the suite now never punches while the offer is up (let it
+  lapse: Death = Debt, no reload).
+
+- **B10 jobs**: smoke_jobs (65 checks) - the board, the beat cost, the
+  recon-by-walk (wrong block teaches nothing; taking on the block
+  skips it), all five templates end-to-end, clean vs wrecking trust
+  math, overuse marks the friend's home, the day-roll cold job + fresh
+  board, persistence with entity respawn, the map board UI + JOBS
+  chips. Suite lessons: raw cross-block teleports are LEASHED back to
+  the built block and walked through a gate - travel via Blocks.travel
+  and only teleport inside the current block; a raw state=DOWN
+  bypasses _enter (stale _state_t means instant respawn) - enter
+  states through _enter; queue_free is deferred - a group count right
+  after clearing still sees the old node; capture test baselines
+  BEFORE the actions that produce the effect.
+
 - **B9 world sim**: smoke_worldsim (25 checks) - a mid-fight day-turn
   is a toast, a calm turn (and sleep) shows the report card; interest
   closes the books, a day closed with interest unpaid is a missed

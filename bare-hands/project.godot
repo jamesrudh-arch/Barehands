@@ -39,6 +39,7 @@ Ledger="*res://scripts/ledger.gd"
 FriendHelp="*res://scripts/friend_help.gd"
 Blocks="*res://scripts/blocks.gd"
 WorldSim="*res://scripts/world_sim.gd"
+Jobs="*res://scripts/jobs.gd"
 
 [display]
 

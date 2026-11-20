@@ -254,6 +254,7 @@ func _open_map() -> void:
 	var now := City.district_now()
 	for d in City.DISTRICTS:
 		row.add_child(_map_card(d, d == now))
+	_app_body.add_child(_jobs_board())
 	var note := _label("no fast travel - the streets are the travel", 12,
 			Color(0.6, 0.62, 0.68))
 	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -261,8 +262,46 @@ func _open_map() -> void:
 	_app_body.add_child(_btn("BACK", Color(0.6, 0.6, 0.65), func(): _show_grid()))
 
 
-## The bible's map layers, minus jobs (no source until the jobs batch -
-## no dead chips): mood, heat, friends, damage.
+## THE BOARD (jobs): today's offers, the live job, one beat each.
+func _jobs_board() -> VBoxContainer:
+	var board := VBoxContainer.new()
+	board.add_theme_constant_override("separation", 4)
+	var head := _label("THE BOARD - one beat a job, the day is the deadline",
+			12, Color(0.85, 0.75, 0.4))
+	board.add_child(head)
+	var any := false
+	if not Jobs.active.is_empty() and Jobs.active.get("phase", "") in \
+			["TAKEN", "RECON", "READY"]:
+		var j := Jobs.job_by_id(Jobs.active["id"])
+		var live := _label("LIVE - %s (%s)" % [j["title"], Jobs.active["phase"]],
+				13, Color(0.95, 0.85, 0.5))
+		board.add_child(live)
+		any = true
+	for id in Jobs.offers:
+		var oj := Jobs.job_by_id(id)
+		if oj.is_empty():
+			continue
+		any = true
+		var text := "TAKE - %s  ($%d dirty - %s - %s)" % [oj["title"], oj["pay"],
+				Jobs.TEMPLATES[oj["template"]]["name"],
+				oj["district"].to_upper()]
+		board.add_child(_btn(text, Color(0.7, 0.65, 0.45),
+				func(): _take_job(id)))
+	if not any:
+		board.add_child(_label("nothing on the board today - sleep on it",
+				12, Color(0.55, 0.57, 0.6)))
+	return board
+
+
+func _take_job(id: String) -> void:
+	if Jobs.take(id):
+		_open_map()  # the board redraws: the job goes LIVE
+	else:
+		_show_app_note("MAP", "the fixer's line is busy - try again")
+
+
+## The bible's map layers, plus jobs now that the board has a source:
+## mood, heat, friends, damage.
 func _map_layers(district: String, is_now: bool) -> HBoxContainer:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 6)
@@ -270,8 +309,14 @@ func _map_layers(district: String, is_now: bool) -> HBoxContainer:
 	for fid in Trust.FRIENDS:
 		if Blocks.FRIEND_HOMES.get(fid, "") == district:
 			who.append(Trust.FRIENDS[fid]["name"])
+	var job_n := 0
+	for id in Jobs.offers:
+		var oj := Jobs.job_by_id(id)
+		if oj.get("district", "") == district:
+			job_n += 1
 	var chips := [
 		["MOOD " + City.mood_of(district), Color(0.6, 0.8, 0.65)],
+		["JOBS %d" % job_n, Color(0.85, 0.75, 0.4)],
 		["HEAT " + "*".repeat(roundi(clampf(Heat.heat, 0.0, 5.0))),
 				Color(0.95, 0.55, 0.3)],
 		["FRIENDS " + ("+".join(who) if not who.is_empty() else "-"),

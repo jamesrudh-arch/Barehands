@@ -18,6 +18,20 @@ var _style: Control
 var _tick := 0
 var _cycle := 0
 var _fails := 0
+
+
+func _offer_up() -> bool:
+	return _find_offer(get_tree().root) != null
+
+
+func _find_offer(node: Node) -> RetryOffer:
+	for c in node.get_children():
+		if c is RetryOffer:
+			return c
+		var found := _find_offer(c)
+		if found:
+			return found
+	return null
 var _punches := 0
 var _dodges := 0
 var _slowmo_seen := false
@@ -108,12 +122,16 @@ func _drive_combo() -> void:
 		cam.set("_yaw", -PI / 2.0)
 	_set_move(Vector2(0, -1))  # walk east toward the dummy
 	var ph := _tick % CYCLE
-	if ph in [150, 310, 470]:
-		InputBus.queue_punch()
-		_punches += 1
-	if ph in [155, 315]:  # second press while the jab swings: buffering
-		InputBus.queue_punch()
-		_punches += 1
+	# a punch while the retry offer is live ACCEPTS it - the reload would
+	# restart this whole suite from _ready. Let the offer lapse instead
+	# (Death = Debt, no reload).
+	if not _offer_up():
+		if ph in [150, 310, 470]:
+			InputBus.queue_punch()
+			_punches += 1
+		if ph in [155, 315]:  # second press while the jab swings: buffering
+			InputBus.queue_punch()
+			_punches += 1
 	if ph in [230, 390]:
 		InputBus.queue_dodge()
 		_dodges += 1

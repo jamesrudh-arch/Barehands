@@ -57,11 +57,20 @@ func _on_day_rolled(new_day: int, interest_charged: float, missed: bool) -> void
 	var pruned := City.age_rumors(new_day)
 	if pruned > 0:
 		lines.append("the street let %d old rumor(s) go" % pruned)
+	# a live job goes cold on the friend who set it up
+	var cold: String = ""
+	if not Jobs.active.is_empty() and Jobs.active.get("phase", "") in \
+			["TAKEN", "RECON", "READY"]:
+		var j := Jobs.job_by_id(Jobs.active["id"])
+		cold = j.get("title", "")
+	if not cold.is_empty():
+		lines.append("\"%s\" went cold - that was someone's name on it" % cold)
+	Jobs.on_day_rolled(new_day)
 	if _sleeping:
 		_pending = lines
 	elif _fighting():
 		# a natural day-turn mid-fight: apply everything, say it short
-		var hud := get_tree().get_first_node_in_group("hud")
+		var hud := get_tree().get_first_node_in_group("hud_buttons")
 		if hud and hud.has_method("show_hint"):
 			hud.show_hint("DAY %d - the books closed" % new_day, 3.0)
 	else:
