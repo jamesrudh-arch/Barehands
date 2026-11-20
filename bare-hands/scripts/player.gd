@@ -928,6 +928,14 @@ func take_hit(dir: Vector3, from: CharacterBody3D = null) -> String:
 	Composure.drain(Tuning.v("composure_hit_drain"), "hit")
 	FightScore.hit_taken()
 	if Composure.guard_broken():
+		# a friend may answer the knockdown blow first (bible 4D
+		# tiers): saved heroes stay up, the attacker eats the gold
+		# stagger, and the offer never has to show
+		if FriendHelp.try_save(from, global_position):
+			velocity.x = -dir.x * 2.5
+			velocity.z = -dir.z * 2.5
+			return "hit"
+		FriendHelp.note_knockdown()
 		_offer_retry()  # the knockdown blow: a fresh start on the table
 	state = State.GROUND
 	_rig.play("Hit_Chest", 0.04, 1.6)

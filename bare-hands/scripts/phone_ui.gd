@@ -432,8 +432,34 @@ func _trust_column() -> VBoxContainer:
 			c = Color(0.9, 0.75, 0.35)
 		if v < 30.0:
 			c = MAGENTA
-		col.add_child(_label("%s  %d  (%s)" % [f["name"], int(v), Trust.tier(id)], 12, c))
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 10)
+		col.add_child(row)
+		row.add_child(_label("%s  %d  (%s)" % [f["name"], int(v), Trust.tier(id)], 12, c))
+		row.add_child(_invite_chip(id))
 	return col
+
+
+## The INVITE chip (bible 4D hangouts): spends a Beat, closes the
+## phone, opens the themed minigame. A blocked chip names its reason.
+func _invite_chip(id: String) -> Button:
+	var why := Hangout.blocked(id)
+	var chip := Button.new()
+	if why.is_empty():
+		chip.text = "INVITE - 1 BEAT"
+		chip.pressed.connect(func():
+			if Ledger.spend_beat("hangout: %s" % id):
+				Phone.close()
+				var h := Hangout.new()
+				get_tree().root.add_child(h)
+				h.open(id))
+	else:
+		chip.text = why
+		chip.disabled = true
+	chip.add_theme_font_size_override("font_size", 11)
+	chip.focus_mode = Control.FOCUS_NONE
+	chip.custom_minimum_size = Vector2(150, 26)
+	return chip
 
 
 func _show_voicemail(entry: Dictionary) -> void:

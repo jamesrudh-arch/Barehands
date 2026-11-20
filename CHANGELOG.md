@@ -1,5 +1,23 @@
 # CHANGELOG.md — batch history (newest first)
 
+## B7 — friends who show up (2026-11-20)
+- Trust stops being a number: hangouts and saves. One hangout per
+  friend on one timing skeleton wearing four skins - Fishing with the
+  Brother, Basketball at the Mechanic's hoop, Darts in the Club
+  Owner's back room, Karaoke in The Drunk's box. A beat buys in, the
+  marker sweeps, PUNCH locks it; PERFECT/GOOD pay the bible's +15,
+  WIDE +8 (first pass). Invites ride the Ledger's Trust column; a
+  blocked chip names its reason (STOPPED CALLING / STREET'S HOT / NO
+  BEATS). An open promise from a call is redeemed by the hangout, and
+  friends will not stack asks.
+- The tier effects land at the knockdown blow: a Close friend spends
+  a once-per-fight save - the attacker eats the full gold stagger and
+  the hero never sees the retry offer; a Drifting friend hesitates
+  through the first knockdown and answers the second; an Estranged
+  friend never answers. Fights reset the counters after 8s of calm.
+  smoke_friends: 30 green. Deferred, marked: setup payoffs are 4F
+  (jobs batch), the kidnap pick is 4H (story batches).
+
 ## B6 — the Ledger, Death = Debt (2026-11-19)
 - The debt book the 30-minute loop turns on: three lenders with a live
   interest counter that never stops (slow-mo does not save you), a day

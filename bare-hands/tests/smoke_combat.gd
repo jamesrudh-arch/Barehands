@@ -45,6 +45,11 @@ func _set_move(v: Vector2) -> void:
 
 func _ready() -> void:
 	Settings.set_value("first_run_done", true)  # the picker would lock input
+	# batch 7: estrange every friend - this suite owns the knockdown
+	# offer path, and a Close friend would save the blow (smoke_friends
+	# owns the save path)
+	for id in Trust.FRIENDS:
+		Trust.add(id, -100.0, "suite")
 	_main = load("res://scenes/main.tscn").instantiate()
 	add_child(_main)
 	_stick = _main.get_node("UI/Joystick")

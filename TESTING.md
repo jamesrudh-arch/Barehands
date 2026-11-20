@@ -91,6 +91,20 @@ batch boundary.
 - **smoke_economy re-greened**: style purses pay the DIRTY pool now
   (bible 4G street money); the style-meter mirror reads the total.
 
+- **B7 friends/trust (4D)**: smoke_friends (30 checks)
+  - the invite flow end-to-end (Ledger chip -> phone closes -> beat
+    spent -> hangout overlay), the three timing grades pay 15/15/8,
+    all four themes open, the promise path (bank -> dedup to one open
+    ask -> redeem + '(a promise kept)'), the three blocked chips
+    (STOPPED CALLING / STREET'S HOT / NO BEATS), the tier rules
+    (Close saves the knockdown once, Drifting hesitates through the
+    first, Estranged never), the player hook driven by a real
+    guard-broken take_hit (saved = no offer; spent = offer shows),
+    and the calm reset after 8s. Suite lessons: hand-set enemy states
+    bounce back to IDLE (freeze physics first); Trust 30 is the
+    Drifting floor, not Estranged; the player's knockdown evidence is
+    the retry offer, not the state enum.
+
 - **B4.2 accessibility four (bible 7)**: block_hold_ms (Tuning) is the
   hold-DODGE->block threshold and the input bus's tap-vs-hold split
   reads the same key (they can never disagree); autotarget_mult

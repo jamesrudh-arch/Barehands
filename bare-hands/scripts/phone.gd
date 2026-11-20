@@ -304,7 +304,9 @@ func choose(option: String) -> void:
 			_log_entry({"caller": caller_id(), "kind": call_kind(),
 				"outcome": "refused"})
 		"in":
-			_promises.append({"caller": caller_id(), "kind": call_kind()})
+			# one open promise per friend: they will not stack asks
+			if not _promises.any(func(p): return p.get("caller") == caller_id()):
+				_promises.append({"caller": caller_id(), "kind": call_kind()})
 			_log_entry({"caller": caller_id(), "kind": call_kind(),
 				"outcome": "promised"})
 		"out":
@@ -380,6 +382,19 @@ func log_entries() -> Array:
 
 func promises() -> Array:
 	return _promises
+
+
+## A hangout with them pays the promise off (bible 4D, batch 7).
+## True when there was one to keep; the log records it either way.
+func redeem_promise(friend: String) -> bool:
+	var had := false
+	for p in _promises.duplicate():
+		if p.get("caller") == friend:
+			_promises.erase(p)
+			had = true
+	if had:
+		_log_entry({"caller": friend, "kind": "hangout", "outcome": "redeemed"})
+	return had
 
 
 func has_visited(district: String) -> bool:

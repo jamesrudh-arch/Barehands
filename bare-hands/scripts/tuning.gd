@@ -45,6 +45,9 @@ const DEFAULTS := {
 	"s_rank_cut": 0.05,  # each banked S-rank cuts 5% of the balance
 	"launder_cut": 0.20,  # the Club Owner's take (bible 4G)
 	"pay_chip": 100,  # the Ledger screen's quick-pay chip
+	"hangout_trust": 15.0,  # the bible's +15 per hangout (4D)
+	"hangout_wide_trust": 8.0,  # first pass: a botched timing still counts, barely
+	"hangout_sweep_s": 1.2,  # one sweep of the timing marker, seconds
 	"posture_regen_per_s": 20.0,
 	"posture_break_seconds": 2.8,  # the finisher window
 	"attack_tokens_ring": 2.0,  # bible 4A: max concurrent attackers, 3-4 engaged
