@@ -51,7 +51,17 @@ const DEFAULTS := {
 	"kidnap_days": 3,  # days before they stop feeding them
 	"kidnap_ransom": 1200,  # the cold call's price
 	"kidnap_payoff": 3000,  # the devil's offer
-	"kidnap_enemy_floor": 1.5,  # permanent enemy: heat never cools below  # real minutes a beat lasts if nothing spends it
+	"kidnap_enemy_floor": 1.5,  # permanent enemy: heat never cools below
+	"fixer_at": 2.2,  # heat where the fixer texts (once a day)
+	"fixer_base": 150,  # his opening price
+	"fixer_per_heat": 100,  # ...plus this per point of heat
+	"copy_at": 4.5,  # "the war": someone studied your tape
+	"copy_cooldown_msec": 90000,  # the next tape-student waits
+	"copy_hp_base": 6,  # the copy starts here ...
+	"witness_mult": 1.5,  # 2+ wanderers watching: violence costs more
+	"alley_mult": 0.6,  # nobody watching: it slides
+	"hollow_wary_markup": 0.08,  # wary shelves are thin
+	"hollow_turning_markup": 0.12,  # turning hostile: they're empty  # real minutes a beat lasts if nothing spends it
 	"s_rank_cut": 0.05,  # each banked S-rank cuts 5% of the balance
 	"launder_cut": 0.20,  # the Club Owner's take (bible 4G)
 	"pay_chip": 100,  # the Ledger screen's quick-pay chip

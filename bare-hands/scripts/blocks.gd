@@ -230,13 +230,14 @@ func _memorial(parent: Node3D, local: Vector3) -> void:
 	g.add_child(note)
 
 
-## A hostile block boards its shop fronts (bible 6: damage layer).
+## A hostile block boards its shop fronts (bible 6: damage layer);
+## a hollow one closes its doors too (bible 4I: doors close).
 func _planks_if_hostile(id: String) -> void:
 	var root: Node = _main if id == "riverside" else _built.get(id)
 	if not root or _planked.get(id, false):
 		return
 	var mood := City.mood_of(id)
-	if mood != "hostile" and mood != "turning hostile":
+	if not ["hostile", "turning hostile", "wary"].has(mood):
 		return
 	_planked[id] = true
 	for shop in get_tree().get_nodes_in_group("shopfront"):
@@ -252,7 +253,11 @@ func _planks_if_hostile(id: String) -> void:
 			mat.albedo_color = Color(0.35, 0.26, 0.15)
 			m.material = mat
 			plank.mesh = m
-			plank.position = shop.global_position + shop.get_meta(
+			# plank.position is LOCAL to the block root (which sits at
+			# BLOCK_X) - shop.position is the same frame; using the
+			# global here doubled the offset and threw planks a whole
+			# block over on market/foundry
+			plank.position = (shop as Node3D).position + shop.get_meta(
 					"plank_off", Vector3(0, 0.6, 0.3))
 			plank.rotation = shop.rotation
 			root.add_child(plank)

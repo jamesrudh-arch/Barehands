@@ -131,6 +131,12 @@ func show_gun_offer(on_take: Callable, on_leave: Callable) -> void:
 	body.custom_minimum_size = Vector2(400, 0)
 	col.add_child(body)
 
+	var heat_line := Label.new()
+	heat_line.text = "HEAT .......... %s (%.1f)" % [Heat.tier_name(), Heat.heat]
+	heat_line.add_theme_font_size_override("font_size", 17)
+	heat_line.add_theme_color_override("font_color", Color(1.0, 0.65, 0.45))
+	col.add_child(heat_line)
+
 	var price := Label.new()
 	price.text = "BULLET ........ $%d" % Wallet.bullet_cost()
 	price.add_theme_font_size_override("font_size", 17)

@@ -69,6 +69,13 @@ func _earnings() -> void:
 
 func _heat_cycle() -> void:
 	Heat.heat = 0.0
+	# B12: crowds are witnesses (x1.5), alleys are not (x0.6) - exactly
+	# one pair of eyes keeps the old arithmetic honest
+	var one_eye := Node3D.new()
+	one_eye.add_to_group("wanderer")
+	var pp := get_tree().get_first_node_in_group("player") as Node3D
+	one_eye.position = (pp.global_position if pp else Vector3.ZERO) + Vector3(3, 0, 0)
+	add_child(one_eye)
 	Heat.on_violence("knockdown")
 	Heat.on_violence("shot")
 	Heat.on_violence("hit")
@@ -78,6 +85,7 @@ func _heat_cycle() -> void:
 	_check(Heat.heat == 5.0, "heat caps at 5 (%.1f)" % Heat.heat)
 	var stars: int = Heat.stars()
 	_check(stars == 5, "five stars (%d)" % stars)
+	one_eye.queue_free()
 	# the HUD stars label follows
 	var heat_label: Label = _style.get_node_or_null("HeatLabel")
 	_check(heat_label and heat_label.text == "HEAT  *****", "heat stars on the HUD (%s)" % (heat_label.text if heat_label else "none"))

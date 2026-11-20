@@ -193,7 +193,15 @@ func remember(d: String, event: String) -> void:
 func last_heard(d: String) -> String:
 	if witnessed[d].is_empty():
 		return ""
-	return "They say " + witnessed[d][-1].event + "."
+	# rumors distort over retellings (bible 4I): the street grows the
+	# story every time a beat is spent on it
+	var e: Dictionary = witnessed[d][-1]
+	var tells := int(e.get("tells", 0))
+	if tells >= 3:
+		return "They SWEAR " + str(e.event) + " - and the number is bigger now."
+	if tells >= 1:
+		return "They say " + str(e.event) + ". It grows every telling."
+	return "They say " + str(e.event) + "."
 
 
 ## The street forgets slowly (world sim): rumors older than the
@@ -313,7 +321,14 @@ func price_mult(pos: Vector3) -> float:
 		m += 0.15
 	if Heat.heat >= 4.0:
 		m += 0.10
-	return clampf(m, 0.8, 1.4)
+	# a hollow block is an expensive block (bible 4I: prices rise,
+	# doors close): wary shelves are thin, turning hostile they're empty
+	var mood := mood_of(d)
+	if mood == "wary":
+		m += float(Tuning.v("hollow_wary_markup"))
+	elif mood == "turning hostile":
+		m += float(Tuning.v("hollow_turning_markup"))
+	return clampf(m, 0.8, 1.5)
 
 
 func greeting(pos: Vector3) -> String:
@@ -330,6 +345,11 @@ func greeting(pos: Vector3) -> String:
 		line = "You're trouble. Trouble pays full price."
 	else:
 		line = "New face. Standard prices."
+	var mood := mood_of(d)
+	if mood == "wary" and not hostile.get(d, false):
+		line = "Shelves are thinning. The prices aren't mine anymore."
+	elif mood == "turning hostile":
+		line = "We close early now. You know why."
 	var heard := last_heard(d)
 	if heard != "":
 		line += "  " + heard

@@ -106,6 +106,7 @@ func spend_beat(what: String) -> bool:
 	if beats_left <= 0 or defaulted:
 		return false
 	beats_left -= 1
+	Reactive.on_beat_spent()  # retellings distort rumors (bible 4I)
 	Log.info("Ledger: beat spent on %s (%d left)" % [what, beats_left])
 	changed.emit()
 	return true

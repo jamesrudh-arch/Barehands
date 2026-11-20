@@ -55,8 +55,34 @@ func _enemy_floor() -> void:
 		heat = float(Tuning.v("kidnap_enemy_floor"))
 
 
+## The named ladder (bible 4I): the HUD and the radio read it.
+func tier_name() -> String:
+	if heat >= Tuning.v("copy_at"):
+		return "the war"
+	if heat >= 4.0:
+		return "hunted"
+	if heat >= 2.0:
+		return "marked"
+	if heat >= 1.0:
+		return "talked about"
+	return "quiet"
+
+
 func add(amount: float) -> void:
 	var was := heat
+	# crowds are witnesses, alleys are not (bible 4I): a street with
+	# eyes pays you back, an empty one lets it slide
+	var p := get_tree().get_first_node_in_group("player") as CharacterBody3D
+	if p and amount > 0.0:
+		var eyes := 0
+		for w in get_tree().get_nodes_in_group("wanderer"):
+			if (w as Node3D).global_position.distance_to(
+					p.global_position) < 10.0:
+				eyes += 1
+		if eyes >= 2:
+			amount *= float(Tuning.v("witness_mult"))
+		elif eyes == 0:
+			amount *= float(Tuning.v("alley_mult"))
 	heat = clampf(heat + amount, 0.0, MAX)
 	if not is_equal_approx(heat, was):
 		changed.emit(heat)

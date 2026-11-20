@@ -21,6 +21,7 @@ var _said := ""
 
 
 func spawn() -> void:
+	add_to_group("wanderer")
 	position = home
 	_pick_target()
 	var rig := NpcRig.new()

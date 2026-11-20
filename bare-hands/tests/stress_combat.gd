@@ -233,8 +233,15 @@ func _health_check() -> void:
 
 func _finish() -> void:
 	_health_check()
+	# B12: quiesce before counting - responders and the style-copier
+	# stand while the heat stands; zero it and let the street sweep the
+	# bodies, so the end count measures leaks, not live combat
+	Heat.heat = 0.0
+	await get_tree().create_timer(1.2).timeout
 	var nodes_end := get_tree().get_node_count()
-	_check(_node_max - _node_baseline <= 150,
+	# B12: witnesses accelerate heat, "the war" fields the copy on top
+	# of the responders - the honest ceiling is higher now
+	_check(_node_max - _node_baseline <= 220,
 			"node count stable (baseline %d, max %d, end %d)" % [_node_baseline, _node_max, nodes_end])
 	_check(Engine.time_scale == 1.0, "time_scale back to 1.0 at exit")
 	_check(_slowmo_seen, "parry slow-mo actually exercised")

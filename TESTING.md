@@ -106,6 +106,22 @@ batch boundary.
   street furniture (depenetration shoves the player out of touch
   range).
 
+- **B12 reactive city**: smoke_reactive (38 checks) - the tier
+  ladder names, the style ledger (via hit_landed signals), crowd
+  witnesses vs empty alleys, the fixer (marker, exact price, broke
+  mockery, once-a-day, pay resets heat), the style-copier (kind
+  mirrors your style, hp eats your landed hits, cooldown), hollow
+  prices and greetings, wary-block planks, beat-driven rumor
+  distortion, the radio recap quoting real state, persistence.
+  Found a real B6 bug: planks placed at shop.global_position as a
+  LOCAL offset - market/foundry boards rendered a whole block over;
+  now anchored to the block frame. Suite lessons: node_added fires
+  before scene groups apply (connect by signal presence);
+  district_at follows the feet (travel before price checks);
+  cross-block teleports race the leash; downed bodies stay valid
+  instances; heat decays during long waits (loose tolerances); wire
+  scripts must be idempotent AND insertion-safe.
+
 - **B10 battery regressions**: (1) the map grew TAKE buttons - the
   B8 'one button only' assertion kept its intent (no fast travel) and
   now allows TAKE+BACK. (2) stress_combat died once and a buffered

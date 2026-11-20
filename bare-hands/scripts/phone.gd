@@ -128,6 +128,7 @@ const LEDGER_SENDERS := {
 	"corp": {"name": "The Corporation", "color": Color(0.4, 0.75, 1.0)},
 	"crew": {"name": "The Crew", "color": Color(0.9, 0.8, 0.35)},
 	"kidnapper": {"name": "UNKNOWN NUMBER", "color": Color(0.8, 0.55, 0.3)},
+	"fixer": {"name": "THE FIXER", "color": Color(0.35, 0.85, 0.5)},
 }
 
 

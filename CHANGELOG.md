@@ -1,5 +1,32 @@
 # CHANGELOG.md — batch history (newest first)
 
+## B12 — the reactive city (2026-11-20)
+- The street answers (bible 4I). Heat gets names - quiet, talked
+  about, marked, hunted, THE WAR - on the cash panel and in the
+  world's mouth.
+- At "marked" THE FIXER texts his price ($150 + $100 a point of
+  heat) and waits at the market gate. Pay and tonight never
+  happened; show up broke and he laughs at you. Once a day.
+- At "the war" someone who studied your tape walks in. Kick-heavy,
+  he leads with the blade; punch-heavy, he counters like a boxer -
+  and his health has eaten as many hits as you've landed. The
+  radio warned you first.
+- Crowds are witnesses (violence in front of two-plus people costs
+  half again), alleys are not (an empty street lets it slide).
+- The radio recaps what actually happened: yesterday's real peak
+  heat (hot enough and you're "the bare-handed man AGAIN"), your
+  real style, the street's live version of events.
+- Every beat spent retells a rumor, and rumors grow with the
+  retellings: "they say" becomes "it grows every telling" becomes
+  "they SWEAR - and the number is bigger now."
+- Hollow blocks charge for their thin shelves (+8% wary, +12%
+  turning hostile) and the shopkeepers tell you why; wary blocks
+  board up their windows now too. Also fixed a real B6 bug the
+  suite caught: market and foundry planks rendered a whole block
+  over (a global/local frame mixup that riverside's origin
+  position hid).
+- smoke_reactive: 38 green. Docs: STATE/TESTING/CHANGELOG.
+
 ## B11 — the kidnap arc (2026-11-20)
 - The story spine (bible 4H). From day 3, if someone matters enough
   (trust 40+), an UNKNOWN NUMBER calls: they took the one you trust

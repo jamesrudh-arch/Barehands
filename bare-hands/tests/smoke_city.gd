@@ -116,10 +116,11 @@ func _shopkeep() -> void:
 	_check(absf(m_friendly - 0.85) < 0.01, "high rep prices at 0.85x (%.2f)" % m_friendly)
 	City.rep["market"] = -40.0
 	var m_wary: float = City.price_mult(Vector3(0, 0, 0))
-	_check(absf(m_wary - 1.15) < 0.01, "bad rep prices at 1.15x (%.2f)" % m_wary)
+	# B12: a wary block charges for its thin shelves too (+8%)
+	_check(absf(m_wary - 1.23) < 0.01, "bad rep prices at 1.23x (%.2f)" % m_wary)
 	Heat.heat = 4.5
 	var m_hot: float = City.price_mult(Vector3(0, 0, 0))
-	_check(absf(m_hot - 1.25) < 0.01, "heat adds 10%% (%.2f)" % m_hot)
+	_check(absf(m_hot - 1.33) < 0.01, "heat adds 10%% (%.2f)" % m_hot)
 	Heat.heat = 0.0
 	# greetings by reputation, with a witnessed memory
 	City.rep["market"] = 45.0
