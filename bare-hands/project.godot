@@ -42,6 +42,7 @@ WorldSim="*res://scripts/world_sim.gd"
 Jobs="*res://scripts/jobs.gd"
 Kidnap="*res://scripts/kidnap.gd"
 Reactive="*res://scripts/reactive.gd"
+Backroom="*res://scripts/backroom.gd"
 
 [display]
 

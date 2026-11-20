@@ -61,6 +61,22 @@ const DEFAULTS := {
 	"witness_mult": 1.5,  # 2+ wanderers watching: violence costs more
 	"alley_mult": 0.6,  # nobody watching: it slides
 	"hollow_wary_markup": 0.08,  # wary shelves are thin
+	"launder_daily_drifting": 600,  # at trust "drifting" he moves this a day
+	# (launder_cut 0.20 already lives below - kept from the B6 economy pass)
+	"palm_perfect_shift": 2,  # a clean palm bends the die this much
+	"palm_good_shift": 1,  # a sloppy palm, half the bend
+	"sleight_sweep_s": 1.4,  # the sleight window's sweep time
+	"suspicion_ban": 4,  # the pit boss's count before the door shuts
+	"suspicion_heat": 1.0,  # getting caught costs this much heat
+	"watched_at_1": 400,  # winnings where the pit boss asks your name
+	"watched_at_2": 1000,  # winnings where the room closes on you
+	"watched_heat_1": 0.5,  # being asked about costs this
+	"watched_heat_2": 1.5,  # being known costs more
+	"watched_rep_cost": 10.0,  # the club doesn't like being beaten
+	# (subtracted from market rep - tuning values stay >= 0)
+	"dirty_spend_surcharge": 0.25,  # shops charge this on the dirty part
+	"dirty_burn_min": 1000,  # a pocket this full gets noticed overnight
+	"dirty_burn_heat": 0.3,  # ...and this hot by morning
 	"hollow_turning_markup": 0.12,  # turning hostile: they're empty  # real minutes a beat lasts if nothing spends it
 	"s_rank_cut": 0.05,  # each banked S-rank cuts 5% of the balance
 	"launder_cut": 0.20,  # the Club Owner's take (bible 4G)

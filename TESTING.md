@@ -122,6 +122,24 @@ batch boundary.
   instances; heat decays during long waits (loose tolerances); wire
   scripts must be idempotent AND insertion-safe.
 
+- **B13 dirty money**: smoke_backroom (42 checks) - the
+  laundering gate (strangers refused), the cut and the drifting
+  daily cap ($600, close = unlimited), overnight book reset,
+  seeded-dice determinism (seed() replay), palm shifts (none/
+  perfect/good/wide bend the roll and cost 0/1/2/3 hands), the
+  four-hand ban with heat, the watched thresholds ($400 asked-about,
+  $1000 room-closed with rep hit), the 25% dirty surcharge (only on
+  the dirty part; clean-covered spends untouched), the overnight
+  pocket burn, book/ban roundtrip, the door marker and the room
+  opening (walk-away closes it). Suite lessons: a backslash line
+  continuation followed by a lone leading % parses as node-path
+  syntax - keep format expressions on the string's line; overlay
+  panels must not pause the tree (timer deadlock in suites, and
+  walking away is a better leave); Phone texts live in _log via
+  log_entries() with caller/text keys; check tuning for dormant
+  keys before adding (launder_cut existed since B6); assertions
+  crossed by thresholds should sit above them, not at 999.
+
 - **B10 battery regressions**: (1) the map grew TAKE buttons - the
   B8 'one button only' assertion kept its intent (no fast travel) and
   now allows TAKE+BACK. (2) stress_combat died once and a buffered

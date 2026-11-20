@@ -30,10 +30,20 @@ func total() -> int:
 ## Spend from clean first, then dirty - a lender takes both, so does
 ## the street. False (and no entry) if the pockets do not reach.
 func spend(amount: int, item: String, kind := "purchase") -> bool:
+	var from_dirty := maxi(amount - cash, 0)
+	# dirty money burns a hole (bible 4G): a shop that takes street
+	# paper charges for not asking - 25% on the dirty part only
+	var surcharge := 0
+	if from_dirty > 0:
+		surcharge = int(ceil(from_dirty * float(Tuning.v("dirty_spend_surcharge"))))
+		amount += surcharge
 	if total() < amount:
 		Log.warn("Wallet: cannot spend $%d on %s (have $%d)" % [amount, item, total()])
 		return false
-	var from_dirty := maxi(amount - cash, 0)
+	if from_dirty > 0 and surcharge > 0:
+		Log.info("Wallet: $%d of that was dirty - $%d surcharge for not asking"
+				% [from_dirty, surcharge])
+	from_dirty = maxi(amount - cash, 0)
 	cash -= mini(amount, cash)
 	dirty -= from_dirty
 	_add(kind, item, -amount)

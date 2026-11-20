@@ -72,6 +72,10 @@ func _on_day_rolled(new_day: int, interest_charged: float, missed: bool) -> void
 	Jobs.on_day_rolled(new_day)
 	Kidnap.on_day_rolled(new_day)
 	Reactive.on_day_rolled(new_day)
+	Backroom.on_day_rolled(new_day)
+	var pocket: String = Backroom.dirty_pocket_line()
+	if pocket != "":
+		lines.append(pocket)
 	if _sleeping:
 		_pending = lines
 	elif _fighting():

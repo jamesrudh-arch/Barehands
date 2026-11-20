@@ -1,5 +1,25 @@
 # CHANGELOG.md — batch history (newest first)
 
+## B13 — dirty money (2026-11-20)
+- The Velvet Room's back room opens (bible 4G). Walk to the door in
+  the club quarter and the lamp-lit table is waiting.
+- LAUNDER: the club owner takes 20% to make street paper clean -
+  if he knows you. Win his darts first; at "drifting" he moves $600
+  a day, at "close" whatever you're carrying. The books reset at
+  midnight.
+- STAKES: hi-lo dice at $50/$200/$500, and a choice every roll -
+  palm the die in the timing window (the roll bends yours, but the
+  pit boss counts hands; four and you're out for the day, hot) or
+  play it straight and lose honest.
+- Winning big gets you watched: $400 and the pit boss asks your
+  name. $1000 and the club doesn't like being beaten - the room
+  closes, the heat climbs, the quarter remembers.
+- Dirty money burns a hole: spend it where cash runs short and the
+  dirty part pays 25% extra ("he charges for not asking"). Sleep on
+  $1000+ of it and the street sees the shape of it through your
+  coat by morning.
+- smoke_backroom: 42 green. Docs: STATE/TESTING/CHANGELOG.
+
 ## B12 — the reactive city (2026-11-20)
 - The street answers (bible 4I). Heat gets names - quiet, talked
   about, marked, hunted, THE WAR - on the cash panel and in the
