@@ -91,6 +91,31 @@ batch boundary.
 - **smoke_economy re-greened**: style purses pay the DIRTY pool now
   (bible 4G street money); the style-meter mirror reads the total.
 
+- **B9 world sim**: smoke_worldsim (25 checks) - a mid-fight day-turn
+  is a toast, a calm turn (and sleep) shows the report card; interest
+  closes the books, a day closed with interest unpaid is a missed
+  payment, heat cools a star, friends text (Estranged silent),
+  skipped friends drift while contact exempts, rumors age out of
+  retelling, scars survive the night, the sleep path runs through the
+  real panel button and saves. Suite lessons: an early day close MUST
+  reset the day accumulator or the timer double-rolls the day (the
+  arithmetic caught it: heat cooled twice); lazily-created UI nodes
+  cannot be cached at boot (fetch the group each time); the training
+  dummy is in the enemy group - a 'fighting' check must filter kind,
+  or every day turns into a toast.
+
+- **B9 regressions caught by the battery**: (1) logic suites run
+  without a scene - district_at returned an empty district before the
+  first walk and BLOCK_X[""] crashed every violence report (37 errors
+  in smoke_economy that still PASSED); the home block is the default
+  answer. (2) The tuning sanity test requires every knob >= 0 -
+  deltas are stored as magnitudes, the sign lives in code.
+  (3) stress_combat exposed a latent heat.gd bug: passing a FREED
+  responder to a typed function errors at parameter binding, the
+  erase inside never runs, and the dead entry errors every physics
+  frame forever (15k errors, suite timeout) - freed objects are
+  erased inline, never handed to typed signatures.
+
 - **B8 the district (6)**: smoke_district (44 checks)
   - boot fog (home never fogged, others fogged), the full walk
     1->2->3->2->1 through gates with fades and arrival-spot checks,

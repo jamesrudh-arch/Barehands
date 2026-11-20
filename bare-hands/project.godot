@@ -38,6 +38,7 @@ Phone="*res://scripts/phone.gd"
 Ledger="*res://scripts/ledger.gd"
 FriendHelp="*res://scripts/friend_help.gd"
 Blocks="*res://scripts/blocks.gd"
+WorldSim="*res://scripts/world_sim.gd"
 
 [display]
 

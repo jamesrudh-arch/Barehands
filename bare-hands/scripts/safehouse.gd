@@ -76,7 +76,8 @@ func _open() -> void:
 	status.add_theme_color_override("font_color", Color(0.7, 0.75, 0.7))
 	col.add_child(status)
 
-	var choices: Array = [["SAVE", _save], ["LOAD", _load]]
+	var choices: Array = [["SAVE", _save], ["LOAD", _load],
+			["SLEEP - end the day", _sleep]]
 	for choice in choices:
 		var b := Button.new()
 		b.text = choice[0]
@@ -104,6 +105,13 @@ func _open() -> void:
 	close.pressed.connect(_close)
 	col.add_child(close)
 	Sound.play("creak_0", -8.0)
+
+
+## Sleep: forfeit the day's leftover beats, close the books, save,
+## and wake to the morning report (the world sim owns the night).
+func _sleep() -> void:
+	_close()
+	WorldSim.sleep()
 
 
 func _save() -> void:

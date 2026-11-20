@@ -199,6 +199,9 @@ func answer() -> bool:
 		return false
 	_last_caller = _ring_caller
 	_last_kind = _ring_kind
+	# an answered call is seeing them (world sim: days of silence drift)
+	if Trust.FRIENDS.has(_last_caller):
+		Trust.note_interaction(_last_caller)
 	_ring_caller = ""
 	_call_line_i = 0
 	_call_logged = false

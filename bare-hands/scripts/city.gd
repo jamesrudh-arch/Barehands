@@ -64,7 +64,11 @@ func district_now() -> String:
 
 func district_at(pos: Vector3) -> String:
 	# batch 8: one block = one district; the walk sets _district_now
-	# authoritatively and everything reads the same answer
+	# authoritatively and everything reads the same answer. Logic
+	# suites run without a scene - before the first walk, the home
+	# block answers, never an empty string.
+	if _district_now.is_empty():
+		return "riverside"
 	return _district_now
 
 
@@ -175,7 +179,8 @@ func add_rep(d: String, amount: float, event := "") -> void:
 
 
 func remember(d: String, event: String) -> void:
-	witnessed[d].append({"event": event, "time": Time.get_time_string_from_system()})
+	witnessed[d].append({"event": event,
+			"time": Time.get_time_string_from_system(), "day": Ledger.day})
 	if witnessed[d].size() > 8:
 		witnessed[d] = witnessed[d].slice(witnessed[d].size() - 8)
 
@@ -184,6 +189,22 @@ func last_heard(d: String) -> String:
 	if witnessed[d].is_empty():
 		return ""
 	return "They say " + witnessed[d][-1].event + "."
+
+
+## The street forgets slowly (world sim): rumors older than the
+## tuning's days stop being retold. Returns how many were let go.
+func age_rumors(new_day: int) -> int:
+	var keep_days := int(Tuning.v("rumor_age_days"))
+	var pruned := 0
+	for d in DISTRICTS:
+		var keep: Array = []
+		for e in witnessed[d]:
+			if int(e.get("day", 1)) >= new_day - keep_days:
+				keep.append(e)
+			else:
+				pruned += 1
+		witnessed[d] = keep
+	return pruned
 
 
 # --- hostility -----------------------------------------------------------------------

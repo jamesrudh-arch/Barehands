@@ -20,6 +20,10 @@ extends Node
 ## inside fights, scarred style, kill-switches - see STATE.json.
 
 signal changed()
+## The day closed (beats out, or slept away): new day number, the
+## interest that day cost, and whether the payment was missed. The
+## world sim listens and turns the city over.
+signal day_rolled(new_day: int, interest_charged: float, missed: bool)
 
 const BEATS := ["DUSK", "MIDNIGHT", "3 AM"]
 
@@ -109,17 +113,28 @@ func spend_beat(what: String) -> bool:
 
 func _day_end() -> void:
 	# interest already accrued continuously; the day just closes the books
+	var charged := _interest_today
+	var missed := false
 	if _paid_today + 0.5 < _interest_today:
 		_miss_payment()
+		missed = true
 	_interest_today = 0.0
 	_paid_today = 0.0
+	_day_acc = 0.0  # an early close must not let the timer fire again
 	day += 1
 	beats_left = 3  # the new day's three beats (Dusk, Midnight, 3 AM)
 	Phone.push_text("family",
 			"The Family: \"Day %d closes. The numbers wait for no one.\"" % day)
 	Haptics.fire("tick")  # the faint debt-tick pulse (bible 7)
 	_tick_count += 1
+	day_rolled.emit(day, charged, missed)
 	changed.emit()
+
+
+## Sleep at the safehouse: close the day early. Leftover beats never
+## carry over - the bible's budget has no banking.
+func end_day_early() -> void:
+	_day_end()
 
 
 func _miss_payment() -> void:

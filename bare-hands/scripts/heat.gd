@@ -73,7 +73,12 @@ func on_violence(kind: String, pos: Vector3 = Vector3.ZERO) -> void:
 func _response(_delta: float, p: CharacterBody3D) -> void:
 	# the response only stands while the heat stands
 	for r in _responders.duplicate():
-		if not is_instance_valid(r) or r.state == Enemy.State.DOWN:
+		# a freed responder must be dropped WITHOUT being passed to a
+		# typed function - the bind itself errors and the erase never
+		# runs, so the dead entry would error every frame forever
+		if not is_instance_valid(r):
+			_responders.erase(r)
+		elif r.state == Enemy.State.DOWN:
 			_responder_gone(r)
 		elif heat < 1.0:
 			(r as Node).queue_free()

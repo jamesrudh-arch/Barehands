@@ -1,5 +1,28 @@
 # CHANGELOG.md — batch history (newest first)
 
+## B9 — the world sim (2026-11-20)
+- The day turns and the city answers. When the Ledger closes a day -
+  the beats burnt out, or slept away - heat cools a notch, one or two
+  friends text overnight (the Estranged stay silent; they stopped
+  calling), friends you keep skipping drift a little further, and the
+  street's rumors age out of retelling. The morning report says what
+  changed: yesterday's interest, missed-payment warnings, the stars
+  the night took off you, who texted, who went quiet, what the street
+  let go.
+- Sleep at the safehouse: the panel's new SLEEP button forfeits the
+  day's leftover beats (they never carry over - the bible's budget),
+  closes the books, saves, and wakes you to the report.
+- A day that turns mid-fight applies everything but stays a short
+  toast - the report never traps you in a menu. The training dummy
+  never counts as a fight.
+- Under the hood: the Ledger broadcasts day_rolled(day, interest,
+  missed); an answered call or a hangout marks a friend as seen;
+  rumor memories carry the day they were made; the trust save carries
+  the days too (old saves still load). Fixed for real: an early day
+  close left the day accumulator running, so the timer rolled the
+  day twice - interest, missed payments and heat all double-counted.
+- smoke_worldsim: 25 green. Docs: STATE/TESTING/CHANGELOG.
+
 ## B8 — the district (2026-11-20)
 - Three blocks, walked: Riverside Row (your block), the Club Quarter
   (club fronts, the IRON PALM gym, the Mechanic's garage), the Docks

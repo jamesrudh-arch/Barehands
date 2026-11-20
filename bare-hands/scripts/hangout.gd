@@ -218,6 +218,7 @@ func lock() -> void:
 	if grade == "WIDE":
 		trust_gain = Tuning.v("hangout_wide_trust")
 	Trust.add(friend, trust_gain, "hangout: %s (%s)" % [_theme["game"], grade])
+	Trust.note_interaction(friend)  # a hangout is seeing them
 	var promised := Phone.redeem_promise(friend)
 	var who: String = Trust.FRIENDS[friend]["name"]
 	var text := "%s - %s" % [grade, _theme[grade.to_lower()]]

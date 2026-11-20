@@ -30,11 +30,35 @@ const DECLINED_CALL := -6.0
 const REFUSED_DEMAND := -4.0
 
 var _t: Dictionary = {}  # friend id -> 0..100
+var _last_seen: Dictionary = {}  # friend id -> the day they last saw you
 
 
 func _ready() -> void:
 	for id in FRIENDS:
 		_t[id] = 70.0
+		_last_seen[id] = 1
+
+
+## Any real contact - an answered call, a hangout - marks the friend
+## as seen today, so days of silence are the only thing that drifts.
+func note_interaction(friend: String) -> void:
+	if FRIENDS.has(friend):
+		_last_seen[friend] = Ledger.day
+
+
+## The bible's 30-minute loop: skipping friends lowers trust. A friend
+## you've not seen for two days drifts - Estranged friends don't
+## bother anymore. Returns who drifted, for the morning report.
+func day_rolled(new_day: int) -> Array:
+	var drifted: Array = []
+	for id in FRIENDS:
+		if tier(id) == "Estranged":
+			continue
+		if int(_last_seen.get(id, 0)) < new_day - 1:
+			add(id, -absf(float(Tuning.v("trust_skip_drift"))),
+					"days without a word")
+			drifted.append(FRIENDS[id]["name"])
+	return drifted
 
 
 func value(friend: String) -> float:
@@ -74,15 +98,20 @@ func callers() -> Array:
 
 
 func to_dict() -> Dictionary:
-	return _t.duplicate()
+	return {"values": _t.duplicate(), "last_seen": _last_seen.duplicate()}
 
 
 func from_dict(d: Dictionary) -> void:
+	var values: Dictionary = d.get("values", d)  # pre-B9 saves are flat
 	for id in FRIENDS:
-		if d.has(id):
-			_t[id] = clampf(float(d[id]), 0.0, 100.0)
+		if values.has(id):
+			_t[id] = clampf(float(values[id]), 0.0, 100.0)
+	var seen: Dictionary = d.get("last_seen", {})
+	for id in FRIENDS:
+		_last_seen[id] = int(seen.get(id, 1))
 
 
 func reset_for_test() -> void:
 	for id in FRIENDS:
 		_t[id] = 70.0
+		_last_seen[id] = 1

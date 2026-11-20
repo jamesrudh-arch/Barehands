@@ -41,7 +41,10 @@ const DEFAULTS := {
 	"debt_start_corp": 1500.0,  # the Corporation's slice at boot
 	"rate_family": 0.03,  # Family interest per day (bible 14)
 	"rate_corp": 0.08,  # Corporation interest per day
-	"beat_real_seconds": 360.0,  # real minutes a beat lasts if nothing spends it
+	"beat_real_seconds": 360.0,
+	"overnight_heat_cool": 1.0,  # stars the night takes off (world sim)
+	"trust_skip_drift": 2.0,  # magnitude: what a day unseen costs a Warm+ friend (the sign lives in trust.gd)
+	"rumor_age_days": 2,  # days a street rumor stays in retelling  # real minutes a beat lasts if nothing spends it
 	"s_rank_cut": 0.05,  # each banked S-rank cuts 5% of the balance
 	"launder_cut": 0.20,  # the Club Owner's take (bible 4G)
 	"pay_chip": 100,  # the Ledger screen's quick-pay chip
