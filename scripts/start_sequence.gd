@@ -186,6 +186,13 @@ func _notice() -> void:
 
 func _title_card() -> void:
 	phase = Phase.TITLE
+	# the 3D key art (Part 0B): the extruded LEVERAGE + the cast rise
+	# behind this card; the 2D wordmark only draws if the stage fell back
+	var stage := get_tree().get_first_node_in_group("title_stage")
+	var stage_3d := false
+	if stage and stage.has_method("show_title"):
+		stage.call("show_title")
+		stage_3d = bool(stage.call("is_3d"))
 	# the LIVE neon street is the skyline behind the wordmark: dim, not
 	# black; the opening fly is already running under this layer
 	_dim.color = Color(0.01, 0.01, 0.03, 0.62)
@@ -194,20 +201,22 @@ func _title_card() -> void:
 	_title_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_title_root)
 	# LEVERAGE: three offset copies - cyan left, magenta right, white
-	# centre (the chromatic split), heavy condensed sans
-	for spec in [
-		{"c": Color(0.2, 0.95, 1.0), "off": -5, "a": 0.92, "o": 0},
-		{"c": Color(1.0, 0.2, 0.75), "off": 5, "a": 0.92, "o": 0},
-		{"c": Color(0.97, 0.99, 1.0), "off": 0, "a": 1.0, "o": 4},
-	]:
-		var l := _full_label("LEVERAGE", 92, spec["c"], 240, 350, spec["off"],
-				"sans", true)
-		l.name = "TitleOff%s" % spec["off"]
-		l.modulate.a = spec["a"]
-		if int(spec["o"]) > 0:
-			l.add_theme_color_override("font_outline_color", Color(0.02, 0.02, 0.05))
-			l.add_theme_constant_override("outline_size", 4)
-		_title_root.add_child(l)
+	# centre (the chromatic split), heavy condensed sans. In 3D mode the
+	# TextMesh IS the title; only the 2D fallback draws these.
+	if not stage_3d:
+		for spec in [
+			{"c": Color(0.2, 0.95, 1.0), "off": -5, "a": 0.92, "o": 0},
+			{"c": Color(1.0, 0.2, 0.75), "off": 5, "a": 0.92, "o": 0},
+			{"c": Color(0.97, 0.99, 1.0), "off": 0, "a": 1.0, "o": 4},
+		]:
+			var l := _full_label("LEVERAGE", 92, spec["c"], 240, 350, spec["off"],
+					"sans", true)
+			l.name = "TitleOff%s" % spec["off"]
+			l.modulate.a = spec["a"]
+			if int(spec["o"]) > 0:
+				l.add_theme_color_override("font_outline_color", Color(0.02, 0.02, 0.05))
+				l.add_theme_constant_override("outline_size", 4)
+			_title_root.add_child(l)
 	_title_root.add_child(_full_label("Everyone has leverage on you.", 20,
 			Color(0.85, 0.87, 0.95), 370, 400, 0))
 	_title_root.add_child(_full_label("A %s production" % STUDIO_NAME, 14,
@@ -281,6 +290,11 @@ func _loading() -> void:
 func _show_menu() -> void:
 	phase = Phase.MENU
 	_dim.color = Color(0.01, 0.01, 0.03, 0.45)
+	# the 3D key art stays behind the menu (Part 0B.5): the cast + logo
+	# hold the frame while the buttons sit over them
+	var stage := get_tree().get_first_node_in_group("title_stage")
+	if stage and stage.has_method("show_title") and not (stage as Node3D).visible:
+		stage.call("show_title")
 	Music.set_menu_mode(true)
 	InputBus.locked = true
 	if _skip:
@@ -399,6 +413,10 @@ func _leave_menu() -> void:
 	if _skip:
 		_skip.queue_free()
 		_skip = null
+	# hand the view back from the 3D title stage to the follow camera
+	var stage := get_tree().get_first_node_in_group("title_stage")
+	if stage and stage.has_method("hide_title"):
+		stage.call("hide_title")
 	InputBus.locked = false
 	Music.set_menu_mode(false)
 	# snap past the opening fly - the guide owns the first minute now
