@@ -168,14 +168,14 @@ background_kind = 1
 background_color = Color(0.012, 0.014, 0.025, 1)
 ambient_light_source = 2
 ambient_light_color = Color(0.045, 0.055, 0.095, 1)
-tonemap_mode = 2
+tonemap_mode = 3
 fog_enabled = true
 fog_light_color = Color(0.028, 0.034, 0.06, 1)
 fog_density = 0.014
 glow_enabled = true
-glow_intensity = 0.70
-glow_bloom = 0.1
-glow_hdr_threshold = 1.05
+glow_intensity = 0.50
+glow_bloom = 0.05
+glow_hdr_threshold = 1.45
 adjustment_enabled = true
 adjustment_brightness = 1.0
 adjustment_contrast = 1.08
@@ -386,10 +386,10 @@ adjustment_saturation = 1.06
 
 [node name="Main" type="Node3D"]
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." groups=["world_env"]]
 environment = SubResource("env_night")
 
-[node name="Moon" type="DirectionalLight3D" parent="."]
+[node name="Moon" type="DirectionalLight3D" parent="." groups=["street_lights"]]
 rotation = Vector3(-1, 0.4, 0)
 light_color = Color(0.55, 0.65, 0.95, 1)
 light_energy = 0.25

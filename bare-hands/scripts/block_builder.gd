@@ -111,7 +111,9 @@ func _building(cx: float, cz: float, w: float, d: float, h: float,
 				wmat.albedo_color = Color(1.0, 0.82, 0.45)
 				wmat.emission_enabled = true
 				wmat.emission = Color(1.0, 0.7, 0.3)
-				wmat.emission_energy_multiplier = 1.4
+				# 0.85 stays under the 1.45 glow threshold: warm
+				# windows, not orange halos (the Xogot lesson)
+				wmat.emission_energy_multiplier = 0.85
 			else:
 				wmat.albedo_color = Color(0.04, 0.05, 0.08)
 			wmat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -120,7 +122,28 @@ func _building(cx: float, cz: float, w: float, d: float, h: float,
 			win.position = Vector3(cx - w / 2.0 + 1.2 + (i % 3) * 2.0,
 					1.6 + i * 3.0, cz + (d / 2.0 + 0.02 if cz < 0 else -(d / 2.0 + 0.02)))
 			win.rotation = Vector3(0, PI, 0) if cz < 0 else Vector3.ZERO
+			if lit:
+				win.add_to_group("emissive_window")
+				win.set_meta("base_energy", 0.85)
 			add_child(win)
+
+
+## A soft radial pool: transparent centre colour fading to nothing.
+## The Xogot lesson: a flat alpha quad reads as a pale square block
+## on Mobile; a radial gradient reads as light on wet asphalt.
+func _radial(color: Color, peak: float) -> GradientTexture2D:
+	var tex := GradientTexture2D.new()
+	tex.fill = GradientTexture2D.FILL_RADIAL
+	tex.fill_from = Vector2(0.5, 0.5)
+	tex.fill_to = Vector2(0.5, 0.0)
+	tex.width = 128
+	tex.height = 128
+	var grad := Gradient.new()
+	grad.set_color(0, Color(color.r, color.g, color.b, peak))
+	grad.set_color(1, Color(color.r, color.g, color.b, 0.0))
+	grad.add_point(0.55, Color(color.r, color.g, color.b, peak * 0.35))
+	tex.gradient = grad
+	return tex
 
 
 ## A lit shop front (kiosk): sign quad + door + glow on the ground.
@@ -145,6 +168,8 @@ func _front(label: String, pos: Vector3, color: Color, w := 3.0) -> void:
 	sign.text = label
 	sign.modulate = color
 	sign.font_size = 64
+	sign.outline_size = 10
+	sign.outline_modulate = Color(0.02, 0.02, 0.05)
 	sign.billboard = BaseMaterial3D.BILLBOARD_DISABLED
 	sign.position = Vector3(0, 3.4, 0.18)
 	if pos.z > 0:
@@ -154,7 +179,8 @@ func _front(label: String, pos: Vector3, color: Color, w := 3.0) -> void:
 	var gm := QuadMesh.new()
 	gm.size = Vector2(w, 1.4)
 	var gmat := StandardMaterial3D.new()
-	gmat.albedo_color = Color(color.r, color.g, color.b, 0.16)
+	gmat.albedo_color = Color(1, 1, 1, 0.55)
+	gmat.albedo_texture = _radial(color, 0.34)
 	gmat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	gmat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	gm.material = gmat
@@ -163,6 +189,7 @@ func _front(label: String, pos: Vector3, color: Color, w := 3.0) -> void:
 	glow.rotation = Vector3(-PI / 2.0, 0, 0)
 	if pos.z > 0:
 		glow.position = Vector3(0, 0.04, -1.2)
+	glow.add_to_group("decal")
 	g.add_child(glow)
 
 
@@ -207,13 +234,15 @@ func _market() -> void:
 		var stm := QuadMesh.new()
 		stm.size = Vector2(1.1, 0.8)
 		var stmat := StandardMaterial3D.new()
-		stmat.albedo_color = Color(0.02, 0.02, 0.03, 0.6)
+		stmat.albedo_color = Color(1, 1, 1, 0.8)
+		stmat.albedo_texture = _radial(Color(0.02, 0.02, 0.03), 0.75)
 		stmat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 		stmat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 		stm.material = stmat
 		stain.mesh = stm
 		stain.position = Vector3(o.x, 0.015, o.y)
 		stain.rotation = Vector3(-PI / 2.0, 0, randf() * PI)
+		stain.add_to_group("decal")
 		add_child(stain)
 	# the underpass mouth at the east end (bible 6: it connects 2-3)
 	_underpass(Vector3(16.5, 0, 0), -1)

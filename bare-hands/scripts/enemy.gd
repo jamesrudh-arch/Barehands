@@ -50,7 +50,7 @@ const TUNING := {
 }
 # per-kind identity: body tint + emission edge so silhouettes read at a glance
 const LOOK := {
-	0: [Color(0.55, 0.55, 0.6), 0.0],
+	0: [Color(0.62, 0.50, 0.36), 0.0],  # worn tan: a training dummy reads as gear, not a grey man
 	1: [Color(0.42, 0.30, 0.24), 0.0],
 	2: [Color(0.16, 0.17, 0.20), 0.06],  # gunmetal + faint edge
 	3: [Color(0.20, 0.16, 0.12), 0.0],   # wiry, dark leathers
@@ -85,6 +85,12 @@ func _ready() -> void:
 	# the difficulty screws (STREET = the bible's night, untouched)
 	max_hp = maxi(1, int(round(max_hp * Settings.diff_mult("hp"))))
 	hp = max_hp
+
+
+## The VISUAL DEBUG panel: silhouette edges on or off.
+func set_edge_glow(on: bool) -> void:
+	for m in _mats:
+		m.emission_energy_multiplier = _edge if on else 0.0
 
 
 func _apply_look() -> void:

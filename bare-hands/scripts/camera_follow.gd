@@ -38,6 +38,12 @@ func _ready() -> void:
 	look_at(pivot)
 
 
+## The VISUAL DEBUG panel sets height/distance and wants it NOW.
+func snap_framing() -> void:
+	_height_now = height
+	_dist_now = distance
+
+
 ## Impact shake: 0.2 jab, 0.35 cross, 0.9 slam.
 func shake(amount: float) -> void:
 	_shake = maxf(_shake, amount)

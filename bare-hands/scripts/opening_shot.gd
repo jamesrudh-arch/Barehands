@@ -21,13 +21,27 @@ var _ctrl := Vector3(7.0, 3.2, 2.0)
 var _look_from := Vector3(9.0, 6.0, -7.8)  # the amber annex + kiosk glow
 var _end := Vector3.ZERO
 var _look_to := Vector3.ZERO
+var _born_msec := 0
+
+
+func _recapture_end() -> void:
+	var pivot: Vector3 = _camera._pivot()
+	_end = pivot + Vector3(0.0, _camera.height, _camera.distance)
+	_look_to = get_node("../Player").global_position + Vector3.UP * 1.5
 
 
 func _ready() -> void:
 	add_to_group("opening")
+	# a cinematic must never strand the game: even if the tree is
+	# paused underneath us, we keep flying and we always land
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	_camera = get_node("../Camera") as FollowCamera
 	_camera.set_frozen(true)
+	# deferred: the follow camera's _ready places the follow pose;
+	# capture it AFTER, or a node-order change strands the camera
 	_end = _camera.global_position
+	call_deferred("_recapture_end")
+	_born_msec = Time.get_ticks_msec()
 	_look_to = get_node("../Player").global_position + Vector3.UP * 1.5
 	_hud = get_node("../UI") as CanvasLayer
 	_hud.visible = false
@@ -43,6 +57,11 @@ func _input(event: InputEvent) -> void:
 
 func _process(delta: float) -> void:
 	if _done:
+		return
+	# the watchdog: whatever stall or pause happens elsewhere, the
+	# cinematic lands and hands the game back inside 12 s
+	if Time.get_ticks_msec() - _born_msec > 12000:
+		_finish()
 		return
 	_t += delta / DURATION
 	if _t >= 1.0:

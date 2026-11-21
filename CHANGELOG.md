@@ -1,5 +1,29 @@
 # CHANGELOG.md — batch history (newest first)
 
+## B15 — the Xogot visual pass: six bugs, a debug panel, render truth (2026-11-21)
+- The game runs on Xogot (Godot 4.7 / iPhone / Mobile-Metal) and the
+  phone showed six visual bugs the number-only fixes missed. All six
+  fixed at the source and MACHINE-PROVEN by render_check - a real
+  opengl3 render under Xvfb/llvmpipe that judges the frame (26
+  checks, RENDER PASS): blown-white signs + orange halo (bloom
+  threshold was 1.05 with windows at 1.4 emission - now ACES, glow
+  0.5/0.05, HDR 1.45, windows 0.85, neon capped 1.8), pale square
+  blocks (particle quads now BILLBOARD_PARTICLES; ground quads are
+  radial gradients), the grey figure (the spawn dummy was literally
+  grey - worn tan now), the flat-teal no-hero spawn (the opening
+  hid the HUD and froze the camera - watchdog + deferred landing +
+  ALWAYS processing), touch controls (safe-area clamping; landscape
+  lock confirmed), thick rain (0.008 m streaks).
+- VISUAL DEBUG panel in the debug menu: live glow/tonemap/emission/
+  rain/decals/shadows/NPC/camera controls, XOGOT SAFE preset (the
+  baked mobile default), COPY SETTINGS (paste the values back to the
+  agent), SCREENSHOT PNG, and an overlay with renderer, resolution,
+  orientation, FPS, draw calls and touch-loaded status. Phone
+  procedure in XOGOT.md.
+- Battery: 30 suites (29 headless green + render_check green under
+  Xvfb), 0 script errors. Docs: XOGOT.md (new), TESTING, CHANGELOG,
+  STATE.
+
 ## B14 — the difficulty knobs + the WOW sweep (2026-11-20)
 - Three streets to walk, one Setting: STREET (the night as written -
   bible 14, every existing number untouched), HARD and BRUTAL. The

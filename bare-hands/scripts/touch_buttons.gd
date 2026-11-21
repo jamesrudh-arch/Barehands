@@ -248,7 +248,29 @@ func _apply_layout() -> void:
 		b.position = def.position + Vector2(float(over.get("dx", 0.0)), float(over.get("dy", 0.0)))
 		b.size = def.size * float(over.get("scale", 1.0))
 		b.modulate = Color(1, 1, 1, opacity * float(over.get("opacity", 1.0)))
+	_clamp_safe_area()
 	_apply_super_visibility()
+
+
+## The phone's notch and home bar eat screen; every button stays
+## inside the safe area (the Xogot lesson: controls that sit under
+## the corner curve are controls you cannot see).
+func _clamp_safe_area() -> void:
+	var ft := get_viewport().get_final_transform().affine_inverse()
+	var safe: Rect2 = ft * Rect2(DisplayServer.get_display_safe_area())
+	safe = safe.intersection(get_viewport().get_visible_rect())
+	if safe.size.x < 8.0 or safe.size.y < 8.0:
+		return  # headless / degenerate: leave the layout alone
+	for name in _buttons:
+		var b := _buttons[name] as ActionButton
+		var r := b.get_global_rect()
+		var tx := clampf(r.position.x, safe.position.x,
+				safe.end.x - r.size.x)
+		var ty := clampf(r.position.y, safe.position.y,
+				safe.end.y - r.size.y)
+		if not is_equal_approx(tx, r.position.x) \
+				or not is_equal_approx(ty, r.position.y):
+			b.position += Vector2(tx - r.position.x, ty - r.position.y)
 
 
 # --- the layout editor ---------------------------------------------------------------

@@ -205,6 +205,64 @@ half; the agent never marks phone-only lines verified):
 | menus clean, settings persist | smoke_difficulty persistence | YES |
 | stress test reports numbers | stress_combat report | YES |
 
+- **B15 the Xogot visual pass + render truth**: render_check (26
+  checks, RUNS WITH A REAL RENDERER - opengl3 under Xvfb/llvmpipe in
+  the sandbox, `--rendering-driver opengl3`; under --headless it
+  prints RENDER SKIP and quits 0 so it can sit in the battery). It
+  boots main.tscn, skips the opening, waits for the rain to settle,
+  saves the frame to /tmp/render_boot.png and judges the six Xogot
+  bugs: baked safe environment (ACES, hdr 1.45, glow 0.5/0.05,
+  windows 0.85, neon capped 1.8), pure-white area < 1.5%, orange
+  bloom < 10%, ZERO flat pale 80 px blocks (the pale-square
+  detector: bright + washed + near-zero variance), rain/splash
+  billboarded thin streaks, the dummy worn tan AND its on-screen
+  region lit (mean saturation 0.772, not a grey slab), touch
+  controls: 9 ActionButtons all on-screen and inside the safe area,
+  the hero framed (nx 0.49, 6.9 m), input unlocked + HUD visible
+  after the opening, and the frame-level life checks (neon lives >
+  0.5% colorful, not one grey slab, mean luminance 0.041 in the
+  0.04-0.6 band). Suite lessons: count ActionButtons as children of
+  the hud layer (they join no group); unproject_position returns
+  PIXELS (normalize by the visible rect); Color has no get_hsv() in
+  Godot 4 (use .s/.v); the enum is BILLBOARD_PARTICLES (with an S);
+  local callable variables need .call(); local callable variables
+  need Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME, not a
+  RenderingServer enum. Post-battery fix:
+  Label3D has outline_modulate, NOT outline_color - the parse was
+  fine, the RUNTIME assignment error aborted _front() mid-build so
+  doors/glow never spawned (that is what actually failed
+  smoke_district; backroom/jobs/kidnap passed with 5 errors each -
+  a PASS-with-errors always means a rebuild, never ship it). All
+  four rerun green, 0 errors.
+- **B15 the six fixes**: (1) environment ACES + glow 0.5/0.05 + HDR
+  1.45 (was Filmic 0.7/0.1/1.05 - every window at emission 1.4 sat
+  above the 1.05 threshold and bloomed orange), windows 0.85 with
+  base_energy metadata in group emissive_window, neon capped 1.8 and
+  scaled by the Visual profile, sign text outlined; (2) rain +
+  splash materials now set BILLBOARD_PARTICLES (un-billboarded
+  custom-material quads can show broadside on Mobile = the pale
+  squares), ground glow pools + oil stains are radial
+  GradientTexture2D, group decal; (3) the boot-area Dummy was
+  literally Color(0.55,0.55,0.6) - a grey man - now worn tan
+  (0.62,0.50,0.36); (4) the opening hid the HUD and froze the camera
+  until _finish - now PROCESS_MODE_ALWAYS, _end captured deferred
+  after the camera's own _ready, 12 s watchdog force-finish; (5)
+  touch buttons clamp inside DisplayServer.get_display_safe_area()
+  (canvas coords via the inverse final transform); (6) rain quad
+  0.008x0.30, scale 0.6-1.1, alpha 0.26.
+- **B15 the VISUAL DEBUG panel** (debug menu -> VISUAL DEBUG, layer
+  22, everything live through the Visual autoload): glow on/off +
+  intensity + bloom + HDR threshold sliders, tonemap cycle, sign +
+  window emission multiplier, shadows, rain on/off + streak width,
+  ground splash, decals, enemy outlines, NPCs + crowd, camera height
+  + distance, XOGOT SAFE preset (glow off, emission x0.6, splash
+  off, shadows off - the baked boot default on mobile via
+  OS.has_feature), NIGHT preset, COPY SETTINGS (selectable text of
+  every value incl. renderer/adapter/safe area/quality), SCREENSHOT
+  PNG (user:// + printed absolute path), and a live overlay
+  (renderer, window, safe area, orientation, FPS, draw calls, touch
+  loaded YES/NO). Phone procedure: XOGOT.md.
+
 - **B10 battery regressions**: (1) the map grew TAKE buttons - the
   B8 'one button only' assertion kept its intent (no fast travel) and
   now allows TAKE+BACK. (2) stress_combat died once and a buffered

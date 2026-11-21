@@ -59,6 +59,13 @@ func _ready() -> void:
 	tests.focus_mode = Control.FOCUS_NONE
 	tests.pressed.connect(_toggle_tool.bind("TestRunner"))
 	jumps.add_child(tests)
+	# B15: live visual diagnosis - glow, rain, decals, camera, safe
+	# presets, copy-settings, screenshots (the Xogot bug hunt)
+	var vis := Button.new()
+	vis.text = "VISUAL DEBUG"
+	vis.focus_mode = Control.FOCUS_NONE
+	vis.pressed.connect(_toggle_tool.bind("VisualPanel"))
+	jumps.add_child(vis)
 	var style := Button.new()
 	style.text = "STYLE WHEEL"
 	style.focus_mode = Control.FOCUS_NONE
@@ -133,6 +140,9 @@ func _toggle_tool(name: String) -> void:
 		if name == "TuningPanel":
 			tool = TuningPanel.new()
 			tool.name = "TuningPanel"
+		elif name == "VisualPanel":
+			tool = VisualDebug.new()
+			tool.name = "VisualPanel"
 		else:
 			tool = TestRunner.new()
 			tool.name = "TestRunner"

@@ -15,6 +15,9 @@ func _ready() -> void:
 	_build_splash()
 	Quality.tier_changed.connect(_apply_tier)
 	_apply_tier(Quality.tier)
+	# boot into whatever profile is live (XOGOT SAFE on mobile):
+	# the rain layer builds after the Visual autoload, so it pulls
+	visual_apply(Visual.rain_on, Visual.rain_streak_width, Visual.splash_on)
 
 
 func _process(_delta: float) -> void:
@@ -37,17 +40,20 @@ func _build_rain() -> void:
 	_rain.initial_velocity_min = 11.0
 	_rain.initial_velocity_max = 14.0
 	_rain.gravity = Vector3(0, -6.0, 0)
-	_rain.scale_amount_min = 0.7
-	_rain.scale_amount_max = 1.3
+	_rain.scale_amount_min = 0.6
+	_rain.scale_amount_max = 1.1
 	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(0.6, 0.7, 0.85, 0.30)
+	mat.albedo_color = Color(0.6, 0.7, 0.85, 0.26)
 	mat.emission_enabled = true
 	mat.emission = Color(0.35, 0.45, 0.6)
 	mat.emission_energy_multiplier = 0.4
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	# without this the quads do not face the camera on Mobile and
+	# read as raw squares (the pale-block bug)
+	mat.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
 	var qm := QuadMesh.new()
-	qm.size = Vector2(0.012, 0.34)
+	qm.size = Vector2(0.008, 0.30)
 	qm.material = mat
 	_rain.mesh = qm
 	add_child(_rain)
@@ -83,6 +89,7 @@ func _build_splash() -> void:
 	mat.emission_energy_multiplier = 0.6
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
 	var qm := QuadMesh.new()
 	qm.size = Vector2(0.045, 0.045)
 	qm.material = mat
@@ -93,7 +100,25 @@ func _build_splash() -> void:
 func _apply_tier(tier: String) -> void:
 	if tier == Quality.HIGH:
 		_rain.amount = 700
-		_splash.emitting = true
+		_splash.emitting = splash_allowed
 	else:
 		_rain.amount = 350
 		_splash.emitting = false
+
+
+## The Visual profile drives this (the VISUAL DEBUG panel): rain on
+## or off, streak width in metres, splashes on or off.
+var rain_on := true
+var streak_width := 0.008
+var splash_allowed := true
+
+
+func visual_apply(want_rain: bool, width: float, want_splash: bool) -> void:
+	rain_on = want_rain
+	splash_allowed = want_splash
+	streak_width = width
+	_rain.emitting = want_rain
+	_rain.visible = want_rain
+	if _rain.mesh is QuadMesh:
+		(_rain.mesh as QuadMesh).size = Vector2(width, 0.30)
+	_apply_tier(Quality.tier)
