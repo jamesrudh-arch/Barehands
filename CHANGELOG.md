@@ -1,5 +1,54 @@
 # CHANGELOG.md — batch history (newest first)
 
+## B18.2 — never lost + orientation lock (2026-11-21)
+
+The second B18 drop, from the expanded prompt (photos IMG_9296/9297:
+both still the B17 build - portrait clean, landscape stacked, which
+confirmed the rotation diagnosis):
+
+- **BUG 6 (portrait/landscape overlap)**: the orientation policy is
+  now LOCKED - `display/window/handheld/orientation = 4`
+  (sensor_landscape; portrait locked out). The layout engine already
+  re-lays out as one unit on every size/orientation change; a
+  duplicate-button-set audit (exactly one ActionButton per name,
+  ever) was added to render_check AND the DEVICE REPORT, plus a full
+  PORTRAIT pass in render_check (resize -> relayout -> one label per
+  button, no overlaps, on-screen, radar clear -> restore landscape).
+- **BUG 7 (lost in a room) - the NEVER LOST system**: new
+  apartment.gd (the starting room: solid collision, lit, bed + crate,
+  ONE door - breathing cyan frame, THE STREET sign, OPEN prompt near,
+  swing animation + creak, fade to the street; the street safehouse
+  panel gained GO INSIDE so the door works both ways; Interior's
+  is_inside_interior now covers the apartment so the street fence
+  cannot reach in). New guide.gd: on the TRUE first run
+  (first_run_done false - every suite sets it true, so the street
+  boot is untouched) the hero wakes in the apartment and a skippable
+  intro walks FIND THE DOOR -> OPEN IT -> REACH THE TRAINING DUMMY,
+  feeding MapData.nav_target so radar/route/beam/compass all point
+  at the live step. Permanent layer after the intro: a stereo-panned
+  SONAR ping (generated WAV, no files) that speeds up and gets louder
+  near the target (Settings sonar_on), a top objective label, 20-second
+  no-progress hints, and OBJECTIVE + HELP buttons in both touch
+  schemes (OBJECTIVE toasts the goal and turns the camera; HELP
+  repeats the hint). camera_follow gained face_point(). The noodle
+  front shows a floating ENTER prompt.
+- **DEVICE REPORT** grew: orientation policy + window + visible rect +
+  duplicate-set audit; a GUIDE section (objective + distance, sonar
+  state + live ping interval, nearest door + its state).
+- Tests: NEW smoke_guide (17 checks: room spawn, step advance, door
+  prompt + contextual INTERACT, door opens to the street, street path
+  to the noodle shop exists, sonar rate increases, hint fires,
+  intro persists, no duplicate buttons). Bugs found and fixed on the
+  way: apartment needed collision (meshes alone let the hero fall),
+  the street bound (BOUND=18.5) clamped the off-axis apartment into
+  a gate ping-pong (interiors are now exempt for the apartment too),
+  FORMAT_16_BITS_STEREO does not exist (stereo is a flag), and
+  nav_target positions are Vector2 (three typed reads were Vector3).
+- Suites at this drop: smoke_guide 17, smoke, smoke_map 35,
+  smoke_controls 55, smoke_face 31, smoke_stick 31 + the battery
+  re-run. The push is still blocked by the missing .git-auth
+  credential in this sandbox; a bundle carries the commits.
+
 ## B18 — the device fix (2026-11-21)
 
 The owner's in-game phone photos (portrait + landscape) named five

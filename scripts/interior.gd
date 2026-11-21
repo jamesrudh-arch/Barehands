@@ -1,4 +1,5 @@
 extends Node3D
+const CLS_Apartment := preload("res://scripts/apartment.gd")
 const CLS_NpcRig := preload("res://scripts/npc_rig.gd")
 ## Interiors are separate, reached through a fade (bible 6). This is
 ## the noodle shop - the anchor of your block: the pot's always on, the
@@ -16,6 +17,7 @@ const STREET_RETURN := Vector3(-4.0, 0.02, 5.4) # where you step back out
 
 var _busy := false
 var _near := false
+var _front_prompt: Label3D = null
 var _owner_bubble: Label3D = null
 var _world: Node = null  # the main root: owns the street-side pieces
 
@@ -27,6 +29,10 @@ func _ready() -> void:
 	# interiors are separate, reached through a fade - never a stumble)
 	add_to_group("safehouse")
 	add_to_group("interior")
+	# B18 6C: the door facts the DEVICE REPORT reads
+	add_to_group("door_prompt")
+	set_meta("door_name", "NOODLE SHOP DOOR")
+	set_meta("door_state", "enter/exit")
 	_build_front()
 	_build_room()
 
@@ -40,7 +46,10 @@ func try_use(_p: Node3D) -> bool:
 
 
 static func is_inside_interior(p: Node3D) -> bool:
-	return p and absf(p.global_position.x - INTERIOR_X) < 12.0
+	# B18 6C: the apartment (the starting room) is an interior world
+	# too - the street fence must not reach in there either
+	return p and (absf(p.global_position.x - INTERIOR_X) < 12.0
+			or absf(p.global_position.x - CLS_Apartment.ROOM_X) < 12.0)
 
 
 ## Fade to the room and back. One fade at a time.
@@ -129,6 +138,18 @@ func _build_front() -> void:
 	rooms.font_size = 28
 	rooms.position = Vector3(2.6, 2.6, -0.1)
 	g.add_child(rooms)
+	# B18 6C: a floating ENTER prompt at the door, shown when near
+	_front_prompt = Label3D.new()
+	_front_prompt.text = "ENTER"
+	_front_prompt.modulate = Color(1.0, 0.8, 0.35)
+	_front_prompt.font_size = 44
+	_front_prompt.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_front_prompt.outline_size = 10
+	_front_prompt.outline_modulate = Color(0.02, 0.02, 0.03)
+	_front_prompt.no_depth_test = true
+	_front_prompt.visible = false
+	_front_prompt.position = Vector3(0, 2.1, -0.7)
+	g.add_child(_front_prompt)
 	# the door zone only WATCHES: GRAB steps through
 	var a := Area3D.new()
 	a.position = DOOR_STREET
@@ -141,12 +162,14 @@ func _build_front() -> void:
 	a.body_entered.connect(func(b):
 		if b.is_in_group("player"):
 			_near = true
+			_front_prompt.visible = true
 			var hud := get_tree().get_first_node_in_group("hud")
 			if hud and hud.has_method("show_hint"):
 				hud.show_hint("GRAB to step inside", 3.0))
 	a.body_exited.connect(func(b):
 		if b.is_in_group("player"):
-			_near = false)
+			_near = false
+			_front_prompt.visible = false)
 
 
 # --- the room (local, far off the axis) ---------------------------------------

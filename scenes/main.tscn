@@ -1,4 +1,4 @@
-[gd_scene load_steps=87 format=3]
+[gd_scene load_steps=89 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="1_player"]
 [ext_resource type="Script" path="res://scripts/camera_follow.gd" id="2_camera"]
@@ -14,6 +14,8 @@
 [ext_resource type="Script" path="res://scripts/full_map.gd" id="31_fullmap"]
 [ext_resource type="Script" path="res://scripts/objective_marker.gd" id="32_objmark"]
 [ext_resource type="Script" path="res://scripts/hero_locator.gd" id="33_locator"]
+[ext_resource type="Script" path="res://scripts/apartment.gd" id="34_apartment"]
+[ext_resource type="Script" path="res://scripts/guide.gd" id="35_guide"]
 [ext_resource type="Script" path="res://scripts/composure_bar.gd" id="24_composure"]
 [ext_resource type="Script" path="res://scripts/trainer.gd" id="24_trainer"]
 [ext_resource type="PackedScene" path="res://scenes/enemy.tscn" id="5_enemy"]
@@ -840,3 +842,9 @@ script = ExtResource("32_objmark")
 
 [node name="HeroLocator" type="Node3D" parent="Player"]
 script = ExtResource("33_locator")
+
+[node name="Apartment" type="Node3D" parent="."]
+script = ExtResource("34_apartment")
+
+[node name="Guide" type="Node3D" parent="."]
+script = ExtResource("35_guide")

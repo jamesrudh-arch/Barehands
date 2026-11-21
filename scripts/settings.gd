@@ -56,6 +56,8 @@ const DEFAULTS := {
 	"route_line_3d": false,   # the optional ground route ribbon
 	"hero_locator": true,     # the bright ring + rim light under the hero
 	"hero_rim": 1.8,          # rim light energy, 0..3
+	# B18 6C: the never-lost guidance
+	"sonar_on": true,         # the panned objective ping
 }
 
 var _d: Dictionary = DEFAULTS.duplicate(true)

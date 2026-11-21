@@ -18,7 +18,7 @@ appears only when a stage actually FAILED.
 
 ## THE B18 DEVICE FIX (this zip) - what changed and why
 
-The owner's photos of the B17 full game (2026-11-21) showed five real
+The owner's photos of the B17 full game (2026-11-21) showed seven real
 bugs. Every one has a named root cause now:
 
 1. **NO HERO / the "blurry grey figure" - ONE bug.** The hero's gltf
@@ -65,6 +65,32 @@ bugs. Every one has a named root cause now:
    (pan, pinch zoom, tap to pin a waypoint, legend, layer toggles,
    fog of war per block, no fast travel) opening from the radar tap,
    the pause menu's MAP button and the phone's Map app.
+6. **PORTRAIT vs LANDSCAPE (the rotation bug).** Root cause of the
+   landscape pile-up: the OLD code clamped each button into the safe
+   area individually; after a rotation several buttons landed on the
+   same spot (DODGE/GRAB/SPRINT text on one circle) and the composure
+   bar crossed them. The B18 layout engine treats the cluster as ONE
+   unit and re-lays out on every size/orientation change, the project
+   now locks to sensor-landscape (portrait is locked out), and a
+   duplicate-button-set audit (render suite + DEVICE REPORT) proves
+   only one set can exist.
+7. **NEVER LOST (the starting room).** The game now STARTS in the
+   safehouse apartment: a small lit room with exactly ONE door - a
+   breathing cyan frame with a THE STREET sign above it and an OPEN
+   prompt when you stand at it. The contextual INTERACT button appears
+   only when it is usable; the door swings open with a creak and the
+   fade puts you on the street (and the street's safehouse panel has a
+   GO INSIDE button, so the door works from both sides). A skippable
+   guided intro walks the first minutes: FIND THE DOOR -> OPEN IT ->
+   REACH THE TRAINING DUMMY, with live objective text + distance at
+   the top, a confirmation sound per step, and the whole guidance
+   stack pointing the way: the radar, the yellow street route, the 3D
+   beam over the dummy, the compass arrow, and a SONAR ping from the
+   target's direction that gets faster and louder as you close in
+   (Settings: sonar_on). OBJECTIVE and HELP buttons sit above the
+   attack cluster: OBJECTIVE shows the goal and turns the camera
+   toward it; HELP repeats the hint. If you stall 20 seconds, a hint
+   appears on its own.
 
 Also new: the **DEVICE REPORT** (DBG button -> DEVICE REPORT, and in
 SafeBoot) - one selectable text block with every fact the phone can
@@ -72,10 +98,12 @@ tell us, with a COPY LOG button.
 
 ## THE PHONE PROCEDURE (exact)
 
-1. Unzip `Leverage_B18_DeviceFix_2026-11-21.zip` in the Files app.
+1. Unzip `Leverage_B18_NeverLost_2026-11-21.zip` in the Files app.
    You get a folder with `project.godot` DIRECTLY inside it - that
    folder IS the project. (The repo root is the project; no
-   subfolder. Delete old LEVERAGE entries in Xogot first.)
+   subfolder. Delete old LEVERAGE entries in Xogot first.) Your
+   phone's photos still show the B17 stamp - nothing in this file is
+   on your phone until THIS zip is imported.
 2. Force-quit Xogot (swipe away).
 3. Reopen Xogot -> Import -> pick THAT folder. The project name must
    read **LEVERAGE B18** - anything else is a stale copy.
@@ -110,8 +138,11 @@ needs your device, with the exact tap.
 | 12 | DEVICE REPORT builds with every field + COPY LOG | VERIFIED | device_report.gd; on the phone: DBG -> DEVICE REPORT -> COPY LOG |
 | 13 | hdr_2d experiment (does 2D HDR stop the white signs?) | VERIFIED | measured on/off with render_check - see CHANGELOG B18; it is a 2D-canvas setting, the sign fix is the material cap; default stays OFF |
 | 14 | Full game on device: hero visible + moves, controls in the right-thumb zone, street readable | **PHONE-ONLY** | tap: LAUNCH FULL GAME, walk 30 s. Send: one line in words |
-| 15 | Landscape: cluster stays inside the screen, no bar crossing | **PHONE-ONLY** | rotate; send one line |
+| 15 | Landscape: cluster stays inside the screen, no bar crossing; portrait locked out | **PHONE-ONLY** | rotate; send one line |
 | 16 | The DEVICE REPORT from the phone | **PHONE-ONLY** | DBG -> DEVICE REPORT -> COPY LOG -> paste the text |
+| 17 | Orientation policy: sensor_landscape; one button set; both-orientation layout contract | VERIFIED (sandbox) / PHONE-ONLY (device) | render_check portrait pass + duplicate audit; device: rotate, look |
+| 18 | The apartment tutorial: room, glowing door, OPEN prompt, contextual INTERACT, door opens to street, steps advance, hint after 20 s, sonar rate increases | VERIFIED | smoke_guide 17 checks (headless, real scene) |
+| 19 | Both-side doors + ENTER prompts (noodle shop, safehouse GO INSIDE) | VERIFIED (code + suite) / PHONE-ONLY (feel) | smoke_guide + interior/safehouse wiring; device: walk in and out |
 
 ## THE DEVICE REPORT (the one diagnostic to rule them all)
 
@@ -120,25 +151,27 @@ REPORT** -> select the text -> **COPY LOG** -> paste it back. It
 contains: the build stamp, renderer/API/adapter, window + safe area,
 FPS, draw calls, hdr_2d/tonemap/exposure/ambient/glow, hero + camera
 truth (exists/position/visible/current/target), the cinematic state
-and whether the 8 s force-end fired, every touch button's rectangle
-and label count, the joystick state, the autoload census, the
-materials of the named suspects (the big sign, the door, the grey
-figure), the radar/route/waypoint facts, and the last 10 errors or
-warnings.
+and whether the 8 s force-end fired, the orientation policy and the
+duplicate-button-set audit, every touch button's rectangle and label
+count, the joystick state, the current objective + distance, the
+nearest door + its state, the sonar ping interval, the autoload
+census, the materials of the named suspects (the big sign, the door,
+the grey figure), the radar/route/waypoint facts, and the last 10
+errors or warnings.
 
 ## WHAT I NEED FROM YOU (three taps, in order)
 
-1. **Play 30 seconds.** LAUNCH FULL GAME, walk with the left thumb,
-   throw a punch at the dummy. -> Send ONE line in words: is the hero
-   visible (a ring glows under them), are LIGHT/HEAVY/DODGE big and
-   readable in the bottom-right, is the street readable, is the amber
-   sign a sign now (not a white slab), do you see the radar top-left?
+1. **Play the opening minute.** LAUNCH FULL GAME - you wake in a small
+   room. Follow the intro: walk to the glowing door, tap INTERACT,
+   step outside, reach the dummy. -> Send ONE line in words: did the
+   room + door + steps work, is the hero visible (ring under them),
+   are LIGHT/HEAVY/DODGE big and readable bottom-right, is the street
+   readable, radar top-left?
 2. **Copy the report.** DBG -> DEVICE REPORT -> COPY LOG -> paste the
-   text back. (This is the ground truth for anything that still looks
-   wrong.)
-3. **Landscape + map.** Rotate the phone (buttons stay inside?); tap
-   the radar, tap the map to pin a waypoint (a yellow route line
-   draws?). -> Send one line.
+   text back. (Ground truth for anything that still looks wrong.)
+3. **Landscape + map.** Rotate the phone (portrait should be locked
+   out; buttons stay clean?); tap the radar, tap the map to pin a
+   waypoint (a yellow route draws?). -> Send one line.
 
 If something is broken, the report from (2) already tells us which
 system; SafeBoot's one-at-a-time toggles remain as the deep drill.

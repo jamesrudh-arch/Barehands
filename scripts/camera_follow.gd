@@ -96,6 +96,15 @@ func set_frozen(frozen: bool) -> void:
 	_frozen = frozen
 
 
+## B18 6C: the OBJECTIVE button turns the camera toward a point (the
+## live objective or waypoint) without moving the hero.
+func face_point(p: Vector3) -> void:
+	var d := p - global_position
+	if Vector2(d.x, d.z).length() < 0.5:
+		return
+	_yaw = atan2(-d.x, -d.z)
+
+
 var _road_mat: ShaderMaterial
 
 

@@ -205,12 +205,14 @@ func _test_map() -> void:
 	_check(_find_text(body, "FRIENDS "), "the friends layer reads")
 	_check(_find_text(body, "DAMAGE "), "the damage layer reads")
 	_check(_find_text(body, "no fast travel"), "the map says what it is")
-	# no fast travel: only the BACK button and the board's TAKE buttons
+	# no fast travel: only the BACK button, the board's TAKE buttons,
+	# and B18's OPEN THE FULL MAP (an entry point, not a teleport)
 	var travel := 0
 	for b in _find_buttons(body, ""):
-		if not (b as Button).text.begins_with("TAKE - ") and b.text != "BACK":
+		if not (b as Button).text.begins_with("TAKE - ") and b.text != "BACK" \
+				and b.text != "OPEN THE FULL MAP":
 			travel += 1
-	_check(travel == 0, "no travel buttons - only BACK and TAKE (%d others)" % travel)
+	_check(travel == 0, "no travel buttons - only BACK, TAKE and the map entry (%d others)" % travel)
 	Phone.close()
 	await _wait_s(0.2)
 

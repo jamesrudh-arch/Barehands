@@ -6,7 +6,7 @@ This repo root IS the Godot project: **`project.godot` sits at the
 top level**. Import the folder that contains it - the unzipped repo
 root itself, NOT any subfolder.
 
-1. Download the zip (`Leverage_B18_DeviceFix_2026-11-21.zip`) and unzip
+1. Download the zip (`Leverage_B18_NeverLost_2026-11-21.zip`) and unzip
    it in the Files app. You get a folder with `project.godot` directly
    inside it - that folder IS the project.
 2. **Force-quit Xogot** (swipe it away) so no cached project or old
@@ -36,6 +36,33 @@ root itself, NOT any subfolder.
 If the screen is grey, nothing is drawing - the STAGE 0 log (or its
 absence) tells the agent exactly which layer died. See XOGOT.md for
 the full VERIFIED / PHONE-ONLY table.
+
+## B18.2 — Never Lost + Orientation Lock (2026-11-21)
+
+The second B18 drop (photos IMG_9296/9297 were still the B17 build):
+- **Orientation LOCKED to sensor_landscape** (portrait locked out).
+  The B18 layout engine already re-lays out as one unit on rotation;
+  a duplicate-button-set audit (render suite + DEVICE REPORT) and a
+  full portrait render pass now prove one label per button, no
+  overlaps, on-screen, radar clear - in BOTH orientations.
+- **The starting room + guided intro**: the first run wakes in the
+  safehouse apartment (solid, lit, one glowing door with OPEN prompt,
+  swing + creak + fade to the street; the street door has GO INSIDE,
+  so it works both sides). Skippable steps: FIND THE DOOR → OPEN IT →
+  REACH THE TRAINING DUMMY, with live objective text + distance, a
+  confirmation sound per step, and the full guidance stack pointing
+  the way (radar, street route, 3D beam, compass, and a stereo-panned
+  SONAR ping that quickens as you close in - Settings sonar_on).
+  OBJECTIVE and HELP buttons sit above the attack cluster; a hint
+  appears after 20 s without progress.
+- **DEVICE REPORT** grew: orientation policy + duplicate-set audit +
+  the GUIDE section (objective + distance, sonar interval, nearest
+  door + state).
+- New smoke_guide suite (17 checks). Root causes fixed on the way:
+  the apartment needed collision; the street bound (x ±18.5) clamped
+  the off-axis room into a gate ping-pong (interiors now exempt);
+  FORMAT_16_BITS_STEREO is not a Godot 4 format; nav positions are
+  Vector2.
 
 ## B18 — The Device Fix (2026-11-21)
 

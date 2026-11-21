@@ -298,6 +298,14 @@ static func nav_target() -> Dictionary:
 		return {"text": "WAYPOINT", "pos": _waypoint,
 			"district": district_at_x(_waypoint.x), "phase": "PIN"}
 	var t := _tree()
+	# the guided intro (B18 6C) outranks jobs: FIND THE DOOR and friends
+	# point the radar, route, marker and sonar while it runs
+	var guide: Node = t.get_first_node_in_group("guide") if t else null
+	if guide and guide.has_method("current_target"):
+		var gt: Dictionary = guide.call("current_target")
+		if not gt.is_empty():
+			return {"text": gt.get("text", ""), "pos": Vector2(
+					gt["pos"].x, gt["pos"].z), "district": "", "phase": "INTRO"}
 	var jobs: Node = t.root.get_node_or_null("/root/Jobs") if t else null
 	if jobs and jobs.has_method("objective"):
 		var o: Dictionary = jobs.call("objective")

@@ -10,6 +10,10 @@ var _inside := false
 
 func _ready() -> void:
 	add_to_group("safehouse")
+	# B18 6C: the door facts the DEVICE REPORT + guide read
+	add_to_group("door_prompt")
+	set_meta("door_name", "SAFEHOUSE DOOR (street)")
+	set_meta("door_state", "save terminal")
 	body_entered.connect(_on_enter)
 	body_exited.connect(_on_exit)
 
@@ -77,7 +81,8 @@ func _open() -> void:
 	col.add_child(status)
 
 	var choices: Array = [["SAVE", _save], ["LOAD", _load],
-			["SLEEP - end the day", _sleep]]
+			["SLEEP - end the day", _sleep],
+			["GO INSIDE - your room", _go_inside]]
 	for choice in choices:
 		var b := Button.new()
 		b.text = choice[0]
@@ -112,6 +117,27 @@ func _open() -> void:
 func _sleep() -> void:
 	_close()
 	WorldSim.sleep()
+
+
+## B18 6C: the door works from BOTH sides - step into the apartment
+## (the starting room) through the same fade every interior uses.
+func _go_inside() -> void:
+	_close()
+	var ap: Node = null
+	for n in get_tree().get_nodes_in_group("door_prompt"):
+		if str(n.name).begins_with("Apartment"):
+			ap = n
+			break
+	if ap == null or not ap.has_method("arrive_from_street"):
+		return
+	InputBus.locked = true
+	var blocks := get_tree().root.get_node_or_null("/root/Blocks")
+	if blocks:
+		await blocks.call("fade_out")
+	ap.call("arrive_from_street")
+	if blocks:
+		await blocks.call("fade_in")
+	InputBus.locked = false
 
 
 func _save() -> void:

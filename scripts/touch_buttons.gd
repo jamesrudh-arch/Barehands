@@ -38,6 +38,9 @@ const CLASSIC_SPECS := [
 	["LockBtn", "LOCK", "", Color(0.8, 0.8, 0.85, 0.9), Vector2(2, 1), 76.0],
 	["StyleBtn", "STYLE", "", Color(0.9, 0.7, 0.4, 0.9), Vector2(2, 2), 78.0],
 	["PhoneBtn", "PHONE", "", Color(0.45, 0.52, 0.62, 1.0), Vector2(3, 1), 68.0],
+	# B18 6C: guidance buttons - top row of the cluster, away from attacks
+	["ObjBtn", "OBJECTIVE", "", Color(1.0, 0.85, 0.2, 0.9), Vector2(2, 3), 64.0],
+	["HelpBtn", "HELP", "", Color(0.6, 0.85, 1.0, 0.9), Vector2(3, 3), 64.0],
 ]
 
 const FACE_SPECS := [
@@ -53,6 +56,8 @@ const FACE_SPECS := [
 	["LockBtn", "LOCK", "", Color(0.8, 0.8, 0.85, 0.9), Vector2(2, 2), 74.0],
 	["StyleBtn", "STYLE", "", Color(0.9, 0.7, 0.4, 0.9), Vector2(3, 2), 78.0],
 	["PhoneBtn", "PHONE", "", Color(0.45, 0.52, 0.62, 1.0), Vector2(0, 2), 68.0],
+	["ObjBtn", "OBJECTIVE", "", Color(1.0, 0.85, 0.2, 0.9), Vector2(2, 3), 64.0],
+	["HelpBtn", "HELP", "", Color(0.6, 0.85, 1.0, 0.9), Vector2(3, 3), 64.0],
 ]
 
 const GAP := 18.0        # between grid cells
@@ -185,6 +190,10 @@ func _on_down(name: String) -> void:
 		"FaceX":
 			InputBus.queue_kick()
 			InputBus.press_face("X")
+		"ObjBtn":
+			_guide_call("objective_pressed")
+		"HelpBtn":
+			_guide_call("help_pressed")
 
 
 func _on_up(name: String) -> void:
@@ -215,6 +224,14 @@ func _toggle_lock() -> void:
 	var cam := get_tree().get_first_node_in_group("camera")
 	if cam:
 		cam.toggle_lock()
+
+
+## B18 6C: the guidance buttons reach the guide node (it may be absent -
+## SafeBoot, tests - in which case the tap is a no-op).
+func _guide_call(method: String) -> void:
+	var g := get_tree().get_first_node_in_group("guide")
+	if g and g.has_method(method):
+		g.call(method)
 
 
 # --- per-frame state: cooldown rings, the contextual GRAB ------------------------

@@ -72,6 +72,7 @@ func _ready() -> void:
 	await _the_b18_layout()
 	await _the_radar()
 	_the_world_envs()
+	await _the_orientation_pass()
 
 	if _fails == 0:
 		print("RENDER PASS (%d checks)" % _checks)
@@ -79,6 +80,64 @@ func _ready() -> void:
 	else:
 		print("RENDER FAIL (%d of %d checks)" % [_fails, _checks])
 		get_tree().quit(1)
+
+
+## B18 Part 1B (BUG 6): the portrait pass. Rotate the window to a
+## portrait geometry, let the HUD re-lay out (size_changed fires), then
+## re-run the layout contract: one label per button, no overlaps, all
+## inside the safe area, radar clear. Then restore landscape.
+func _the_orientation_pass() -> void:
+	# duplicate-set audit first (orientation-independent): exactly one
+	# ActionButton per name may exist anywhere in the HUD layer
+	var hud := get_tree().get_first_node_in_group("hud_buttons")
+	var names := {}
+	var dupes: Array[String] = []
+	if hud:
+		for c in hud.get_children():
+			if c.has_signal("down"):
+				if names.has(c.name):
+					dupes.append(c.name)
+				names[c.name] = true
+	_check(dupes.is_empty(), "no duplicate button sets (found %s)"
+			% (", ".join(dupes) if not dupes.is_empty() else "none"))
+	# portrait: resize, wait for the relayout, re-check the contract
+	get_window().size = Vector2i(720, 1280)
+	await _wait_s(0.8)
+	print("RENDER info: portrait window=", get_window().size,
+			" visible=", get_viewport().get_visible_rect().size)
+	var btns := _visible_buttons()
+	var min_size := INF
+	for b in btns:
+		min_size = minf(min_size, (b as Control).size.x)
+	_check(min_size >= 63.5, "PORTRAIT: every button >= 64 canvas px (min %.0f)" % min_size)
+	var overlaps := 0
+	for i in range(btns.size()):
+		for j in range(i + 1, btns.size()):
+			var a: Rect2 = (btns[i] as Control).get_global_rect()
+			var b: Rect2 = (btns[j] as Control).get_global_rect()
+			if a.intersects(b):
+				overlaps += 1
+				print("RENDER info: portrait overlap ", btns[i].name, " ", btns[j].name)
+	_check(overlaps == 0, "PORTRAIT: no two buttons overlap (the doubled-label cause)")
+	var vr := get_viewport().get_visible_rect()
+	var inside := true
+	for b in btns:
+		if not vr.encloses((b as Control).get_global_rect()):
+			inside = false
+			print("RENDER info: portrait off-screen ", (b as Node).name)
+	_check(inside, "PORTRAIT: every button on screen")
+	var radar := get_tree().get_first_node_in_group("radar") as Control
+	if radar and radar.is_visible_in_tree():
+		var rr: Rect2 = radar.get_global_rect()
+		var cross := 0
+		for b in btns:
+			if rr.intersects((b as Control).get_global_rect()):
+				cross += 1
+		_check(vr.encloses(rr) and cross == 0,
+				"PORTRAIT: the radar stays on screen and overlaps nothing")
+	# restore landscape for any later checks
+	get_window().size = Vector2i(1280, 720)
+	await _wait_s(0.5)
 
 
 func _what_renderer() -> void:

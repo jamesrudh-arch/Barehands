@@ -40,6 +40,7 @@ static func build() -> String:
 	L.append(_cinematic_block())
 	L.append(_touch_block())
 	L.append(_radar_block())
+	L.append(_guide_block())
 	L.append(_census_block())
 	L.append(_suspects_block())
 	L.append(_errors_block())
@@ -177,6 +178,71 @@ static func _touch_block() -> String:
 				str(bool(stick.get("_active")))]
 	else:
 		out += "joystick: NOT FOUND"
+	# B18 1B (BUG 6): the orientation policy + the duplicate-set audit -
+	# two button sets alive at once is the landscape-overlap mechanism
+	var orient := str(ProjectSettings.get_setting(
+			"display/window/handheld/orientation", "?"))
+	var policy := "sensor_landscape (portrait locked out)" if orient == "4" \
+			else "orientation setting %s" % orient
+	var names := {}
+	var dupes: Array[String] = []
+	for n in tree.get_nodes_in_group("hud_buttons"):
+		for c in n.get_children():
+			if c.has_signal("down"):
+				if names.has(c.name) and not dupes.has(c.name):
+					dupes.append(c.name)
+				names[c.name] = true
+	out += "\norientation policy: %s | window %s | visible rect %s" % [
+			policy, str(tree.root.size), str(tree.root.get_visible_rect().size)]
+	out += "\nbuttons built: %d | duplicate button sets: %s" % [names.size(),
+			"NONE" if dupes.is_empty() else "FOUND: " + ", ".join(dupes)]
+	return out
+
+
+static func _guide_block() -> String:
+	const CLS_MapData := preload("res://scripts/map_data.gd")
+	var tree := Engine.get_main_loop() as SceneTree
+	var out := "-- GUIDE --\n"
+	if tree == null:
+		return out + "no scene tree"
+	var hero := tree.get_first_node_in_group("player") as Node3D
+	var nav: Dictionary = CLS_MapData.nav_target()
+	var dist := -1.0
+	if not nav.is_empty() and hero:
+		var p: Vector2 = nav["pos"]
+		dist = p.distance_to(
+				Vector2(hero.global_position.x, hero.global_position.z))
+	out += "objective: %s" % str(nav.get("text", "none")) \
+			if not nav.is_empty() else "objective: none"
+	if dist >= 0.0:
+		out += " (%d m)\n" % int(dist)
+	else:
+		out += "\n"
+	var sonar := "?"
+	var interval := -1.0
+	var settings := _node("/root/Settings")
+	if settings:
+		sonar = "on" if bool(settings.call("value", "sonar_on")) else "off"
+	var guide := tree.get_first_node_in_group("guide")
+	if guide and dist >= 0.0 and guide.has_method("ping_interval"):
+		interval = float(guide.call("ping_interval", dist))
+	out += "sonar: %s | ping interval now: %s s (shortens as you close in)\n" \
+			% [sonar, "%.2f" % interval if interval >= 0.0 else "n/a"]
+	var best: Node = null
+	var best_d := INF
+	for n in tree.get_nodes_in_group("door_prompt"):
+		if n is Node3D and hero:
+			var d: float = (n as Node3D).global_position.distance_to(
+					hero.global_position)
+			if d < best_d:
+				best_d = d
+				best = n
+	if best:
+		out += "nearest door: %s | state: %s | %d m away" % [
+				str(best.get_meta("door_name", best.name)),
+				str(best.get_meta("door_state", "?")), int(best_d)]
+	else:
+		out += "nearest door: none registered"
 	return out
 
 

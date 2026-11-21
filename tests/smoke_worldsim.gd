@@ -243,12 +243,15 @@ func _test_scars_survive() -> void:
 
 
 func _test_sleep_path() -> void:
-	# stand at the safehouse door, open the panel, press SLEEP
+	# stand at the safehouse door, open the panel, press SLEEP.
+	# B18.2: the group now also holds the APARTMENT (the starting
+	# room) - the street door is the one on the street block.
 	var door: Node = null
 	for n in get_tree().get_nodes_in_group("safehouse"):
-		if not (n is CLS_Interior):
+		if not (n is CLS_Interior) and n is Node3D \
+				and absf((n as Node3D).global_position.x) < 100.0:
 			door = n
-	_check(door != null, "the safehouse door exists (not the noodle door)")
+	_check(door != null, "the street safehouse door exists (not the noodle door, not the apartment)")
 	_player.global_position = Vector3(-2.0, 0.02, 8.9)
 	await _wait_s(0.5)
 	var day0 := Ledger.day
