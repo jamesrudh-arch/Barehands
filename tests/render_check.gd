@@ -201,6 +201,8 @@ func _the_frame() -> void:
 	var h := img.get_height()
 	var white := 0
 	var orange_halo := 0
+	var black := 0
+	var midtone := 0
 	var total := 0
 	for y in range(0, h, 3):
 		for x in range(0, w, 3):
@@ -210,11 +212,23 @@ func _the_frame() -> void:
 				white += 1
 			if c.r > 0.85 and c.g > 0.45 and c.g < 0.75 and c.b < 0.3:
 				orange_halo += 1
+			# B18.3 (3C.8): the histogram - pure black and midtone shares
+			if c.r < 0.02 and c.g < 0.02 and c.b < 0.02:
+				black += 1
+			var l := (c.r + c.g + c.b) / 3.0
+			if l > 0.06 and l < 0.6:
+				midtone += 1
 	var wr := float(white) / total
 	var orr := float(orange_halo) / total
-	print("RENDER info: white=%.4f orange=%.4f" % [wr, orr])
+	var br := float(black) / total
+	var mr := float(midtone) / total
+	print("RENDER info: white=%.4f black=%.4f midtone=%.4f orange=%.4f"
+			% [wr, br, mr, orr])
 	_check(wr < 0.015, "pure-white area %.1f%% < 1.5%% (bug 1 blown signs)"
 			% (wr * 100.0))
+	_check(br < 0.55, "pure-black area %.1f%% < 55%% (bug 3 the dark street)"
+			% (br * 100.0))
+	_check(mr > 0.25, "mid-tones carry the scene (%.1f%% > 25%%)" % (mr * 100.0))
 	_check(orr < 0.10, "orange-bloom pixels %.1f%% < 10%% (bug 1 halo)"
 			% (orr * 100.0))
 	# bug 2: the pale-square scan. 80 px blocks; a block that is one

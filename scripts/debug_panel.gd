@@ -92,6 +92,13 @@ func _ready() -> void:
 	snd.pressed.connect(func():
 		_label.text = Sound.test_buses())
 	jumps.add_child(snd)
+	# B18.3 (3C.6): the asset-quality gallery
+	var ld := Button.new()
+	ld.text = "LOOKDEV"
+	ld.focus_mode = Control.FOCUS_NONE
+	ld.pressed.connect(func():
+		get_tree().change_scene_to_file("res://scenes/lookdev.tscn"))
+	jumps.add_child(ld)
 	var style := Button.new()
 	style.text = "STYLE WHEEL"
 	style.focus_mode = Control.FOCUS_NONE

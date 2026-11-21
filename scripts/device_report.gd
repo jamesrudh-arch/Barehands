@@ -215,6 +215,14 @@ static func _audio_block() -> String:
 
 
 static func _render_block() -> String:
+	# B18.3 (3C): the graphics facts - renderer, adapter, quality
+	# preset, triangles, draw calls, the LookDev availability
+	var gq := "Auto"
+	var qn := _node("/root/Quality")
+	if qn:
+		gq = "%s (tier %s)" % [str(qn.get("override")), str(qn.get("tier"))]
+	var tris := int(RenderingServer.get_rendering_info(
+			RenderingServer.RENDERING_INFO_TOTAL_PRIMITIVES_IN_FRAME))
 	var method := str(ProjectSettings.get_setting(
 			"rendering/renderer/rendering_method", "?"))
 	var api := "?"
@@ -238,9 +246,10 @@ static func _render_block() -> String:
 	var fps := Engine.get_frames_per_second()
 	var draws := Performance.get_monitor(
 			Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)
-	return "-- RENDER --\nrenderer: %s | API: %s | adapter: %s\nwindow: %s | visible rect: %s\norientation: %d | safe area: %s\nfps: %d | draw calls: %d" \
+	return "-- RENDER --\nrenderer: %s | API: %s | adapter: %s\nwindow: %s | visible rect: %s\norientation: %d | safe area: %s\nfps: %d | draw calls: %d | triangles: %d\nquality: %s | LookDev scene: %s" \
 			% [method, api, adapter, str(window), str(vis), orient,
-			str(safe), fps, draws]
+			str(safe), fps, draws, tris, gq,
+			"yes" if ResourceLoader.exists("res://scenes/lookdev.tscn") else "no"]
 
 
 static func _env_block() -> String:
