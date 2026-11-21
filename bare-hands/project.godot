@@ -3,15 +3,16 @@ config_version=5
 
 [application]
 
-config/name="Bare Hands 3D"
+config/name="LEVERAGE (Bare Hands) B16"
 config/description="Stylized noir open-world crime game set in Cinder City. Series 1: cinematic look and feel."
 config/version="series1-phase1"
-run/main_scene="res://scenes/main.tscn"
+run/main_scene="res://scenes/safe_boot.tscn"
 config/features=PackedStringArray("4.7", "Mobile")
 config/icon="res://icon.svg"
 
 [autoload]
 
+BuildStamp="*res://scripts/build_stamp.gd"
 Tuning="*res://scripts/tuning.gd"
 InputBus="*res://scripts/input_bus.gd"
 Settings="*res://scripts/settings.gd"

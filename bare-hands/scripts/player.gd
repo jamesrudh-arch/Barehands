@@ -864,8 +864,9 @@ func _offer_retry() -> void:
 
 
 func _retry_step() -> void:
-	# a fresh fight means a fresh offer
-	if Music.state != Music.State.COMBAT:
+	# a fresh fight means a fresh offer (B16: guard - Music can be
+	# null on a device where its autoload failed to register)
+	if Music != null and Music.state != Music.State.COMBAT:
 		_retry_offered_fight = false
 	if _retry_offer == null:
 		return
@@ -888,7 +889,8 @@ func _accept_retry() -> void:
 	FightScore.reset()
 	SuperMeter.value = 0.0
 	Heat.heat = 0.0
-	Music.heat = 0.0
+	if Music != null:
+		Music.heat = 0.0
 	Engine.time_scale = 1.0
 	Log.info("Player: RETRY accepted - reloading the fight")
 	get_tree().reload_current_scene()

@@ -1,5 +1,39 @@
 # CHANGELOG.md — batch history (newest first)
 
+## B16 — build stamp, SafeBoot, and the Music-null guards (2026-11-21)
+- The phone still showed an old build (white signs, grey figure, no
+  hero, no controls) with fight_score.gd:38 spamming 'state' on Nil
+  every frame while every sandbox suite was green. B16 makes
+  staleness impossible to miss and device-side failures legible:
+- BUILD STAMP: generated from the repo at commit time (batch,
+  commit hash, UTC time) - shown at boot (top-right corner), in the
+  debug menu, in SafeBoot, and in VERSION.txt at the repo root.
+  The project is renamed uniquely per batch ("LEVERAGE (Bare Hands)
+  B16") so Xogot cannot load a stale cached copy under the old name.
+  Root README says exactly which folder to import (bare-hands/).
+- SafeBoot (temporary main scene, scenes/safe_boot.tscn): the
+  diagnostic path. Plain lit floor, the real hero (player.tscn), the
+  real touch controls (touch_buttons + stick_input), a FollowCamera,
+  one dummy - and a big log with COPY LOG: build stamp, renderer,
+  GPU, window, orientation, safe area, FPS, draw calls, the
+  AUTOLOAD CENSUS (name by name - a NULL there is the root cause of
+  the fight_score spam), hero/touch/cinematic status, sign material
+  facts, and the grey-figure answer (node 'Dummy', tan since B15).
+  Eight one-at-a-time system toggles: cinematic, city, rain, signs
+  (a live material test wall), npcs, post-process, music, fight
+  score. START FULL GAME loads the real street.
+- The Music-null guards: fight_score._process (the :38 site),
+  player._retry_step/_accept_retry, heat._process, dialogue - all
+  null-guarded with a one-time push_error (never spam). Root cause
+  narrative in TESTING.md: a null singleton aborts the calling
+  function every frame; that abort chain is the no-hero/no-controls
+  symptom pattern. Fixed the silent main.tscn bug found on the way:
+  the Dummy's property is kind, not mode.
+- New suites: smoke_null_watch (600+ untouched frames against
+  main.tscn, any Nil/null script error fails it - PASS, 995 frames,
+  0 errors) and safe_boot_check (real-render proof of SafeBoot, 27
+  checks PASS, every toggle on/off clean).
+
 ## B15 — the Xogot visual pass: six bugs, a debug panel, render truth (2026-11-21)
 - The game runs on Xogot (Godot 4.7 / iPhone / Mobile-Metal) and the
   phone showed six visual bugs the number-only fixes missed. All six

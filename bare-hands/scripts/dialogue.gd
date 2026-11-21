@@ -157,7 +157,8 @@ func _show_line() -> void:
 	_portrait.add_child(initial)
 	_play_voice()
 	line_started.emit(_speaker, _voice_id, _line)
-	Music.duck(-7.0, 1.0)
+	if Music != null:  # B16: the device can register it null
+		Music.duck(-7.0, 1.0)
 
 
 ## Voice hook: plays assets/voice/<voice_id>_<n>.wav if the recording exists.

@@ -44,6 +44,13 @@ func _ready() -> void:
 	_label.add_theme_font_size_override("font_size", 13)
 	_label.add_theme_color_override("font_color", Color(0.85, 0.95, 0.9, 0.95))
 	panel.add_child(_label)
+	# B16: the build stamp in the debug menu (SafeBoot and the boot
+	# corner label show it too)
+	var stamp := Label.new()
+	stamp.text = BuildStamp.block()
+	stamp.add_theme_font_size_override("font_size", 12)
+	stamp.add_theme_color_override("font_color", Color(0.55, 0.9, 0.8, 0.9))
+	panel.add_child(stamp)
 
 	# Batch 0 jumps: the live TUNING PANEL and the in-game TEST RUNNER
 	var jumps := HBoxContainer.new()

@@ -23,6 +23,10 @@ var _end := Vector3.ZERO
 var _look_to := Vector3.ZERO
 var _born_msec := 0
 
+# B16: SafeBoot and smoke_null_watch read this - did the cinematic
+# EVER land (skip or watchdog both count as landed)?
+static var ever_finished := false
+
 
 func _recapture_end() -> void:
 	var pivot: Vector3 = _camera._pivot()
@@ -85,6 +89,7 @@ func _finish() -> void:
 		return
 	var skipped := _t < 1.0
 	_done = true
+	ever_finished = true
 	_t = 1.0
 	_camera.global_position = _end
 	_camera.set_frozen(false)

@@ -28,6 +28,7 @@ var _hits_taken := 0
 var _fight_start_msec := 0
 var _in_fight := false
 var _card: CanvasLayer = null
+var _music_null_logged := false
 
 
 func _ready() -> void:
@@ -35,6 +36,16 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
+	# B16 null guard: on the device the Music singleton has registered
+	# as Nil (stale/mixed cache or a registration failure - SafeBoot's
+	# autoload census says which), and this match aborted every frame.
+	# Guard once, log once, never spam.
+	if Music == null:
+		if not _music_null_logged:
+			_music_null_logged = true
+			push_error("FightScore: Music singleton is null on this "
+					+ "device - fight ranks are paused until it loads")
+		return
 	match Music.state:
 		Music.State.COMBAT:
 			if not _in_fight:

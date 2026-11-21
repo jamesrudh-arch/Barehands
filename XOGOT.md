@@ -58,6 +58,37 @@ the full NIGHT look).
    Xogot container setting, not the project (the project requests
    landscape explicitly).
 
+## B16 — the stale-build question + SafeBoot (READ FIRST)
+
+The phone showed old-build symptoms after a "clean" import. Prime
+suspect: Xogot caches projects by NAME, and the project name was
+"Bare Hands 3D" since the beginning - a stale cached copy can load
+instead of the fresh import. B16 changes that:
+
+1. The project is now named **"LEVERAGE (Bare Hands) B16"** (unique
+   per batch) - a fresh import can no longer collide with an old
+   cached name. If Xogot still shows an old copy, delete the old
+   project entry in Xogot first, then import `bare-hands/`.
+2. **BUILD STAMP**: batch + commit + time, top-right corner from
+   boot. **Read it before testing anything.** It must say `B16 <hash>`
+   and match github.com/jamesrudh-arch/Barehands/commits/main (the
+   top commit; VERSION.txt at the repo root documents the pairing).
+   If it says anything else, or the corner is empty, you are NOT on
+   B16 - stop and tell the agent what the stamp says.
+3. The game now boots into **SafeBoot** (temporary main scene): a
+   plain lit floor, the real hero, the real touch controls, one
+   dummy, and a big diagnostic log. **COPY LOG** puts the whole log
+   on your clipboard - paste it back to the agent. The log answers:
+   which build, which renderer, the autoload census (was Music
+   null? that is the fight_score.gd:38 spam), hero/touch/cinematic
+   status, and the grey-figure identification (node "Dummy").
+4. **START FULL GAME** loads the real street. If anything breaks
+   there but SafeBoot is clean, the culprit is one of the eight
+   toggles - turn them on ONE AT A TIME and watch the log.
+5. The fight_score spam is guarded now (one-time error, not every
+   frame), but the ROOT CAUSE - Music registering null on the
+   device - can only be seen in your SafeBoot census. Paste it.
+
 ## What is verified where
 
 - **Machine (sandbox, opengl3/llvmpipe)**: `render_check` — 26

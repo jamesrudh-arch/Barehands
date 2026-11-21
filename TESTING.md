@@ -263,6 +263,48 @@ half; the agent never marks phone-only lines verified):
   (renderer, window, safe area, orientation, FPS, draw calls, touch
   loaded YES/NO). Phone procedure: XOGOT.md.
 
+- **B16 staleness-proofing + SafeBoot + the Music-null guards**: two
+  new suites. smoke_null_watch boots the REAL main.tscn untouched and
+  runs 600+ frames: any SCRIPT ERROR / Nil / null in the window fails
+  it (the battery wrapper greps; in-game GDScript cannot capture
+  native error output), and it asserts the end state - hero alive,
+  touch controls visible, the cinematic landed, input unlocked, the
+  Music singleton alive. PASSES at 995 frames / 6.9 s wall, 0 errors
+  (headless ticks faster than wall clock: wait for ever_finished or
+  the watchdog before judging, never a bare frame count). Gotcha:
+  ProjectSettings.get_autoload_list() does not exist in 4.7 - read
+  the property list and trim_prefix("autoload/"). enemy.tscn's real
+  property is kind, NOT mode (main.tscn had silently been setting an
+  invalid 'mode = 0' since the beginning - it only worked because
+  kind's default is also 0). safe_boot_check renders the SafeBoot
+  diagnostic scene with a real renderer: 27 checks PASS - base world
+  (floor/env/light, real player.tscn hero, FollowCamera, real
+  touch_buttons + stick_input with 9 visible buttons, Dummy), the log
+  panel filled with the census, the boot-corner stamp on screen, the
+  frame visibly lit, and EVERY system toggle (cinematic, city, rain,
+  signs, npcs, post, music, fightscore) turned on and off cleanly.
+- **B16 the Music-null root cause narrative**: fight_score.gd:38 was
+  `match Music.state:` - on the device the Music singleton registers
+  as Nil (sandbox cannot reproduce a device-side registration
+  failure; every suite was green while the phone spammed). A null
+  autoload reference ABORTS the calling function every frame:
+  fight_score._process (the spam), player._retry_step +
+  _accept_retry, heat._process (Music.set_heat), dialogue line
+  starts (Music.duck) - that abort chain is the "no hero, no touch
+  controls" symptom pattern. All four sites now null-guard with a
+  ONE-TIME push_error (never spam). SafeBoot's autoload census (name
+  by name, /root/<Name> null or ok) is the on-device answer to
+  "which singleton died".
+- **B16 build stamp + stale-build proof**: BuildInfo (generated
+  const, scripts/gen_build_info.py writes it + VERSION.txt from the
+  code commit hash, then a stamp commit lands above it), BuildStamp
+  autoload (top-right corner label from boot + window title),
+  debug-menu stamp line, SafeBoot header + log. config/name is now
+  unique per batch ("LEVERAGE (Bare Hands) B16") - Xogot caches
+  projects by name and an unchanged name lets a stale cached import
+  masquerade as a fresh one (the prime stale-build suspect). Root
+  README states the import folder (bare-hands/) at the top.
+
 - **B10 battery regressions**: (1) the map grew TAKE buttons - the
   B8 'one button only' assertion kept its intent (no fast travel) and
   now allows TAKE+BACK. (2) stress_combat died once and a buffered

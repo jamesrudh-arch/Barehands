@@ -43,7 +43,8 @@ func _physics_process(delta: float) -> void:
 	elif _t >= _calm_since:
 		add(-DECAY_RATE * delta)  # out of sight and calm: the street forgets
 	_enemy_floor()  # the permanent enemy never lets it fully cool
-	Music.set_heat(heat)
+	if Music != null:  # B16: the device can register it null
+		Music.set_heat(heat)
 	_response(delta, p)
 
 

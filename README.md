@@ -1,5 +1,23 @@
 # Bare Hands 3D
 
+## WHICH FOLDER TO IMPORT (Xogot / Godot) - READ THIS FIRST
+
+**Import `bare-hands/`** - the folder that contains `project.godot`.
+The repo root holds docs and the build stamp; importing the root
+will not open the game.
+
+- The project name changes every batch (`LEVERAGE (Bare Hands) B16`)
+  so Xogot can never load a stale cached copy under an old name.
+- The build stamp (batch + commit + time) shows at the top-right
+  corner from boot, in the debug menu, and in the SafeBoot log.
+  **Before testing anything, read the stamp and compare it with
+  github.com/jamesrudh-arch/Barehands/commits/main.**
+- `VERSION.txt` (repo root) documents the same stamp.
+- B16 boots into **SafeBoot** (the device diagnostic scene): base
+  world + real hero + real touch controls, a big COPY LOG panel and
+  one-at-a-time system toggles. START FULL GAME loads the street.
+
+
 A stylized noir, open-world crime game set in **Cinder City**.
 Engine: **Godot 4.7**, 3D, **Mobile** renderer, landscape, touch-first.
 The whole project is plain text (`.gd`, `.tscn`, `project.godot`) plus CC0 asset packs, so it can be built and edited without a desktop editor.
