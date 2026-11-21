@@ -156,6 +156,46 @@ func burst(pos: Vector3, color: Color) -> void:
 	t.timeout.connect(p.queue_free)
 
 
+## B19: a one-shot SPRITE burst - dust clouds on slams, sparks on
+## parries (the Kenney explosion-pack CC0 sprites). Same bounded
+## one-second life as burst().
+func burst_sprite(pos: Vector3, tex_path: String, color: Color,
+		count := 8, size := 0.3) -> void:
+	var scene := get_tree().current_scene
+	if scene == null or not ResourceLoader.exists(tex_path):
+		burst(pos, color)  # the fallback stays honest
+		return
+	var p := CPUParticles3D.new()
+	p.one_shot = true
+	p.explosiveness = 1.0
+	p.amount = count
+	p.lifetime = 0.6
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(color.r, color.g, color.b, 0.75)
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+	mat.albedo_texture = load(tex_path)
+	var qm := QuadMesh.new()
+	qm.size = Vector2(size, size)
+	qm.material = mat
+	p.mesh = qm
+	p.direction = Vector3.UP
+	p.spread = 70.0
+	p.initial_velocity_min = 1.2
+	p.initial_velocity_max = 3.2
+	p.gravity = Vector3(0.0, -4.0, 0.0)
+	p.scale_amount_min = 0.7
+	p.scale_amount_max = 1.6
+	scene.add_child(p)
+	p.global_position = pos
+	p.emitting = true
+	_bursts_alive += 1
+	p.tree_exited.connect(func() -> void: _bursts_alive -= 1)
+	var t := get_tree().create_timer(1.0, true, false, true)
+	t.timeout.connect(p.queue_free)
+
+
 func shake(amount: float) -> void:
 	var cam := get_tree().get_first_node_in_group("camera")
 	if cam:

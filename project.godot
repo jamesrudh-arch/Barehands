@@ -45,6 +45,7 @@ Reactive="*res://scripts/reactive.gd"
 Backroom="*res://scripts/backroom.gd"
 Traffic="*res://scripts/traffic.gd"
 Weather="*res://scripts/weather.gd"
+Fire="*res://scripts/fire.gd"
 [display]
 window/size/viewport_width=1280
 window/size/viewport_height=720

@@ -686,6 +686,19 @@ func _kits() -> void:
 				Vector3(spec[1], 0.0, -17.5 + spec[2]), 0.15, 9.0)
 		if k:
 			placed += 1
+	# B19 batch 8: real fire on the street - a burn barrel by the north
+	# bins, and the noodle front becomes a working grill (kitchen bar,
+	# skewers, coffee, a small flame with its smoke)
+	if Fire != null:
+		Fire.burning_barrel(main, Vector3(-1.5, 0.0, -8.8))
+		var bar := CLS_Kit.place(main, "kenney_furniture/kitchenBar.glb",
+				Vector3(-6.3, 0.0, 8.9), PI, 1.3)
+		if bar:
+			CLS_Kit.place(main, "kenney_food/skewer.glb",
+					Vector3(-6.1, 0.66, 8.8), 0.0, 1.0)
+			CLS_Kit.place(main, "kenney_food/cup-coffee.glb",
+					Vector3(-6.65, 0.64, 9.0), 0.0, 1.0)
+			Fire.grill_fire(main, Vector3(-6.3, 0.72, 8.9))
 	Log.info("StreetKits: %d CC0 kit models placed on the main street" % placed)
 
 

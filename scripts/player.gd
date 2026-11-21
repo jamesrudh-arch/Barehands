@@ -807,6 +807,13 @@ func _env_takedown(target: CharacterBody3D, dir: Vector3, surface: String, hit_p
 	Fx.hit_stop(8, [self, target])
 	target.take_hit(dir, kind)
 	Fx.burst(hit_pos, Color(1.0, 0.55, 0.2))
+	# B19: the environment answers with real dust (or sparks on metal)
+	if surface in ["shutter", "rail", "fire"]:
+		Fx.burst_sprite(hit_pos, "res://assets/fx/spark_burst.png",
+				Color(1.0, 0.8, 0.4), 10, 0.22)
+	else:
+		Fx.burst_sprite(hit_pos, "res://assets/fx/smoke_2.png",
+				Color(0.45, 0.4, 0.35), 8, 0.35)
 	Fx.shake(0.9)
 	Fx.camera_punch(6.0)
 	Fx.haptic(120)
@@ -1023,6 +1030,11 @@ func open_counter(seconds: float) -> void:
 	_counter_until = _t + seconds
 	SuperMeter.gain(SuperMeter.GAIN_PARRY, "parry")
 	Progression.add_xp(4.0, "parry")
+	# B19: the parry rings real sparks, not just a sound
+	Fx.burst_sprite(global_position + Vector3(0, 1.3, 0) + \
+			-global_transform.basis.z * 0.8,
+			"res://assets/fx/spark_burst.png",
+			Color(1.0, 0.85, 0.5), 9, 0.18)
 
 
 # --- grab and throw -----------------------------------------------------------------

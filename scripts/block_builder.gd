@@ -399,7 +399,8 @@ func _foundry() -> void:
 	keep_out.position = Vector3(2.0, 2.2, -6.8)
 	add_child(keep_out)
 	# B19: the dock works - a chimney stack, a fuel tank, a truck at the
-	# loading wall and stacked cargo (all Kenney industrial / car kit)
+	# loading wall, stacked cargo (all Kenney industrial / car kit), and
+	# a burn barrel by the wall (batch 8's real fire, a slam surface)
 	CLS_Kit.place(self, "kenney_industrial/chimney-medium.glb",
 			Vector3(-13.0, 0.0, -17.5), 0.0, 2.2)
 	CLS_Kit.place(self, "kenney_industrial/detail-tank.glb",
@@ -409,6 +410,8 @@ func _foundry() -> void:
 	for b in [Vector3(-11.5, 0.0, -8.2), Vector3(-10.2, 1.15, -8.2),
 			Vector3(-11.0, 0.0, -6.9)]:
 		CLS_Kit.place(self, "kenney_traffic/box.glb", b, 0.3, 1.6)
+	if Fire != null:
+		Fire.burning_barrel(self, Vector3(13.5, 0.0, -8.0))
 	# containers on the south side. B19: the plain boxes wear the car
 	# kit's textured cargo crates, tinted per the dock palette
 	var palette := [Color(0.55, 0.2, 0.12), Color(0.15, 0.4, 0.5),

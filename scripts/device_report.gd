@@ -88,6 +88,16 @@ static func _kits_block() -> String:
 			dressed += 1
 	out += "enemies in CC0 characters: %d | dummy keeps its mannequin\n" % dressed
 	out += "kits: Kenney City Kit / Car Kit (CC0), characters: Quaternius UBC (CC0)"
+	# B19: the living systems - crowd, traffic, weather, fire
+	var crowd := tree.get_nodes_in_group("wanderer").size()
+	var cars := tree.get_nodes_in_group("traffic").size()
+	var fires := tree.get_nodes_in_group("fire_source").size()
+	var weather := "nil"
+	var w := tree.root.get_node_or_null("/root/Weather")
+	if w:
+		weather = "%s %.2f" % [str(w.get("state")), float(w.get("intensity"))]
+	out += "\n-- LIVING CITY --\npedestrians: %d | traffic: %d cars | fire sources: %d\nweather: %s" \
+			% [crowd, cars, fires, weather]
 	return out
 
 
