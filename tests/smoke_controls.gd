@@ -92,7 +92,8 @@ func _test_first_run_picker() -> void:
 	var cards := fr.find_children("Move_*", "Button", true, false)
 	_check(cards.size() == 4, "picker shows four movement cards (%d)" % cards.size())
 	var btn_cards := fr.find_children("Btns_*", "Button", true, false)
-	_check(btn_cards.size() == 2, "picker offers both button schemes (%d)" % btn_cards.size())
+	# B18.3: three schemes now - FIGHT (default), Face, Classic
+	_check(btn_cards.size() == 3, "picker offers the three button schemes (%d)" % btn_cards.size())
 	# the button-scheme cards set button_scheme WITHOUT dismissing the picker
 	for bc in btn_cards:
 		if (bc as Button).name == "Btns_face":

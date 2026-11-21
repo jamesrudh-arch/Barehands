@@ -2,6 +2,7 @@ extends CanvasLayer
 const CLS_ActionButton := preload("res://scripts/action_button.gd")
 const CLS_SettingsUI := preload("res://scripts/settings_ui.gd")
 const CLS_StyleWheel := preload("res://scripts/style_wheel.gd")
+const CLS_Enemy := preload("res://scripts/enemy.gd")
 ## The action side of the HUD (Stage A + combo pass + the B18 layout
 ## engine). Two button schemes the player chooses in Settings and the
 ## first-run picker:
@@ -60,6 +61,29 @@ const FACE_SPECS := [
 	["HelpBtn", "HELP", "", Color(0.6, 0.85, 1.0, 0.9), Vector2(3, 3), 64.0],
 ]
 
+## B18.3 Part 2 (BUG 8): the FIGHTING scheme - the console diamond
+## (X punch, Y heavy, B kick, A dodge), the GUARD/GRAB/SPRINT pills in
+## a row above it, JUMP to the left, SUPER in the diamond's centre,
+## STYLE (hold: the wheel), LOCK, PHONE. B becomes the context action
+## near doors and pickups (combat keeps it KICK). Default scheme.
+const FIGHT_SPECS := [
+	# the diamond: Y top, X left, B right, A bottom
+	["FightX", "X", "PUNCH", Color(0.55, 0.85, 1.0, 0.95), Vector2(1, 1), 108.0],
+	["FightY", "Y", "HEAVY", Color(1.0, 0.82, 0.35, 0.95), Vector2(2, 2), 108.0],
+	["FightB", "B", "KICK", Color(1.0, 0.45, 0.35, 0.95), Vector2(3, 1), 108.0],
+	["FightA", "A", "DODGE", Color(0.6, 1.0, 0.75, 0.95), Vector2(2, 0), 96.0],
+	["SuperBtn", "SUPER", "", Color(1.0, 0.62, 0.2, 1.0), Vector2(2, 1), 64.0],
+	["JumpBtn", "JUMP", "vault", Color(1.0, 0.78, 0.45, 0.95), Vector2(0, 1), 76.0],
+	["GuardBtn", "GUARD", "hold", Color(0.8, 0.85, 1.0, 0.9), Vector2(1, 3), 68.0],
+	["GrabBtn", "GRAB", "", Color(0.75, 1.0, 0.6, 0.95), Vector2(2, 3), 68.0],
+	["SprintBtn", "SPRINT", "hold", Color(0.55, 0.95, 1.0, 0.95), Vector2(3, 3), 68.0],
+	["StyleBtn", "STYLE", "hold", Color(0.9, 0.7, 0.4, 0.9), Vector2(0, 2), 72.0],
+	["LockBtn", "LOCK", "", Color(0.8, 0.8, 0.85, 0.9), Vector2(3, 2), 64.0],
+	["PhoneBtn", "PHONE", "", Color(0.45, 0.52, 0.62, 1.0), Vector2(0, 3), 60.0],
+	["ObjBtn", "OBJECTIVE", "", Color(1.0, 0.85, 0.2, 0.9), Vector2(1, 0), 64.0],
+	["HelpBtn", "HELP", "", Color(0.6, 0.85, 1.0, 0.9), Vector2(3, 0), 64.0],
+]
+
 const GAP := 18.0        # between grid cells
 const MARGIN := 16.0     # from the safe-area corner
 const MIN_SIZE := 64.0   # canvas px; a thumb must be able to find it
@@ -68,6 +92,7 @@ var hint_shown := false
 var _hint_fade := 0.0
 var _buttons: Dictionary = {}  # name -> ActionButton
 var _default_rects: Dictionary = {}  # name -> Rect2 before any override
+var _b_ctx := ""  # B18.3: the FIGHT scheme's live context verb for B
 var _editing := false
 var _edit_sel := ""
 var _edit_drag := false
@@ -93,11 +118,17 @@ func _ready() -> void:
 
 
 func _scheme() -> String:
-	return "face" if str(Settings.value("button_scheme")) == "face" else "classic"
+	var s := str(Settings.value("button_scheme"))
+	return s if s in ["face", "fight"] else "classic"
 
 
 func _specs() -> Array:
-	return FACE_SPECS if _scheme() == "face" else CLASSIC_SPECS
+	match _scheme():
+		"face":
+			return FACE_SPECS
+		"fight":
+			return FIGHT_SPECS
+	return CLASSIC_SPECS
 
 
 func _spec_for(name: String) -> Array:
@@ -190,6 +221,30 @@ func _on_down(name: String) -> void:
 		"FaceX":
 			InputBus.queue_kick()
 			InputBus.press_face("X")
+		# --- B18.3 Part 2: the FIGHTING scheme --------------------------------
+		"FightX":
+			InputBus.stamp_action("punch_down")
+			InputBus.queue_punch()
+			InputBus.press_face("A")   # X = the light attack (combo token A)
+		"FightY":
+			# tap = instant heavy, hold = the charged heavy (hold poll)
+			InputBus.stamp_action("punch_down")
+			InputBus.punch_press()
+			InputBus.press_face("B")   # Y = the heavy (combo token B)
+		"FightB":
+			# B is KICK - but near a door/pickup (and out of combat) it
+			# becomes the context action instead (Part 6D priority rule)
+			if _b_context() != "":
+				InputBus.queue_grab()
+			else:
+				InputBus.queue_kick()
+				InputBus.press_face("X")   # B = the kick (combo token X)
+		"FightA":
+			InputBus.stamp_action("dodge_down")
+			InputBus.dodge_press()
+		"GuardBtn":
+			# hold to block (a block's first moments parry); never rolls
+			InputBus.dodge_press()
 		"ObjBtn":
 			_guide_call("objective_pressed")
 		"HelpBtn":
@@ -206,6 +261,24 @@ func _on_up(name: String) -> void:
 			InputBus.punch_release()
 		"DodgeBtn":
 			InputBus.dodge_release()
+		"FightY":
+			# quick tap: drop the light the release queues, fire the
+			# instant heavy; long hold: the charged heavy already fired
+			var quick := InputBus.punch_age() >= 0.0 \
+					and InputBus.punch_age() * 1000.0 < InputBus.PUNCH_HOLD_MSEC
+			InputBus.punch_release()
+			if quick:
+				InputBus.clear_punch_queue()
+				InputBus.queue_heavy()
+		"FightA":
+			InputBus.dodge_release()
+		"GuardBtn":
+			# a quick guard tap never rolls - drop the queued dodge
+			var g_quick := InputBus.dodge_age() >= 0.0 \
+					and InputBus.dodge_age() * 1000.0 < Tuning.v("block_hold_ms")
+			InputBus.dodge_release()
+			if g_quick:
+				InputBus.clear_dodge_queue()
 
 
 ## The style wheel (Batch 3): one shared instance, code-built.
@@ -246,6 +319,10 @@ func _process(delta: float) -> void:
 		_set_ring("FaceA", p.punch_cooldown_01())
 		_set_ring("FaceB", p.punch_cooldown_01())
 		_set_ring("FaceX", p.punch_cooldown_01())
+		_set_ring("FightX", p.punch_cooldown_01())
+		_set_ring("FightY", p.punch_cooldown_01())
+		_set_ring("FightB", p.punch_cooldown_01())
+		_set_ring("FightA", p.dodge_cooldown_01())
 	if _hint_fade > 0.0:
 		_hint_fade -= delta
 		if _hint_fade <= 0.0:
@@ -270,18 +347,45 @@ func _set_ring(name: String, cd: float) -> void:
 ## usable. The face scheme's Y keeps its diamond slot (its label stays
 ## GRAB); classic's dedicated button appears and disappears.
 func _apply_context() -> void:
-	var b := _buttons.get("GrabBtn") as CLS_ActionButton
-	if b == null:
-		return
 	var want := ""
 	var player := get_tree().get_first_node_in_group("player")
 	if player and player.has_method("context_action"):
 		want = str(player.call("context_action"))
-	if want == "":
-		b.visible = false
-		return
-	b.visible = true
-	b.label = want
+	# B18.3 Part 6D: B keeps KICK while a fight is close (no door opens
+	# by accident); the context wins only when the street is calm
+	if want != "" and _combat_near(6.0):
+		want = ""
+	_b_ctx = want
+	var b := _buttons.get("GrabBtn") as CLS_ActionButton
+	if b:
+		if want == "":
+			b.visible = false
+		else:
+			b.visible = true
+			b.label = want
+	# the FIGHT scheme's B button wears the context verb when it has one
+	var fb := _buttons.get("FightB") as CLS_ActionButton
+	if fb:
+		fb.sub = want if want != "" else "KICK"
+
+
+## The context verb for B right now ("" = none / combat priority).
+func _b_context() -> String:
+	return _b_ctx
+
+
+## True when a live enemy stands within `radius` metres of the hero -
+## the combat-priority rule that keeps B as KICK mid-fight.
+func _combat_near(radius: float) -> bool:
+	var player := get_tree().get_first_node_in_group("player") as Node3D
+	if player == null:
+		return false
+	for e in get_tree().get_nodes_in_group("enemy"):
+		if e.get("state") == CLS_Enemy.State.DOWN:
+			continue
+		if (e as Node3D).global_position.distance_to(player.global_position) < radius:
+			return true
+	return false
 
 
 func _on_super_meter(value: float) -> void:

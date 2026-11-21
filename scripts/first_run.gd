@@ -101,14 +101,15 @@ func _build() -> void:
 	btitle.add_theme_font_size_override("font_size", 18)
 	btitle.add_theme_color_override("font_color", Color(1, 0.75, 0.45))
 	col.add_child(btitle)
-	for id in ["face", "classic"]:
+	for id in ["fight", "face", "classic"]:
 		var b := Button.new()
 		b.name = "Btns_" + id
-		b.text = "Face buttons\nA light - B heavy - X kick - Y grab" if id == "face" \
-				else "Classic\nPUNCH - DODGE - JUMP - SPRINT - GRAB"
+		b.text = {"fight": "FIGHT (default)\nX punch - Y heavy\nB kick - A dodge",
+				"face": "Face buttons\nA light - B heavy\nX kick - Y grab",
+				"classic": "Classic\nPUNCH - DODGE - JUMP\nSPRINT - GRAB"}[id]
 		b.focus_mode = Control.FOCUS_NONE
-		b.custom_minimum_size = Vector2(290, 96)
-		b.add_theme_font_size_override("font_size", 16)
+		b.custom_minimum_size = Vector2(192, 108)
+		b.add_theme_font_size_override("font_size", 13)
 		var sb := StyleBoxFlat.new()
 		sb.bg_color = Color(0.08, 0.09, 0.12, 0.85)
 		sb.border_color = Color(1, 0.58, 0.13, 0.45)

@@ -301,6 +301,28 @@ const ALL := [
 					"slow": 0.25},
 		],
 	},
+	{
+		"id": "one_two_three", "name": "ONE-TWO-THREE", "seq": ["A", "A", "A"],
+		"level": 1, "style": "brawler",
+		"desc": "Jab, cross, hook - the classic three-hit string every street teaches first.",
+		"dmg": 4, "lunge": 1.1,
+		"hits": [
+			{"anim": "Punch_Cross", "anim_t": 0.0, "speed": 1.6, "t": 0.26,
+					"kind": "heavy", "dmg": 4, "cam": -6.0, "snd": "punch_heavy_1",
+					"snd_pitch": 1.05, "hap": "heavy", "shake": 0.5, "style": "combo"},
+		],
+	},
+	{
+		"id": "step_kick", "name": "STEP KICK", "seq": ["A", "X"],
+		"level": 1, "style": "kickboxing",
+		"desc": "A punch to fold them, a kick to send them back into the rain.",
+		"dmg": 3, "lunge": 1.0,
+		"hits": [
+			{"anim": "Kick_Code", "anim_t": 0.0, "speed": 1.2, "t": 0.30,
+					"kind": "heavy", "dmg": 3, "cam": 5.0, "snd": "body_heavy_0",
+					"snd_pitch": 1.0, "hap": "heavy", "shake": 0.4, "style": "kick"},
+		],
+	},
 ]
 
 

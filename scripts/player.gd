@@ -1194,18 +1194,22 @@ func _try_grab_action() -> void:
 				else:
 					_equip_gun(gun as Node3D)
 				return
-	# no enemy: pick up the pipe if it is at our feet
-	if not has_pipe:
-		for pipe in get_tree().get_nodes_in_group("pipe_prop"):
-			if pipe is Node3D and global_position.distance_to((pipe as Node3D).global_position) < 1.7:
-				has_pipe = true
-				_pipe_prop = pipe
-				(pipe as Node3D).visible = false
-				_rig.equip_pipe(true)
-				Sound.play("latch_0", -4.0)
-				Sound.play("metal_click_0", -8.0)
-				Log.info("player picked up the pipe")
+		# no enemy: the B18.3 pickups first (weapons + items)
+		for pk in get_tree().get_nodes_in_group("pickup"):
+			if pk.has_method("try_use") and pk.try_use(self):
 				return
+		# then the pipe if it is at our feet
+		if not has_pipe:
+			for pipe in get_tree().get_nodes_in_group("pipe_prop"):
+				if pipe is Node3D and global_position.distance_to((pipe as Node3D).global_position) < 1.7:
+					has_pipe = true
+					_pipe_prop = pipe
+					(pipe as Node3D).visible = false
+					_rig.equip_pipe(true)
+					Sound.play("latch_0", -4.0)
+					Sound.play("metal_click_0", -8.0)
+					Log.info("player picked up the pipe")
+					return
 		if has_pipe:  # nothing to seize, pipe in hand: the grab throws it
 			throw_pipe()
 			return
@@ -1250,6 +1254,11 @@ func context_action() -> String:
 	if cast_node is Node3D and global_position.distance_to(
 			(cast_node as Node3D).global_position) < 2.8:
 		return "TALK"
+	# B18.3 Part 6D: a pickup at the feet wins the context (B = PICK UP)
+	for pk in get_tree().get_nodes_in_group("pickup"):
+		if pk is Node3D and global_position.distance_to(
+				(pk as Node3D).global_position) < 2.2:
+			return "PICK UP"
 	for shop in get_tree().get_nodes_in_group("shop"):
 		if shop is Node3D and global_position.distance_to(
 				(shop as Node3D).global_position) < 2.4:
@@ -1367,6 +1376,19 @@ func _release_grab(dir: Vector3, speed: float) -> void:
 
 
 ## Throw the held pipe like a weapon (GRAB while the pipe is equipped).
+## B18.3: a Weapons-layer pickup equipped (pipe, bat, bottle, plank,
+## chair leg - they all ride the pipe move set; Weapons tracks life).
+func arm_weapon() -> void:
+	has_pipe = true
+	_rig.equip_pipe(true)
+
+
+## B18.3: the held weapon broke (or was dropped) - back to bare hands.
+func unequip_weapon() -> void:
+	has_pipe = false
+	_rig.equip_pipe(false)
+
+
 func throw_pipe() -> void:
 	if not has_pipe:
 		return

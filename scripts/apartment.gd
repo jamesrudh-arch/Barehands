@@ -136,6 +136,18 @@ func _build_door() -> void:
 	add_child(hinge)
 	_panel.position = Vector3(0.65, 1.1, 0.0)
 	hinge.add_child(_panel)
+	# the handle (Part 6D.4: every door has one)
+	var handle := MeshInstance3D.new()
+	var hm := BoxMesh.new()
+	hm.size = Vector3(0.06, 0.24, 0.06)
+	var hmat := StandardMaterial3D.new()
+	hmat.albedo_color = Color(0.72, 0.74, 0.78)
+	hmat.metallic = 0.8
+	hmat.roughness = 0.3
+	hm.material = hmat
+	handle.mesh = hm
+	handle.position = Vector3(0.52, 0.0, 0.07)
+	_panel.add_child(handle)
 	set_meta("hinge_path", hinge.get_path())
 	# the sign above the door + the OPEN prompt
 	var sign := Label3D.new()

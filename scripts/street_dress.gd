@@ -25,7 +25,8 @@ func _ready() -> void:
 	_safehouse()
 	_shutter()
 	_rails()
-	_pipe_prop()
+	# B18.3: the loose street pipe moved to the Pickups node (the
+	# Weapons-tracked pickup at the same spot, 6.3, -7.6)
 
 
 ## A soft additive glow quad: light spilling out of a window or sign, so

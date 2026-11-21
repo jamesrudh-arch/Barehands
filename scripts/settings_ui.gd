@@ -255,13 +255,15 @@ func _style(b: Button) -> void:
 
 func _layout_section(col: BoxContainer) -> void:
 	_title(col, "BUTTON LAYOUT")
-	# the scheme chooser: console diamond vs classic touch buttons
+	# the scheme chooser: the fighting diamond, the console diamond, or
+	# the classic touch buttons (B18.3: FIGHT is the default)
 	var brow := HBoxContainer.new()
 	brow.add_theme_constant_override("separation", 8)
 	col.add_child(brow)
-	for id in ["face", "classic"]:
+	for id in ["fight", "face", "classic"]:
 		var b := Button.new()
-		b.text = "Face buttons" if id == "face" else "Classic"
+		b.text = {"fight": "Fight (X Y B A)", "face": "Face buttons",
+				"classic": "Classic"}[id]
 		b.focus_mode = Control.FOCUS_NONE
 		b.custom_minimum_size = Vector2(182, 48)
 		b.add_theme_font_size_override("font_size", 14)

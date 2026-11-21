@@ -227,6 +227,21 @@ func consume_punch_hold() -> void:
 	_punch_hold_consumed = true
 
 
+## B18.3 (Part 2): the FIGHT scheme's Y button - tap = instant heavy,
+## hold = the charged heavy. On a quick release the light-punch the
+## classic release path queues is dropped so only the heavy fires.
+func clear_punch_queue() -> void:
+	_punch_at = -99999.0
+	_punch_hold_consumed = true
+
+
+## B18.3: the GUARD pill holds a block without ever rolling - a quick
+## tap's queued dodge is dropped the same way.
+func clear_dodge_queue() -> void:
+	_dodge_at = -99999.0
+	_dodge_hold_consumed = true
+
+
 func dodge_press() -> void:
 	dodge_held = true
 	_dodge_down_at = _game_msec
