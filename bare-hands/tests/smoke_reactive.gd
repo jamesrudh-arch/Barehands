@@ -27,6 +27,8 @@ func _wait_s(seconds: float) -> void:
 
 
 func _ready() -> void:
+	# NOT pinned: this suite ARRANGES the eyes itself - the empty
+	# alley (x0.6) and the two witnesses (x1.5) are the test
 	get_window().size = Vector2i(1280, 720)
 	await get_tree().process_frame
 	Settings.set_value("first_run_done", true)

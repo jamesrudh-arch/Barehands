@@ -68,17 +68,25 @@ func tier_name() -> String:
 	return "quiet"
 
 
+var test_pin_eyes := -1  # suites pin this (>= 0) to freeze the witness count
+
+
 func add(amount: float) -> void:
 	var was := heat
 	# crowds are witnesses, alleys are not (bible 4I): a street with
-	# eyes pays you back, an empty one lets it slide
+	# eyes pays you back, an empty one lets it slide. Suites pin
+	# test_pin_eyes (the x1.0 single-witness band) so heat arithmetic
+	# is deterministic - wanderers roam, and a roaming witness is a
+	# dice roll no assertion should ride on.
 	var p := get_tree().get_first_node_in_group("player") as CharacterBody3D
 	if p and amount > 0.0:
-		var eyes := 0
-		for w in get_tree().get_nodes_in_group("wanderer"):
-			if (w as Node3D).global_position.distance_to(
-					p.global_position) < 10.0:
-				eyes += 1
+		var eyes := test_pin_eyes
+		if eyes < 0:
+			eyes = 0
+			for w in get_tree().get_nodes_in_group("wanderer"):
+				if (w as Node3D).global_position.distance_to(
+						p.global_position) < 10.0:
+					eyes += 1
 		if eyes >= 2:
 			amount *= float(Tuning.v("witness_mult"))
 		elif eyes == 0:

@@ -140,6 +140,71 @@ batch boundary.
   keys before adding (launder_cut existed since B6); assertions
   crossed by thresholds should sit above them, not at 999.
 
+- **B14 difficulty + WOW sweep**: smoke_difficulty (22 checks) -
+  the three streets' multipliers (street 1.0 baseline; hard/brutal
+  read their screws from tuning), enemy HP scaling per tier
+  (bruiser 12/18/24, boss 30/60), telegraph scaling ratios, the
+  composure drain scaling (18 / 22.5 / 27), the SETTINGS picker
+  (three buttons, the active street glows, tapping HARD flips both
+  the glow and the lever), persistence across a settings reload,
+  and street-mode regression (every old number untouched). Suite
+  lessons: a picker built like _scheme_picker needs its own
+  trailing _refresh() or the glow never lands; `var t :=
+  TUNING[kind][2]` on an untyped array needs an explicit float.
+- **B14b the witness pin**: the B14 battery caught smoke_backroom
+  and smoke_jobs red - every heat gain landed at x0.6. Cause (not
+  B14): Heat.add() scales gains by who is watching (bible 4I
+  crowds-are-witnesses, B12): 0 wanderers near the player =
+  alley_mult 0.6, 1 = x1.0, 2+ = witness_mult 1.5 - and wanderers
+  ROAM, so the eye count at assertion time was a dice roll every
+  heat-asserting suite was silently riding on (the exact-value
+  1.08 violence check in smoke_economy was the same dice, green by
+  luck every run). Fix: Heat.test_pin_eyes (default -1 = live scan,
+  the game untouched); the eight heat-asserting suites pin 1 - the
+  x1.0 band - so every existing expected number stands exactly as
+  written. smoke_reactive is NOT pinned: it ARRANGES the eyes
+  itself (the empty alley x0.6 and the two witnesses x1.5 are the
+  test). Battery re-run green after the pin.
+
+**B14 WOW gate sweep** (docs/WOW_GATE.md, the machine-checkable
+half; the agent never marks phone-only lines verified):
+
+| Gate line | Machine proof | Phone (owner) |
+| --- | --- | --- |
+| 30+ FPS iPhone 13 mini, DBG open | - | YES |
+| memory flat over 5 min | stress_combat node counts | spot check |
+| no mid-play stops | stress_combat green | feel pass |
+| nothing placeholder-looking | suite battery + face checks | YES |
+| layered hit sounds | smoke_audio | feel |
+| puddle footstep change | Sound surface raycast (smoke_audio) | YES |
+| pause volume sliders | settings_ui _slider + smoke_controls | feel |
+| mute all = silence | Sound mute paths (smoke_audio) | YES |
+| music layers, no click | smoke_music | YES |
+| heat heartbeat tempo | smoke_music | YES |
+| combat resolve phrase | smoke_music | feel |
+| chains/block/last-frame parry | smoke_combat, smoke_combos | feel |
+| pipe changes swing weight | smoke_combat (weapon data) | feel |
+| enemies flank, not queue | smoke_depth token pool | YES |
+| wall slam reads as takedown | smoke_combat (slam resolve) | feel |
+| heavy hits buzz the phone | Haptics + haptic_pattern wiring | YES |
+| bullet price shown first | smoke_ledger | YES |
+| firing prints money spent | smoke_ledger | YES |
+| receipt totals match cash | smoke_economy, smoke_ledger | YES |
+| cash scales with style rank | smoke_progression, smoke_face | feel |
+| heat stars climb and cool | smoke (city heat), smoke_city | YES |
+| shops change look + stats | gear wiring, smoke_economy | YES |
+| save/reload everything back | smoke_progression, smoke_worldsim | YES |
+| prices/greetings shift with rep | smoke_city | YES |
+| district turns hostile | smoke_city | YES |
+| nickname on a wall | smoke_city (graffiti) | YES |
+| witness event recalled | smoke_reactive | YES |
+| four cast read as four people | smoke_cast | YES |
+| dialogue types, portraits, subs | smoke_face, smoke_phone | YES |
+| voice hooks visible and empty | cast slots | YES |
+| opening plays, title card | opening scene (smoke phases) | YES |
+| menus clean, settings persist | smoke_difficulty persistence | YES |
+| stress test reports numbers | stress_combat report | YES |
+
 - **B10 battery regressions**: (1) the map grew TAKE buttons - the
   B8 'one button only' assertion kept its intent (no fast travel) and
   now allows TAKE+BACK. (2) stress_combat died once and a buffered

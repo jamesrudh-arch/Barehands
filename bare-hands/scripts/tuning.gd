@@ -77,6 +77,13 @@ const DEFAULTS := {
 	"dirty_spend_surcharge": 0.25,  # shops charge this on the dirty part
 	"dirty_burn_min": 1000,  # a pocket this full gets noticed overnight
 	"dirty_burn_heat": 0.3,  # ...and this hot by morning
+	# the difficulty tiers (STREET is the 1.0 baseline above):
+	"hard_hp": 1.5,  # sticks to drop a man
+	"hard_telegraph": 0.85,  # faster tells - the read tightens
+	"hard_composure": 1.25,  # hits drain more nerve
+	"brutal_hp": 2.0,
+	"brutal_telegraph": 0.7,
+	"brutal_composure": 1.5,
 	"hollow_turning_markup": 0.12,  # turning hostile: they're empty  # real minutes a beat lasts if nothing spends it
 	"s_rank_cut": 0.05,  # each banked S-rank cuts 5% of the balance
 	"launder_cut": 0.20,  # the Club Owner's take (bible 4G)

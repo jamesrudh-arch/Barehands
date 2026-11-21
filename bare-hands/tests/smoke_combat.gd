@@ -44,6 +44,9 @@ func _set_move(v: Vector2) -> void:
 
 
 func _ready() -> void:
+	# one pair of eyes on the street: the witness multiplier sits at
+	# x1.0 and every heat assertion in this suite is deterministic
+	Heat.test_pin_eyes = 1
 	Settings.set_value("first_run_done", true)  # the picker would lock input
 	# batch 7: estrange every friend - this suite owns the knockdown
 	# offer path, and a Close friend would save the blow (smoke_friends

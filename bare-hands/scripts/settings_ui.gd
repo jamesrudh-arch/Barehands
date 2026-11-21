@@ -84,6 +84,7 @@ func _build() -> void:
 	_toggle(col, "Auto-sprint at stick edge", "auto_sprint")
 	_toggle(col, "Snap movement to 8 directions", "snap8")
 	_slider(col, "HUD opacity", "opacity", 0.3, 1.0, 0.05)
+	_difficulty_picker(col)
 	_slider(col, "Button size", "button_scale", 0.7, 1.5, 0.05)
 	_slider(col, "Screen shake", "shake_scale", 0.0, 1.0, 0.05)
 	_toggle(col, "Haptics", "haptics_on")
@@ -135,11 +136,45 @@ func _scheme_picker(col: BoxContainer) -> void:
 	_refresh()
 
 
+## The difficulty tiers (bible 14 defaults are STREET). Three
+## streets to walk; the active one glows. Tooltips carry the noir.
+func _difficulty_picker(col: BoxContainer) -> void:
+	_title(col, "THE FIGHT")
+	var grid := GridContainer.new()
+	grid.columns = 3
+	grid.add_theme_constant_override("h_separation", 8)
+	grid.add_theme_constant_override("v_separation", 8)
+	col.add_child(grid)
+	var specs := {
+		"street": ["STREET", "the night as written"],
+		"hard": ["HARD", "they read faster, they drop slower"],
+		"brutal": ["BRUTAL", "no mercy anywhere in the city"],
+	}
+	for id in ["street", "hard", "brutal"]:
+		var b := Button.new()
+		b.text = specs[id][0]
+		b.focus_mode = Control.FOCUS_NONE
+		b.custom_minimum_size = Vector2(140, 56)
+		b.tooltip_text = specs[id][1]
+		b.add_theme_font_size_override("font_size", 15)
+		_style(b)
+		b.pressed.connect(func() -> void:
+			Settings.set_value("difficulty", id)
+			_refresh())
+		b.name = "Difficulty_" + id
+		grid.add_child(b)
+	_refresh()
+
+
 func _refresh() -> void:
 	var scheme := str(Settings.value("scheme"))
 	for b in _scroll.find_children("Scheme_*", "Button", true, false):
 		var on := b.name == "Scheme_" + scheme
 		(b as Button).modulate = Color(1.4, 1.15, 0.8) if on else Color.WHITE
+	var diff := str(Settings.value("difficulty"))
+	for b in _scroll.find_children("Difficulty_*", "Button", true, false):
+		var picked := b.name == "Difficulty_" + diff
+		(b as Button).modulate = Color(1.4, 1.15, 0.8) if picked else Color.WHITE
 
 
 func _slider(col: BoxContainer, label: String, key: String, mn: float, mx: float,

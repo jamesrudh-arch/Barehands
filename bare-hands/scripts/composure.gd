@@ -39,6 +39,8 @@ func _process(delta: float) -> void:
 ## A hit landed (hard drain) or a strike was blocked (a chip). Parries
 ## never drain - the parry is the skill expression, and skill is free.
 func drain(amount: float, _why: String = "") -> void:
+	# the difficulty screw: on harder streets mistakes cost more
+	amount *= Settings.diff_mult("composure")
 	if amount <= 0.0:
 		return
 	_last_drain_msec = Time.get_ticks_msec()

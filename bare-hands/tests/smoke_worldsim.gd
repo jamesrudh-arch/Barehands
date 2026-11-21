@@ -30,6 +30,9 @@ func _wait_s(seconds: float) -> void:
 
 
 func _ready() -> void:
+	# one pair of eyes on the street: the witness multiplier sits at
+	# x1.0 and every heat assertion in this suite is deterministic
+	Heat.test_pin_eyes = 1
 	get_window().size = Vector2i(1280, 720)
 	await get_tree().process_frame
 	Settings.set_value("first_run_done", true)

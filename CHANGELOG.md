@@ -1,5 +1,33 @@
 # CHANGELOG.md — batch history (newest first)
 
+## B14 — the difficulty knobs + the WOW sweep (2026-11-20)
+- Three streets to walk, one Setting: STREET (the night as written -
+  bible 14, every existing number untouched), HARD and BRUTAL. The
+  screws the player can feel: enemies take more sticks to drop
+  (x1.5 / x2), their tells come faster (x0.85 / x0.7 telegraph), and
+  hits drain more Composure (x1.25 / x1.5). All numbers flat in
+  tuning (run_tests' non-negative rule holds); Settings.diff_mult()
+  is the single choke point.
+- The SETTINGS screen gains a THE FIGHT picker: three buttons, the
+  active street glows, tooltips carry the noir. Persists with
+  everything else.
+- The WOW gate sweep: every machine-checkable line of
+  docs/WOW_GATE.md mapped to its proving suite (or marked as the
+  owner's phone test) in TESTING.md. The four suspected thin spots
+  turned out to be long-built: puddle footsteps, haptics wiring,
+  gear-driven look changes, nickname graffiti walls.
+- The witness dice, pinned: Heat.add() scales gains by who is
+  watching (x0.6 empty alley / x1.0 one pair / x1.5 witnesses)
+  and wanderers roam - the eye count under any assertion was a
+  dice roll. Heat.test_pin_eyes freezes it for the eight
+  heat-asserting suites (the x1.0 band, every old expected number
+  stands); smoke_reactive keeps the live scan because it ARRANGES
+  the eyes. Found by the battery going red on two green-in-B13
+  suites - the game was never wrong, the assertions were riding
+  luck.
+- smoke_difficulty: 22 green. Battery 29 green, 0 script errors.
+  Docs: STATE/TESTING/CHANGELOG.
+
 ## B13 — dirty money (2026-11-20)
 - The Velvet Room's back room opens (bible 4G). Walk to the door in
   the club quarter and the lamp-lit table is waiting.

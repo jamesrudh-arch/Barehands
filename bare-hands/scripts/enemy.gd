@@ -79,11 +79,12 @@ func _ready() -> void:
 	if kind == 4:
 		_body.scale = Vector3(1.28, 1.28, 1.28)
 		max_hp = maxf(max_hp, 30)
-		hp = max_hp
 	elif kind == 2:
 		_body.scale = Vector3(1.18, 1.18, 1.18)
 		max_hp = maxf(max_hp, 12)
-		hp = max_hp
+	# the difficulty screws (STREET = the bible's night, untouched)
+	max_hp = maxi(1, int(round(max_hp * Settings.diff_mult("hp"))))
+	hp = max_hp
 
 
 func _apply_look() -> void:
@@ -125,9 +126,11 @@ func _telegraph_time() -> float:
 		return 0.25  # the combo links fast
 	# the adaptive read (bible 4A): a hero mashing lights meets faster
 	# telegraphs - the ring punishes spam
+	var t: float = TUNING[kind][2]
 	if Tactics.player_spams("punch_light"):
-		return TUNING[kind][2] * 0.75
-	return TUNING[kind][2]
+		t *= 0.75
+	# harder streets: the tells come faster and the read tightens
+	return t * Settings.diff_mult("telegraph")
 
 
 func _armour() -> int:

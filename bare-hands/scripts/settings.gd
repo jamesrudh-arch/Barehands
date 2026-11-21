@@ -47,6 +47,7 @@ const DEFAULTS := {
 	"opacity": 0.85,
 	"button_scale": 1.0,
 	"shake_scale": 1.0,
+	"difficulty": "street",  # street as written / hard / brutal
 	"hints": {},
 }
 
@@ -84,6 +85,17 @@ func hint_done(id: String) -> bool:
 
 ## Layout overrides for one HUD button: {"x": -150, "y": -100, "scale": 1.2,
 ## "opacity": 1.0} - x/y are pixels from the button's default anchor.
+## The difficulty levers (bible 14 defaults are STREET, untouched).
+## name -> the active tier's multiplier; every lever defaults 1.0.
+func diff_mult(lever: String) -> float:
+	var d := str(value("difficulty"))
+	if d == "hard":
+		return float(Tuning.v("hard_" + lever))
+	if d == "brutal":
+		return float(Tuning.v("brutal_" + lever))
+	return 1.0
+
+
 func layout_for(button: String) -> Dictionary:
 	return _d.get("layout", {}).get(button, {})
 
