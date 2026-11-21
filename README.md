@@ -1,29 +1,34 @@
 # Bare Hands 3D
 
-## WHICH FOLDER TO IMPORT (Xogot / Godot) - READ THIS FIRST
+## XOGOT IMPORT STEPS (iPhone) - READ FIRST, DO EXACTLY THIS
 
-**Import `bare-hands/`** - the folder that contains `project.godot`.
-The repo root holds docs and the build stamp; importing the root
-will not open the game.
+This repo root IS the Godot project: **`project.godot` sits at the
+top level**. Import the folder that contains it - the unzipped repo
+root itself, NOT any subfolder.
 
-- The project name changes every batch (`LEVERAGE (Bare Hands) B16`)
-  so Xogot can never load a stale cached copy under an old name.
-- The build stamp (batch + commit + time) shows at the top-right
-  corner from boot, in the debug menu, and in the SafeBoot log.
-  **Before testing anything, read the stamp and compare it with
-  github.com/jamesrudh-arch/Barehands/commits/main.**
-- `VERSION.txt` (repo root) documents the same stamp.
-- B16 boots into **SafeBoot** (the device diagnostic scene): base
-  world + real hero + real touch controls, a big COPY LOG panel and
-  one-at-a-time system toggles. START FULL GAME loads the street.
+1. Download the zip (e.g. `Leverage_B17_YYYY-MM-DD.zip`) and unzip it
+   in the Files app. You get a folder like `Leverage_B17_2026-11-21`
+   with `project.godot` directly inside it.
+2. **Force-quit Xogot** (swipe it away) so no cached project or old
+   import can linger.
+3. Reopen Xogot, tap Import, and pick **the folder that contains
+   `project.godot`** (the unzipped repo root).
+4. **Wait for the import to finish** (the spinner/progress must fully
+   stop). The project name is unique per batch (`LEVERAGE B17`) - if
+   Xogot shows any other name, you imported a stale copy: force-quit
+   and delete the old project entry in Xogot first.
+5. Run. You land on **STAGE 0** (a dark magenta diagnostic screen).
+   Read the BUILD line: it must say `B17` and the commit hash of the
+   top commit on github.com/jamesrudh-arch/Barehands/commits/main.
+6. Close the project and **run it a second time** (first run after an
+   import can be mid-import in places; the second run is the truth).
+7. On STAGE 0: tap COPY LOG and paste the whole thing back to the
+   agent. Then LAUNCH SAFEBOOT, tap COPY LOG there too if anything
+   looks wrong, and LAUNCH FULL GAME to play.
 
-
-A stylized noir, open-world crime game set in **Cinder City**.
-Engine: **Godot 4.7**, 3D, **Mobile** renderer, landscape, touch-first.
-The whole project is plain text (`.gd`, `.tscn`, `project.godot`) plus CC0 asset packs, so it can be built and edited without a desktop editor.
-
-**SERIES 1: THE LOOK AND FEEL** — phase reports below (1 Stability · 2 Hero & Camera · 3 Wet Neon Night · 4 Punches That Hit).
-**SERIES 2: SOUND, SOUL AND DEPTH** — reports continue below (1 Audio · 2 Music · 3 Combat · 4 Ledger · 5 Economy · 6 City · 7 Cast · 8 Opening). Design docs: docs/VISION.md, docs/WOW_GATE.md (reconstructed — originals never arrived).
+If the screen is grey, nothing is drawing - the STAGE 0 log (or its
+absence) tells the agent exactly which layer died. See XOGOT.md for
+the full VERIFIED / PHONE-ONLY table.
 
 ## Batch 3 — Styles & the Wheel (2026-11-19)
 

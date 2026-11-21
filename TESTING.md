@@ -305,6 +305,55 @@ half; the agent never marks phone-only lines verified):
   masquerade as a fresh one (the prime stale-build suspect). Root
   README states the import folder (bare-hands/) at the top.
 
+- **B17 the class-cache root cause + Stage0 + cache-immunity**: the
+  fresh-import failure is REPRODUCIBLE in the sandbox: delete only
+  .godot/global_script_class_cache.cfg and 59 parse errors follow,
+  9 autoloads register NULL (Music among them - the fight_score.gd:38
+  'state' on Nil spam), and every scene whose script referenced a
+  class_name builds nothing (the B16 grey screen). The fix: ALL 42
+  class_name declarations removed (tools/flatten_class_names.py, a
+  real lexer so comments/strings are never touched), 88 files
+  rewritten to const-preload references; the four mechanics were
+  verified against 4.7.2 BEFORE the sweep (const-preload as type
+  annotation, as-cast, static var read/write, self-preload). Second
+  parse-time hazard found by the clean-clone first-run test: a const
+  preload of UAL1_Standard.glb in ual_bind.gd killed player/enemy/
+  npc_rig and the autoloads that compile them before the GLB was
+  imported - now a guarded runtime load (characters keep code-built
+  rigs, one logged error). Third hazard: enemy.gd _own_materials/_play
+  aborted on the missing mannequin - guarded. jobs.gd connected
+  City.entered_district unguarded - guarded. Lessons: (1) autoload
+  scripts must never reference class_name identifiers or preload
+  imported assets at parse time; (2) get_autoload_list() does not
+  exist in 4.7 - read the property list and trim_prefix("autoload/");
+  (3) GDScript has no try/catch - "guarded step" means null checks
+  plus can-instantiate checks, never exceptions; (4) a parse-failed
+  script "does not inherit from Node" in the engine's words and the
+  autoload registers NULL - that exact message is the smoking gun.
+  New suites: stage0_check (14 checks: the zero-dependency Stage0
+  draws magenta not grey, stamp on the info line, 39 boot stages,
+  boot_log.txt, 4 buttons) and the extended smoke_null_watch (full
+  dynamic autoload census, 33/33 at frame 600). Proofs: with the
+  class cache deleted, stage0_check + safe_boot_check (27) +
+  smoke_null_watch (995 frames) + smoke all PASS 0 errors; from a
+  CLEAN CLONE with no .godot at all (before any import pass), both
+  render suites PASS with 0 script errors (GLTF meshes wait for the
+  import pass, everything else stands). The project now lives at the
+  repo ROOT (project.godot top-level, git mv history preserved); CI
+  updated; the whole B17 battery ran with the class cache deleted -
+  the hardest condition, harder than CI.
+- **B17 Stage0 design**: the main scene is a zero-dependency Control
+  (no autoload identifiers, no class_name, no preloads, stamp read
+  from res://VERSION.txt via FileAccess); it draws even if every
+  other script is dead; its stages census every autoload (alive /
+  NULL / script-dead), then load-check SafeBoot (code-built: root
+  script + _build_world) and the full game (scene-file: Player +
+  Camera children with live scripts) WITHOUT adding them to the
+  tree; log to user://boot_log.txt + COPY LOG. A code-built scene
+  cannot be child-checked before it is in the tree - check its
+  script and its build method instead. main.tscn's root is a plain
+  Node3D by design: do not demand a root script there.
+
 - **B10 battery regressions**: (1) the map grew TAKE buttons - the
   B8 'one button only' assertion kept its intent (no fast travel) and
   now allows TAKE+BACK. (2) stress_combat died once and a buffered

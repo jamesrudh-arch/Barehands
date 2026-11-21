@@ -1,5 +1,49 @@
 # CHANGELOG.md — batch history (newest first)
 
+## B17 — the class-cache fix, Stage 0, and a device-proven boot path (2026-11-21)
+- The B16 grey screen closed the loop: the phone's every failure was
+  ONE mechanism, now REPRODUCED in the sandbox. A fresh Xogot import
+  has no global class cache; scripts referencing class_name
+  identifiers fail to parse; autoload scripts that did (music.gd,
+  heat, city, tactics, combo_input, progression, visual, friend_help,
+  world_sim, jobs, blocks) register as NULL - Music's null was the
+  fight_score.gd:38 'state' on Nil spam, and the dead player/
+  touch_buttons scripts were the missing hero and controls.
+- THE FIX (all verified before shipping): every class_name
+  declaration removed (42 of them; 88 files rewritten to
+  const-preload references by tools/flatten_class_names.py), the
+  UAL GLB preload converted to a guarded runtime load (a second
+  first-run killer: it took player/enemy/npc_rig down with it
+  before the import pass), enemy.gd mannequin nulls and jobs.gd's
+  City signal guarded. With the class cache deleted: 33/33 autoloads
+  alive, 0 parse errors; from a clean clone with NO .godot at all,
+  Stage0 and SafeBoot render and pass before any import pass.
+- STAGE 0 (the new main scene): a zero-dependency boot screen -
+  dark magenta (also the new default clear colour, distinct from
+  Godot's grey), build stamp from res://VERSION.txt, Godot version,
+  renderer, GPU, window, orientation, safe area, time, class-cache
+  state, a first-run "wait then RETRY" banner, a 39-step numbered
+  boot census (every autoload PASS/FAIL, SafeBoot, the full game -
+  each step guarded, nothing can crash), user://boot_log.txt, and
+  LAUNCH SAFEBOOT / LAUNCH FULL GAME / COPY LOG / RETRY.
+- IDENTITY: the project is now at the REPO ROOT (project.godot
+  top-level, git mv, CI updated); config/name is "LEVERAGE B17"
+  (unique per push); zip Leverage_B17_2026-11-21.zip (import the
+  unzipped folder itself); README leads with the exact Xogot steps;
+  the build stamp shows at the boot corner, the debug menu, Stage 0,
+  SafeBoot, and VERSION.txt.
+- SafeBoot gains the last-10-errors section (read from this run's
+  user://logs/godot.log); the visual debug panel already carries the
+  full B15 toggle set plus XOGOT SAFE and COPY SETTINGS; rain drops
+  are now code-generated streak/dot textures (no imported texture
+  to lose, no pale squares); a failsafe camera appears if a 3D scene
+  ever has meshes but no current camera; touch buttons re-clamp to
+  the safe area on rotation/resize.
+- New suites: stage0_check (14 checks) and the extended
+  smoke_null_watch (dynamic 33-autoload census in the first 600
+  frames). The whole battery ran with the class cache DELETED - the
+  exact fresh-import condition.
+
 ## B16 — build stamp, SafeBoot, and the Music-null guards (2026-11-21)
 - The phone still showed an old build (white signs, grey figure, no
   hero, no controls) with fight_score.gd:38 spamming 'state' on Nil

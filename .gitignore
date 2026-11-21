@@ -5,3 +5,8 @@ node_modules/
 download/*.zip
 .git-auth
 downloads_check/
+
+# Godot 4 generated files (from the old bare-hands/.gitignore after the root move)
+.godot/
+*.translation
+export_credentials.cfg

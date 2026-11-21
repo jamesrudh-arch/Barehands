@@ -1,0 +1,103 @@
+; Engine configuration file for Bare Hands 3D — Batch 3.
+config_version=5
+
+[application]
+
+config/name="LEVERAGE B17"
+config/description="Stylized noir open-world crime game set in Cinder City. Series 1: cinematic look and feel."
+config/version="series1-phase1"
+run/main_scene="res://scenes/stage0.tscn"
+config/features=PackedStringArray("4.7", "Mobile")
+config/icon="res://icon.svg"
+
+[autoload]
+
+BuildStamp="*res://scripts/build_stamp.gd"
+Tuning="*res://scripts/tuning.gd"
+InputBus="*res://scripts/input_bus.gd"
+Settings="*res://scripts/settings.gd"
+Haptics="*res://scripts/haptics.gd"
+SuperMeter="*res://scripts/super_meter.gd"
+ComboInput="*res://scripts/combo_input.gd"
+Progression="*res://scripts/progression.gd"
+Log="*res://scripts/log.gd"
+Quality="*res://scripts/quality.gd"
+Visual="*res://scripts/visual.gd"
+Fx="*res://scripts/fx.gd"
+Sound="*res://scripts/sound.gd"
+Music="*res://scripts/music.gd"
+Tactics="*res://scripts/tactics.gd"
+Composure="*res://scripts/composure.gd"
+FightScore="*res://scripts/fight_score.gd"
+Styles="*res://scripts/styles.gd"
+Wallet="*res://scripts/wallet.gd"
+Heat="*res://scripts/heat.gd"
+City="*res://scripts/city.gd"
+SaveGame="*res://scripts/save_game.gd"
+Dialogue="*res://scripts/dialogue.gd"
+Trust="*res://scripts/trust.gd"
+Phone="*res://scripts/phone.gd"
+Ledger="*res://scripts/ledger.gd"
+FriendHelp="*res://scripts/friend_help.gd"
+Blocks="*res://scripts/blocks.gd"
+WorldSim="*res://scripts/world_sim.gd"
+Jobs="*res://scripts/jobs.gd"
+Kidnap="*res://scripts/kidnap.gd"
+Reactive="*res://scripts/reactive.gd"
+Backroom="*res://scripts/backroom.gd"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=0
+
+[input]
+
+punch={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":88,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+]
+}
+dodge={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":67,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+]
+}
+debug_panel={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":290,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+]
+}
+ledger={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":66,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+]
+}
+grab={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":71,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+]
+}
+lock={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":76,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+]
+}
+
+[input_devices]
+
+pointing/emulate_touch_from_mouse=true
+
+[rendering]
+
+# B17: a distinct dark magenta - if you ever see
+# Godot's default GREY, nothing is drawing at all
+environment/defaults/default_clear_color=Color(0.16, 0.02, 0.12, 1)
+
+renderer/rendering_method="mobile"
+renderer/rendering_method.mobile="mobile"
+textures/vram_compression/import_etc2_astc=true
+anti_aliasing/quality/msaa_3d=1
