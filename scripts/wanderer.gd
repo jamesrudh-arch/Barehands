@@ -239,10 +239,16 @@ func _after_flee() -> void:
 
 
 func _crossing_clear() -> bool:
-	# nothing with wheels moving within 12 m of the crossing
+	# nothing with wheels MOVING within 12 m of the crossing - a car
+	# that has STOPPED is yielding to us (the courtesy runs both ways)
 	for v in get_tree().get_nodes_in_group("traffic"):
 		var vn := v as Node3D
-		if vn and absf(vn.global_position.x - (_bx() + CROSSING_X)) < 12.0:
+		if vn == null or not is_instance_valid(vn):
+			continue
+		var sp = v.get_meta("speed")
+		if sp != null and float(sp) < 1.5:
+			continue  # stopped: it is letting us cross
+		if absf(vn.global_position.x - (_bx() + CROSSING_X)) < 12.0:
 			return false
 	return true
 

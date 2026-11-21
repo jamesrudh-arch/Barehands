@@ -407,9 +407,10 @@ func _car() -> void:
 	# B18.4: the Kenney CC0 sedan (Car Kit) takes over the body when the
 	# kit imports - the box body+cabin+wheels above stay as the fallback.
 	# The noir lights (heads, tails, cyan strips) ride on top either way,
-	# parked on the kit body's own nose/tail/edges.
+	# parked on the kit body's own nose/tail/edges. The kit's long axis
+	# is Z with the nose at +z: yaw PI/2 parks it nose-up-the-street.
 	var kit := CLS_Kit.place_stretch(car, "kenney_cars/sedan.glb",
-			Vector3(0, 0.02, 0), 0.0, 1.35, 1.0, 1.5)
+			Vector3(0, 0.02, 0), PI / 2.0, 1.35, 1.0, 1.5)
 	if kit:
 		lower.visible = false
 		cabin.visible = false

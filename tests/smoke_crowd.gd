@@ -101,7 +101,8 @@ func _ready() -> void:
 	_check(still_scared == 0, "the street calms back down (%d still scared)" % still_scared)
 
 	# 6. the crossing waits for traffic: a staged walker at the crossing
-	#    holds while a car is within 12 m, crosses when it clears
+	#    holds while a car is within 12 m, crosses when it clears (real
+	#    traffic included - the street runs during this suite)
 	var agent := _stage_crosser(crowd)
 	if agent:
 		var car := Node3D.new()
@@ -112,10 +113,16 @@ func _ready() -> void:
 		_check((agent.get("_state") as int) == CLS_Wanderer.State.CROSS_WAIT,
 				"a walker holds at the crossing while a car passes")
 		car.position = Vector3(60.0, 0, 0)  # gone
-		await get_tree().create_timer(2.5).timeout
-		var st3: int = agent.get("_state")
-		_check(st3 != CLS_Wanderer.State.CROSS_WAIT,
-				"the walker crosses once the road clears")
+		# real traffic keeps running: it either passes or STOPS to yield
+		# (courtesy both ways) - either way the walker gets to cross
+		var crossed := false
+		for i in 24:
+			await get_tree().create_timer(0.5).timeout
+			if (agent.get("_state") as int) != CLS_Wanderer.State.CROSS_WAIT:
+				crossed = true
+				break
+		_check(crossed,
+				"the walker crosses once the road clears (real traffic yields or passes)")
 		car.queue_free()
 	else:
 		_check(false, "a crossing-bound walker could be staged")
