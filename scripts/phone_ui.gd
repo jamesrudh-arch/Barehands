@@ -248,6 +248,13 @@ func _open_map() -> void:
 	_show_app("MAP")
 	for child in _app_body.get_children():
 		child.queue_free()
+	# B18: the phone's Map app opens the real full map (entry point 3)
+	var full := _btn("OPEN THE FULL MAP", Color(0.45, 0.9, 0.85), func():
+		Phone.close()
+		var m := get_tree().get_first_node_in_group("full_map")
+		if m and m.has_method("open"):
+			m.call("open", "phone"))
+	_app_body.add_child(full)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
 	row.alignment = BoxContainer.ALIGNMENT_CENTER

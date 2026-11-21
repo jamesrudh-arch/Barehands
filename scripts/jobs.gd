@@ -426,6 +426,26 @@ func _clear_entities() -> void:
 		active.erase("_counted")
 
 
+## B18 (Part 6B): the live objective for the radar, the route and the 3D
+## marker. {} when nothing is live. RECON/READY point at the spot; TAKEN
+## points the way into the district the spot lives in.
+func objective() -> Dictionary:
+	if active.is_empty():
+		return {}
+	var j := job_by_id(active["id"])
+	if j.is_empty():
+		return {}
+	var phase := str(active.get("phase", ""))
+	if phase in ["RECON", "READY"]:
+		return {"text": "%s - %s" % [j["title"], _exec_blurb(j)],
+				"pos": _spot(j), "district": j["district"], "phase": phase}
+	if phase == "TAKEN":
+		return {"text": "%s - find the spot in the %s" % [j["title"],
+				j["district"].to_upper()], "pos": _spot(j),
+				"district": j["district"], "phase": phase}
+	return {}
+
+
 func _hint(text: String) -> void:
 	var hud := get_tree().get_first_node_in_group("hud_buttons")
 	if hud and hud.has_method("show_hint"):
@@ -438,13 +458,16 @@ func _district_name(d: String) -> String:
 
 func _build_hud() -> void:
 	var layer := CanvasLayer.new()
-	layer.layer = 30
+	# B18: layer 5 sits over the HUD but UNDER the full map (28) and the
+	# pause menu - the old layer 30 drew the job line over every screen
+	layer.layer = 5
 	add_child(layer)
 	_hud = Label.new()
 	_hud.name = "Objective"
 	_hud.add_theme_font_size_override("font_size", 13)
 	_hud.add_theme_color_override("font_color", Color(0.9, 0.8, 0.45))
-	_hud.position = Vector2(14, 60)
+	# B18: right of the radar (the old (14, 60) spot is the radar's now)
+	_hud.position = Vector2(300, 24)
 	_hud.visible = false
 	_hud.add_to_group("job_hud")
 	layer.add_child(_hud)

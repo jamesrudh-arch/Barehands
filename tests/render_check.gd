@@ -1,6 +1,7 @@
 extends Node
 const CLS_ActionButton := preload("res://scripts/action_button.gd")
 const CLS_OpeningShot := preload("res://scripts/opening_shot.gd")
+const CLS_MapData := preload("res://scripts/map_data.gd")
 ## The render-truth suite (B15). Boots the real street scene with a
 ## REAL renderer (opengl3 under Xvfb/llvmpipe in the sandbox; the
 ## owner's Xogot runs Mobile/Metal - the VISUAL DEBUG overlay says
@@ -68,6 +69,9 @@ func _ready() -> void:
 	_the_controls()
 	_the_hero()
 	_the_opening_unlocked()
+	await _the_b18_layout()
+	await _the_radar()
+	_the_world_envs()
 
 	if _fails == 0:
 		print("RENDER PASS (%d checks)" % _checks)
@@ -97,13 +101,14 @@ func _the_environment() -> void:
 		return
 	_check(env.tonemap_mode == Environment.TONE_MAPPER_ACES
 			or env.tonemap_mode == 4, "safe tonemap baked (%d)" % env.tonemap_mode)
-	_check(absf(env.glow_hdr_threshold - 1.45) < 0.01,
-			"HDR threshold 1.45 baked (%.2f)" % env.glow_hdr_threshold)
-	_check(absf(env.glow_intensity - 0.5) < 0.01,
-			"glow intensity 0.5 baked (%.2f)" % env.glow_intensity)
+	_check(absf(env.glow_hdr_threshold - 1.05) < 0.01,
+			"HDR threshold 1.05 baked (%.2f)" % env.glow_hdr_threshold)
+	_check(absf(env.glow_intensity - 0.45) < 0.01,
+			"glow intensity 0.45 baked (%.2f)" % env.glow_intensity)
 	_check(absf(env.glow_bloom - 0.05) < 0.01,
 			"glow bloom 0.05 baked (%.2f)" % env.glow_bloom)
-	# neon capped: every live sign energy <= 1.8 * profile mult
+	# neon capped: every live sign energy <= 1.15 * profile mult (the
+	# Mobile colour buffer clips above ~1.1 - the white-sign lesson)
 	var worst := 0.0
 	for n in get_tree().get_nodes_in_group("neon"):
 		var mi := n as MeshInstance3D
@@ -111,8 +116,8 @@ func _the_environment() -> void:
 			var m: StandardMaterial3D = mi.mesh.surface_get_material(0)
 			if m and m.emission_enabled:
 				worst = maxf(worst, m.emission_energy_multiplier)
-	_check(worst <= 1.8 * Visual.emission_mult + 0.01,
-			"neon emission capped at 1.8x (worst %.2f)" % worst)
+	_check(worst <= 1.15 * Visual.emission_mult + 0.01,
+			"neon emission capped at 1.15x (worst %.2f)" % worst)
 	# windows: 0.85 base, scaled by the profile
 	for n in get_tree().get_nodes_in_group("emissive_window"):
 		var mi := n as MeshInstance3D
@@ -339,3 +344,185 @@ func _the_opening_unlocked() -> void:
 	_check(get_tree().get_first_node_in_group("hud") != null
 			and (get_tree().get_first_node_in_group("hud") as CanvasLayer).visible,
 			"the hud is visible after the opening (bug 5)")
+
+
+# --- B18 Part 5: the layout + radar regression checks -----------------------------
+
+
+## Collect the visible action buttons from the HUD layer.
+func _visible_buttons() -> Array:
+	var hud := get_tree().get_first_node_in_group("hud_buttons")
+	var out: Array = []
+	if hud:
+		for c in hud.get_children():
+			if c.has_signal("down") and (c as Control).is_visible_in_tree():
+				out.append(c)
+	return out
+
+
+## The B18 layout contract: every button at least 64 canvas px, no two
+## buttons overlapping (the phone's "doubled labels" were two stacked
+## buttons), no child Labels (each button self-draws exactly one), no
+## HUD bar crossing the buttons, and the hero occupying a visible part
+## of the frame.
+func _the_b18_layout() -> void:
+	var btns := _visible_buttons()
+	var min_size := INF
+	for b in btns:
+		min_size = minf(min_size, (b as Control).size.x)
+	_check(min_size >= 63.5, "every button >= 64 canvas px (min %.0f)" % min_size)
+	var overlaps := 0
+	for i in range(btns.size()):
+		for j in range(i + 1, btns.size()):
+			var a: Rect2 = (btns[i] as Control).get_global_rect()
+			var b: Rect2 = (btns[j] as Control).get_global_rect()
+			if a.intersects(b):
+				overlaps += 1
+				print("RENDER info: overlapping pair ", btns[i].name, " ", btns[j].name)
+	_check(overlaps == 0, "no two buttons overlap (the doubled-label cause)")
+	var child_labels := 0
+	for b in btns:
+		for c in (b as Node).get_children():
+			if c is Label:
+				child_labels += 1
+	_check(child_labels == 0, "every button self-draws one label (no child labels)")
+	# no HUD bar crosses the button cluster (the phone's yellow bar)
+	var crossers := 0
+	for group in ["composure_bar", "input_strip", "level_bar"]:
+		var n := get_tree().get_first_node_in_group(group) as Control
+		if n == null or not n.is_visible_in_tree():
+			continue
+		var r: Rect2 = n.get_global_rect()
+		for b in btns:
+			if r.intersects((b as Control).get_global_rect()):
+				crossers += 1
+				print("RENDER info: HUD bar ", group, " crosses ", (b as Node).name)
+	_check(crossers == 0, "no HUD bar crosses the buttons (the yellow bar)")
+	# the hero occupies a visible part of the frame: feet and head both
+	# project on screen with a real pixel height (>= 4% of the frame)
+	var p := get_tree().get_first_node_in_group("player") as Node3D
+	var cam := get_tree().get_first_node_in_group("camera") as Camera3D
+	if p and cam:
+		var feet := cam.unproject_position(p.global_position)
+		var head := cam.unproject_position(p.global_position + Vector3.UP * 1.8)
+		var h_px := absf(feet.y - head.y)
+		var frame_h: float = get_viewport().get_visible_rect().size.y
+		_check(h_px >= frame_h * 0.04,
+				"the hero occupies >= 4%% of the frame (%.0f px)" % h_px)
+
+
+## The radar suite: on screen, inside the safe area, over no button or
+## HUD bar, drawing its rim/arrow/N marker (cyan pixels in its rect),
+## rotating with the camera, routing to the waypoint along the streets.
+func _the_radar() -> void:
+	var radar := get_tree().get_first_node_in_group("radar") as Control
+	if radar == null:
+		_check(false, "the radar exists in the scene")
+		return
+	_check(radar.is_visible_in_tree(), "the radar is visible")
+	var r: Rect2 = radar.get_global_rect()
+	var ft := get_viewport().get_final_transform().affine_inverse()
+	var safe: Rect2 = ft * Rect2(DisplayServer.get_display_safe_area())
+	safe = safe.intersection(get_viewport().get_visible_rect())
+	_check(safe.encloses(r), "the radar is inside the safe area")
+	var cross := 0
+	for b in _visible_buttons():
+		if r.intersects((b as Control).get_global_rect()):
+			cross += 1
+	for group in ["composure_bar", "input_strip", "level_bar"]:
+		var n := get_tree().get_first_node_in_group(group) as Control
+		if n and n.is_visible_in_tree() and r.intersects(n.get_global_rect()):
+			cross += 1
+	_check(cross == 0, "the radar overlaps no button or HUD bar")	# rim + hero arrow + N marker are all cyan-family: their pixels must
+	# exist inside the radar rect on the frame
+	await get_tree().process_frame
+	var img := get_viewport().get_texture().get_image()
+	var scale: Vector2 = get_viewport().get_final_transform().get_scale()
+	var ri := Rect2i(Vector2(r.position) * scale, Vector2(r.size) * scale)
+	var cyan := 0
+	for y in range(maxi(0, ri.position.y), mini(img.get_height(), ri.end.y), 2):
+		for x in range(maxi(0, ri.position.x), mini(img.get_width(), ri.end.x), 2):
+			var c := img.get_pixel(x, y)
+			if c.g > 0.55 and c.b > 0.5 and c.r < 0.7:
+				cyan += 1
+	print("RENDER info: radar cyan-family pixels=", cyan)
+	_check(cyan >= 8, "the radar draws its rim/arrow/N markers")
+	# rotation: the world-to-radar transform answers the camera yaw
+	var hero := get_tree().get_first_node_in_group("player") as Node3D
+	if hero:
+		var hxz := Vector2(hero.global_position.x, hero.global_position.z)
+		InputBus.camera_yaw = 0.0
+		var n0: Vector2 = radar._world_to_radar(hxz + Vector2(0, -10), hxz)
+		InputBus.camera_yaw = PI / 2.0
+		var n1: Vector2 = radar._world_to_radar(hxz + Vector2(0, -10), hxz)
+		InputBus.camera_yaw = 0.0
+		_check(n0 != n1, "the radar rotates with the camera (transform changes)")
+		_check(n0.y < radar.size.y * 0.5, "north maps up on the radar")
+	# the route: a waypoint on the far block draws a street-following
+	# route that ends at the target, and it recalculates after the hero
+	# leaves it
+	CLS_MapData.set_waypoint(Vector2(245.0, 6.0))
+	await _wait_s(0.8)
+	var route: PackedVector2Array = radar._route
+	_check(route.size() >= 2, "a waypoint draws a route (%d nodes)" % route.size())
+	if route.size() >= 2:
+		var end_err: float = route[route.size() - 1].distance_to(Vector2(245.0, 6.0))
+		_check(end_err < 2.0, "the route ends at the target (%.1f m off)" % end_err)
+		_check(CLS_MapData.route_length(route) > 230.0,
+				"the route follows the streets, not the crow's flight (%.0f m)"
+				% CLS_MapData.route_length(route))
+	# walk the hero off the route: the next refresh re-routes from there
+	if hero:
+		hero.global_position = Vector3(-14.0, 0.02, 8.0)
+		await _wait_s(0.8)
+		var route2: PackedVector2Array = radar._route
+		_check(route2.size() >= 2 and route2[0].distance_to(
+				Vector2(-14.0, 8.0)) < 2.5,
+				"the route recalculates after the hero leaves it")
+	CLS_MapData.clear_waypoint()
+	# the full map opens from all three entry points
+	var map := get_tree().get_first_node_in_group("full_map") as CanvasLayer
+	if map == null:
+		_check(false, "the full map exists in the scene")
+		return
+	map.call("open", "radar")
+	_check(map.visible and CLS_MapData != null, "the full map opens (radar tap)")
+	map.call("close")
+	var pause := get_tree().get_first_node_in_group("pause")
+	var map_btn: Button = null
+	if pause:
+		for b in (pause as Node).find_children("*", "Button", true, false):
+			if (b as Button).text == "MAP":
+				map_btn = b
+	_check(map_btn != null, "the pause menu has a MAP button")
+	if map_btn:
+		map_btn.pressed.emit()
+		_check(map.visible, "the full map opens from the pause menu")
+		map.call("close")
+	map.call("open", "phone")
+	_check(map.visible, "the full map opens from the phone")
+	map.call("close")
+	_check(not map.visible and not InputBus.locked,
+			"closing the map hands input back")
+	# the 3D objective marker exists
+	_check(get_tree().get_first_node_in_group("objective_marker") != null,
+			"the 3D objective marker exists")
+
+
+## Every arena scene carries a WorldEnvironment with an Environment.
+## main.tscn declares it; SafeBoot builds it in code at _ready, so it
+## goes into the tree first.
+func _the_world_envs() -> void:
+	var we := load("res://scenes/main.tscn").instantiate() \
+			.find_children("*", "WorldEnvironment", true, false)
+	_check(not we.is_empty()
+			and (we[0] as WorldEnvironment).environment != null,
+			"main.tscn has a WorldEnvironment + Environment")
+	var sb := load("res://scenes/safe_boot.tscn").instantiate()
+	add_child(sb)
+	await get_tree().process_frame
+	var we2 := sb.find_children("*", "WorldEnvironment", true, false)
+	_check(not we2.is_empty()
+			and (we2[0] as WorldEnvironment).environment != null,
+			"safe_boot builds a WorldEnvironment + Environment")
+	sb.free()

@@ -1,4 +1,4 @@
-# XOGOT ON iPHONE - the device truth table (B18)
+# XOGOT ON iPHONE - the device truth table (B18 device fix)
 
 The game: Godot 4.7, Mobile renderer, GDScript only, no native
 plugins. It runs in Xogot on an iPhone. This file is the exact
@@ -12,72 +12,76 @@ Xogot boots the game into **STAGE 0** - a dark magenta diagnostic
 launcher, **not an error screen**. Its job is to prove which build is
 running and that every system is alive before the game starts.
 **The game itself starts with the LAUNCH FULL GAME button** (first
-button, bottom row since B18). A GREEN banner ("ALL STAGES GREEN")
-means everything is healthy - tap LAUNCH FULL GAME and play; nothing
-is importing and nothing needs waiting for. A YELLOW banner appears
-only when a stage actually FAILED.
+button, bottom row). A GREEN banner ("ALL STAGES GREEN") means
+everything is healthy - tap LAUNCH FULL GAME and play. A YELLOW banner
+appears only when a stage actually FAILED.
 
-Why this section exists: B17's banner said "FIRST-RUN IMPORT IN
-PROGRESS - wait for Xogot to finish importing, then tap RETRY" on
-exactly that healthy state, because on Xogot the class cache NEVER
-exists (see below) - so the phone showed the warning on every run
-while every line said PASS, and the owner rightly read the screen as
-"the game cannot launch". B18 fixed the wording; a phone photo of
-B17 (2026-11-21) had already proven everything was green underneath.
+## THE B18 DEVICE FIX (this zip) - what changed and why
 
-## THE B17 ROOT CAUSE, FOUND, REPRODUCED - AND PHONE-CONFIRMED
+The owner's photos of the B17 full game (2026-11-21) showed five real
+bugs. Every one has a named root cause now:
 
-Every phone failure before B17 traced to ONE mechanism, reproduced in
-the sandbox on 2026-11-21 (log: delete .godot/global_script_class_
-cache.cfg, run the game):
+1. **NO HERO / the "blurry grey figure" - ONE bug.** The hero's gltf
+   pieces point at texture files that were never shipped
+   (`T_Hair_1_*`, `T_Regular_Male_*` - the import log says so on
+   every boot, sandbox included). The hero rendered as a stack of pale
+   untextured boxes: the grey figure WAS the hero. Fixed in
+   hero_rig.gd: any piece without textures gets a flat noir dress
+   (the training-dummy treatment), PLUS a permanent locator: a bright
+   ring under the hero and a rim light that always comes from behind
+   the camera (Settings: `hero_locator`, `hero_rim`).
+2. **BUNCHED, DOUBLE-LABELLED BUTTONS + THE YELLOW BAR.** The old
+   layout clamped each button into the safe area INDIVIDUALLY - on the
+   phone that stacked several buttons onto the same spot (two labels
+   on one circle) and shoved the cluster into the middle where the
+   gold composure bar crossed it. New layout engine: one right-anchored
+   grid, the whole cluster fitted into the safe area as a unit, a
+   pairwise no-overlap pass, a 64-pixel minimum size, LIGHT / HEAVY /
+   DODGE as the big three, GRAB/INTERACT appears only when usable,
+   STYLE and PHONE in their own column, the composure bar moved to
+   top-centre.
+3. **TOO DARK.** The old XOGOT SAFE preset switched glow OFF and
+   halved emission - on the phone the street went black. The new SAFE
+   preset keeps a modest glow and full emission (the sign materials
+   are capped at the source instead), the ambient light is ~3x
+   brighter, the moon is brighter, and the asphalt/sidewalks/facades
+   reflect more. Neon contrast kept: deep blue-black shadows, cyan and
+   magenta accents.
+4. **THE WHITE SIGN.** Verified in the official docs: the Mobile
+   renderer's colour buffer (R10G10B10A2 UNORM) has reduced precision
+   and maximum values, so emission above ~1.1 clips to a flat white
+   slab. The three neon signs ran energy 2.1. Now: 1.1 at the source,
+   the flicker cap is 1.15, and the big amber sign got a dark frame, a
+   lettering strip and a darker body so it reads as a sign, not a
+   rectangle.
+5. **NO MAP.** There was no radar, route, waypoint or map anywhere in
+   the repo (audit: only a text list inside the phone app). B18 ships
+   the GTA-standard set: a round radar top-left that rotates with the
+   camera (N marker, hero arrow, friends/enemies/POI blips with rim
+   chevrons, district banner, objective + distance, tap to open the
+   map), a yellow street-following route (A* on a street graph of the
+   three blocks, recalculated at most 2 Hz), a big 3D objective beam
+   with live distance, a top-centre compass arrow, and the FULL MAP
+   (pan, pinch zoom, tap to pin a waypoint, legend, layer toggles,
+   fog of war per block, no fast travel) opening from the radar tap,
+   the pause menu's MAP button and the phone's Map app.
 
-A fresh Xogot import starts with NO global class cache. Any script
-that referenced a class_name identifier (there were 42 declarations
-and ~180 cross-file references) failed to parse. Autoload scripts
-that did this (music.gd referenced Enemy/Player; heat, city,
-tactics, combo_input, progression, visual, friend_help, world_sim,
-jobs, blocks too) died with "Failed to instantiate an autoload ...
-does not inherit from 'Node'" and registered as NULL singletons:
-
-- Music NULL -> fight_score.gd:38 "Invalid access to property or
-  key 'state' on a base object of type 'Nil'" EVERY FRAME
-- player.gd dead -> the hero capsule had no script: no hero
-- touch_buttons.gd dead -> no touch controls
-- block_builder's Label3D signs never built + pre-B15 glow values
-  -> white signs and doors with a huge halo (stale build on top)
-- B16's safe_boot.gd dead -> the grey screen (Godot's default clear
-  colour, nothing drawn)
-- the grey figure: node "Dummy" (enemy.tscn, kind 0 training
-  dummy) - grey up to B14, worn tan since B15
-
-B17 removes the whole class: every class_name declaration is gone
-(88 files rewritten to const-preload references, mechanics verified
-against 4.7.2 first), the only parse-time preload of an imported
-asset (UAL1_Standard.glb) is now a guarded runtime load, unguarded
-nulls found on the way (enemy mannequin, UAL attach, jobs' City
-signal) are guarded, and the project sits at the REPO ROOT with a
-unique name per batch so a stale cached import cannot load.
-
-**PHONE-CONFIRMED (photo, 2026-11-21):** the owner's B17 run landed
-on STAGE 0 with `class cache: MISSING` (the phone's PERMANENT state -
-Xogot never writes it) and still showed all 33 autoloads PASS
-including Music, SafeBoot PASS, FULL GAME PASS, 0 FAIL lines, on
-BUILD B17 d209d01 - the exact pushed code commit. The condition that
-killed every previous build now boots clean on the device itself.
+Also new: the **DEVICE REPORT** (DBG button -> DEVICE REPORT, and in
+SafeBoot) - one selectable text block with every fact the phone can
+tell us, with a COPY LOG button.
 
 ## THE PHONE PROCEDURE (exact)
 
-1. Unzip `Leverage_B18_2026-11-21.zip` in the Files app. You get a
-   folder with `project.godot` DIRECTLY inside it - that folder IS
-   the project. (The repo root is the project now; no subfolder.)
+1. Unzip `Leverage_B18_DeviceFix_2026-11-21.zip` in the Files app.
+   You get a folder with `project.godot` DIRECTLY inside it - that
+   folder IS the project. (The repo root is the project; no
+   subfolder. Delete old LEVERAGE entries in Xogot first.)
 2. Force-quit Xogot (swipe away).
-3. Reopen Xogot -> Import -> pick THAT folder (the one containing
-   project.godot). The project name must read **LEVERAGE B18** -
-   anything else is a stale copy: delete old Xogot project entries
-   and import again.
+3. Reopen Xogot -> Import -> pick THAT folder. The project name must
+   read **LEVERAGE B18** - anything else is a stale copy.
 4. WAIT for the import to fully finish (spinner stopped).
-5. Run once. You land on STAGE 0 (dark magenta launcher): read the
-   GREEN banner and tap **LAUNCH FULL GAME** (first button) to play.
+5. Run once. You land on STAGE 0: read the GREEN banner and tap
+   **LAUNCH FULL GAME**.
 6. Close and run a SECOND time after a fresh import (the truth run).
 7. Read the BUILD line on STAGE 0: `B18 <hash> (<date>)`. Compare
    with the top commit at github.com/jamesrudh-arch/Barehands/
@@ -87,58 +91,54 @@ killed every previous build now boots clean on the device itself.
 ## VERIFIED vs PHONE-ONLY
 
 Legend: VERIFIED = proven in the sandbox, with the method.
-PHONE-CONFIRMED = the owner's device proved it (photo/log sent).
-PHONE-ONLY = still needs your device, with the exact tap.
+PHONE-CONFIRMED = the owner's device proved it. PHONE-ONLY = still
+needs your device, with the exact tap.
 
-| # | Item | Status | How / what was sent |
+| # | Item | Status | How / what to send |
 |---|------|--------|--------------------|
-| 1 | Class-cache immunity: 0 parse errors, 33/33 autoloads alive with the cache deleted | VERIFIED | cache deleted: stage0_check 18 checks, smoke_null_watch 993 frames, smoke PASS, 0 SCRIPT ERROR |
-| 2 | First run before ANY import pass (clean clone, no .godot): Stage0 + SafeBoot PASS, 0 script errors | VERIFIED | clean clone + Xvfb opengl3 render (B17); re-proven B18 with cache deleted |
-| 3 | Stage0 screen: magenta, stamp, 39 numbered boot stages, truthful banner, COPY LOG, user://boot_log.txt, 4 buttons, LAUNCH FULL GAME first | VERIFIED | stage0_check 17 checks (cache present) + 18 checks (cache deleted: green banner names LAUNCH FULL GAME, colour green) |
-| 4 | SafeBoot: floor, real hero, real touch controls, follow camera, dummy, big log, 8 one-at-a-time toggles | VERIFIED | safe_boot_check 27/27 (B18 re-run, cache deleted) |
-| 5 | Build stamp at boot corner + debug menu + Stage0 + SafeBoot + VERSION.txt | VERIFIED | gen at commit time; the suite compares the corner label against BuildInfo.STAMP itself (never a hardcoded batch string - that went stale once) |
-| 6 | Music no longer Nil-able by parse failure; the four bare Music sites guarded | VERIFIED | reproduction log (before: Music NULL) vs post-fix census; null_watch 0 errors |
-| 7 | White-sign render test: pure-white area < 1.5%, orange halo < 10% | VERIFIED | render_check (26 checks) under render, every battery |
-| 8 | Rain: code-generated streak + dot textures, billboard particles | VERIFIED | rain.gd runtime ImageTexture; render_check pale-block scan |
-| 9 | Grey figure = node "Dummy", tan since B15 | VERIFIED | SafeBoot log; safe_boot_check asserts "Dummy" |
-| 10 | Cinematic watchdog: force-finish at 12 s | VERIFIED | opening_shot.gd; smoke_null_watch asserts it landed |
-| 11 | Touch controls inside safe areas, incl. landscape rotation | VERIFIED | _clamp_safe_area + viewport size_changed re-clamp; smoke_controls |
-| 12 | STAGE 0 draws on the phone (magenta, not grey) | **PHONE-CONFIRMED** | photo IMG_9292 (2026-11-21): magenta screen, title, all four buttons, census log |
-| 13 | The BUILD stamp matches github main | **PHONE-CONFIRMED** | photo: `B17 d209d01 (2026-11-21 09:10 UTC)` = the code commit under stamp commit 3969938 |
-| 14 | The boot stages all PASS on device | **PHONE-CONFIRMED** | photo: 33/33 autoloads PASS (incl. Music), SafeBoot PASS, FULL GAME PASS, 0 FAIL lines |
-| 15 | Full game: hero moves, controls visible, signs coloured, rain streaks | PHONE-ONLY | tap: LAUNCH FULL GAME, walk with the left thumb ~30 s. Send: what you see (photo if wrong) |
-| 16 | Xogot re-imports cleanly after deleting an old entry | **PHONE-CONFIRMED** | fresh B17 import ran the exact pushed code (the BUILD line is the proof) |
-| 17 | GPU adapter name + renderer on device | **PHONE-CONFIRMED** | photo: Godot 4.7.2-stable iOS, renderer mobile, GPU Apple A15 GPU (Apple8); also `class cache: MISSING` measured on device |
-| 18 | If anything is still wrong: which system | PHONE-ONLY | tap: LAUNCH SAFEBOOT, toggle ONE system at a time. Send: which toggle breaks it + COPY LOG |
-| 19 | Landscape rotation: buttons stay inside the screen | PHONE-ONLY | rotate to landscape in the full game. Send: "buttons stay inside" or a photo |
+| 1 | Class-cache immunity: 33/33 autoloads alive, cache deleted | VERIFIED | stage0_check, smoke_null_watch, full battery, clean dirs |
+| 2 | Stage0 + truthful banner + LAUNCH FULL GAME first | VERIFIED | stage0_check 18 checks (cache deleted) |
+| 3 | Hero renders dressed (flat noir fallback for unshipped textures) + locator ring + rim light | VERIFIED (look) / PHONE-ONLY (on-device) | render_check: hero on screen, >= 4% of frame, region lit. Tap: walk, look for the ring under the hero |
+| 4 | Buttons: no two overlap, >= 64 px, inside safe area, one label each, no bar crossing them | VERIFIED | render_check (49 checks) + smoke_controls 55 + smoke_face 31 |
+| 5 | GRAB/INTERACT contextual (appears only when usable) | VERIFIED | smoke_controls + code; on the phone: stand by the dummy, GRAB appears |
+| 6 | Street readable: mean luminance above the floor, not one grey slab, neon alive | VERIFIED (sandbox render) / PHONE-ONLY (device) | render_check mean_lum; on the phone: judge with your eyes |
+| 7 | No pure-white sign: white area < 1.5%, sign energy <= 1.15, lettering + frame on the amber sign | VERIFIED | render_check white=0.0014, cap check; PHONE-ONLY for the eye test |
+| 8 | Radar: visible, safe, no overlap, rotates, N marker, blips clamp to rim | VERIFIED | render_check radar suite + smoke_map 35 |
+| 9 | Route: street-following, ends at target, recalcs off-route | VERIFIED | smoke_map (route 258 m to market, gates passed) + render_check |
+| 10 | Full map: opens from radar tap + pause MAP + phone app; tap-to-pin waypoint; fog of war | VERIFIED | smoke_map entry-point counters + tap-pin checks |
+| 11 | Cinematic force-ends at 8 s, HUD/controls never stay hidden | VERIFIED | opening_shot.gd watchdog + guarded handback; smoke_null_watch |
+| 12 | DEVICE REPORT builds with every field + COPY LOG | VERIFIED | device_report.gd; on the phone: DBG -> DEVICE REPORT -> COPY LOG |
+| 13 | hdr_2d experiment (does 2D HDR stop the white signs?) | VERIFIED | measured on/off with render_check - see CHANGELOG B18; it is a 2D-canvas setting, the sign fix is the material cap; default stays OFF |
+| 14 | Full game on device: hero visible + moves, controls in the right-thumb zone, street readable | **PHONE-ONLY** | tap: LAUNCH FULL GAME, walk 30 s. Send: one line in words |
+| 15 | Landscape: cluster stays inside the screen, no bar crossing | **PHONE-ONLY** | rotate; send one line |
+| 16 | The DEVICE REPORT from the phone | **PHONE-ONLY** | DBG -> DEVICE REPORT -> COPY LOG -> paste the text |
 
-## THE VISUAL DEBUG PANEL (in-game)
+## THE DEVICE REPORT (the one diagnostic to rule them all)
 
-Pause -> DEBUG -> VISUAL DEBUG (or the debug corner button):
-glow on/off, glow intensity, bloom, HDR threshold, tonemap cycle,
-sign+window emission, shadows, rain on/off, rain streak width,
-ground splash, decals, outlines, NPCs, camera height, camera
-distance, XOGOT SAFE preset, NIGHT (desktop) preset, COPY SETTINGS,
-SCREENSHOT PNG. Every change applies live.
+In the full game: the small **DBG** button (top-left) -> **DEVICE
+REPORT** -> select the text -> **COPY LOG** -> paste it back. It
+contains: the build stamp, renderer/API/adapter, window + safe area,
+FPS, draw calls, hdr_2d/tonemap/exposure/ambient/glow, hero + camera
+truth (exists/position/visible/current/target), the cinematic state
+and whether the 8 s force-end fired, every touch button's rectangle
+and label count, the joystick state, the autoload census, the
+materials of the named suspects (the big sign, the door, the grey
+figure), the radar/route/waypoint facts, and the last 10 errors or
+warnings.
 
-## WHAT I NEED FROM YOU (the remaining taps)
+## WHAT I NEED FROM YOU (three taps, in order)
 
-Your CURRENT B17 import is fine for these - the game code did not
-change in B18 (only the diagnostic screen's banner wording and
-button order); on B17, LAUNCH FULL GAME is the SECOND button from
-the left.
+1. **Play 30 seconds.** LAUNCH FULL GAME, walk with the left thumb,
+   throw a punch at the dummy. -> Send ONE line in words: is the hero
+   visible (a ring glows under them), are LIGHT/HEAVY/DODGE big and
+   readable in the bottom-right, is the street readable, is the amber
+   sign a sign now (not a white slab), do you see the radar top-left?
+2. **Copy the report.** DBG -> DEVICE REPORT -> COPY LOG -> paste the
+   text back. (This is the ground truth for anything that still looks
+   wrong.)
+3. **Landscape + map.** Rotate the phone (buttons stay inside?); tap
+   the radar, tap the map to pin a waypoint (a yellow route line
+   draws?). -> Send one line.
 
-1. On STAGE 0: tap **LAUNCH FULL GAME**, walk around 30 s with the
-   left thumb. -> Send: "hero moves, controls visible, signs
-   coloured, rain streaks" or what differs (photo if wrong).
-2. Rotate the phone to landscape in the full game. -> Send:
-   "buttons stay inside the screen" or a photo.
-3. If (and only if) something is broken: back on STAGE 0, LAUNCH
-   SAFEBOOT, toggle ONE system at a time until it breaks. -> Send:
-   which toggle + COPY LOG.
-
-The B18 zip (`Leverage_B18_2026-11-21.zip`) is there whenever you
-re-import next - it shows the green truthful banner and puts
-LAUNCH FULL GAME first. With (1) and (2) clean, the device-proven
-boot path is fully closed and the next batch is the vertical slice
-review per PROJECT_BIBLE.md.
+If something is broken, the report from (2) already tells us which
+system; SafeBoot's one-at-a-time toggles remain as the deep drill.

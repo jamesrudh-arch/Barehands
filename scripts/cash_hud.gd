@@ -24,8 +24,10 @@ func _ready() -> void:
 	_label.anchor_right = 1.0
 	_label.offset_left = -220.0
 	_label.offset_right = -16.0
-	_label.offset_top = 92.0
-	_label.offset_bottom = 124.0
+	# B18: moved below the style meter's own cash line - the two labels
+	# overlapped at y 92..124 and the phone showed "$150 $150" doubled
+	_label.offset_top = 128.0
+	_label.offset_bottom = 160.0
 	_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_label.add_theme_font_size_override("font_size", 22)
 	_label.add_theme_color_override("font_color", Color(0.92, 0.88, 0.78))
@@ -36,8 +38,8 @@ func _ready() -> void:
 	_label.anchor_right = 1.0
 	_pop.offset_left = -160.0
 	_pop.offset_right = -16.0
-	_pop.offset_top = 124.0
-	_pop.offset_bottom = 152.0
+	_pop.offset_top = 162.0
+	_pop.offset_bottom = 190.0
 	_pop.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_pop.add_theme_font_size_override("font_size", 18)
 	_pop.modulate.a = 0.0
@@ -61,7 +63,7 @@ func _process(delta: float) -> void:
 	if _pop_a > 0.0:
 		_pop_a = maxf(_pop_a - delta, 0.0)
 		_pop.modulate.a = _pop_a
-		_pop.offset_top = 124.0 - (1.0 - _pop_a) * 34.0
+		_pop.offset_top = 162.0 - (1.0 - _pop_a) * 34.0
 		_pop.offset_bottom = _pop.offset_top + 28.0
 	if _ticker_a > 0.0:
 		_ticker_a = maxf(_ticker_a - delta * 0.5, 0.0)

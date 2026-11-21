@@ -25,11 +25,22 @@ var _combat := 0.0  # 0..1 blend into the close combat framing
 var _frozen := false  # the opening shot drives the camera while true
 var _fov_punch := 0.0  # impact FOV kick, decays fast (negative = zoom in)
 
-@onready var _target: CharacterBody3D = get_node(target_path) as CharacterBody3D
+@onready var _target: CharacterBody3D = get_node_or_null(target_path) as CharacterBody3D
 
 
 func _ready() -> void:
 	add_to_group("camera")
+	# B18: the target lookup must never strand the camera - if the
+	# authored path fails, the player group answers; if that fails too
+	# the camera stays put as the active scene camera instead of
+	# crashing the frame loop
+	if _target == null:
+		_target = get_tree().get_first_node_in_group("player") as CharacterBody3D
+	if _target == null:
+		push_error("FollowCamera: no target found - camera idles inactive")
+		set_physics_process(false)
+		return
+	make_current()
 	_fov_now = base_fov
 	_dist_now = distance
 	_height_now = height
@@ -89,7 +100,7 @@ var _road_mat: ShaderMaterial
 
 
 func _physics_process(delta: float) -> void:
-	if _frozen:
+	if _frozen or _target == null:
 		return
 	# the wet-street reflections stretch toward the camera; feed it our spot
 	if _road_mat == null:

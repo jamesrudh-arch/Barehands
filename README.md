@@ -6,9 +6,9 @@ This repo root IS the Godot project: **`project.godot` sits at the
 top level**. Import the folder that contains it - the unzipped repo
 root itself, NOT any subfolder.
 
-1. Download the zip (e.g. `Leverage_B18_YYYY-MM-DD.zip`) and unzip it
-   in the Files app. You get a folder like `Leverage_B18_2026-11-21`
-   with `project.godot` directly inside it.
+1. Download the zip (`Leverage_B18_DeviceFix_2026-11-21.zip`) and unzip
+   it in the Files app. You get a folder with `project.godot` directly
+   inside it - that folder IS the project.
 2. **Force-quit Xogot** (swipe it away) so no cached project or old
    import can linger.
 3. Reopen Xogot, tap Import, and pick **the folder that contains
@@ -36,6 +36,64 @@ root itself, NOT any subfolder.
 If the screen is grey, nothing is drawing - the STAGE 0 log (or its
 absence) tells the agent exactly which layer died. See XOGOT.md for
 the full VERIFIED / PHONE-ONLY table.
+
+## B18 — The Device Fix (2026-11-21)
+
+The owner's phone photos of the B17 full game showed five real bugs;
+all five have named root causes now:
+
+- **The "missing hero" and the "blurry grey figure" were the same
+  bug.** The hero's gltf pieces point at texture files that never
+  shipped (T_Hair_1_*, T_Regular_Male_* — the import log says so on
+  every boot). The hero rendered as a stack of pale untextured boxes.
+  hero_rig.gd now dresses any untextured piece in flat noir materials
+  (the training-dummy treatment), and the hero carries a permanent
+  locator: a bright ring on the ground plus a rim light that always
+  comes from behind the camera (Settings: hero_locator, hero_rim).
+- **Bunched, double-labelled buttons + the yellow bar.** The old
+  per-button safe-area clamp stacked buttons onto the same spot (two
+  labels on one circle) and shoved the cluster under the composure
+  bar. New layout engine in touch_buttons.gd: one right-anchored
+  grid, the cluster fitted into the safe area AS A UNIT, a pairwise
+  no-overlap pass, a 64-px minimum, LIGHT/HEAVY/DODGE as the big
+  three, contextual GRAB/INTERACT (player.context_action, 10 Hz),
+  STYLE and PHONE in their own column, composure bar to top-centre.
+- **Too dark.** The old XOGOT SAFE preset killed glow and halved
+  emission. New SAFE: modest glow ON, full emission, tonemap white 4;
+  ambient ~3x, moon up, brighter asphalt/sidewalks/facades. Neon
+  contrast kept.
+- **The white sign.** Verified in the docs: the Mobile renderer's
+  R10G10B10A2 colour buffer clips above ~1.1, so the 2.1-energy sign
+  slabs went flat white. Signs capped at 1.1, flicker cap 1.15, and
+  the big amber sign got a dark frame + lettering strip + darker body.
+  rendering/viewport/hdr_2d was measured on/off with the render check
+  (it is a 2D-canvas setting; the 3D sign fix is the material cap);
+  it stays OFF.
+- **No map.** Nothing existed (audit). B18 ships the GTA-standard
+  set: round rotating radar top-left (N marker, hero arrow, blips
+  with rim chevrons, district banner, objective + distance, tap to
+  open the map), a street-following A* route (≤2 Hz recalc), the 3D
+  objective beam + live distance, a top-centre compass, and the full
+  map (pan/pinch/tap-to-pin waypoint, legend, layers, fog of war, no
+  fast travel) from three entry points: radar tap, pause MAP, phone
+  app.
+- **The DEVICE REPORT** (DBG → DEVICE REPORT, also in SafeBoot): one
+  selectable, copyable block with every device fact - build, renderer
+  + API + adapter, window/safe area/FPS/draws, env values, hero +
+  camera truth, cinematic state, every button rect, joystick, the
+  autoload census, the suspects' materials, radar/route/waypoint,
+  last 10 errors.
+
+Verified: smoke_map 35 checks (new), render_check 49 (extended with
+the layout/radar/brightness regression gates), smoke_controls 55,
+smoke_face 31, smoke_stick 31, smoke, run_tests, smoke_a4, smoke_audio,
+smoke_backroom, smoke_cast, smoke_city, smoke_combat — clean user
+dirs. The battery tail (pose, phone, economy, ledger, progression,
+combos, depth, tpose, worldsim, kidnap, reactive, friends, jobs,
+district, difficulty, debt, music, null_watch, stage0, stress + the
+two render suites) re-runs next session; the opening force-ends at
+8 s with a guarded handback; the camera gained a null-target
+failsafe + make_current.
 
 ## Batch 3 — Styles & the Wheel (2026-11-19)
 

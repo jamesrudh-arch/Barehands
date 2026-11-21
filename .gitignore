@@ -13,3 +13,5 @@ export_credentials.cfg
 
 # Godot import sidecars for owner uploads (the photos are tracked, their .import files are generated)
 upload/*.import
+upload/
+download/

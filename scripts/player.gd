@@ -1233,6 +1233,49 @@ func _grab_step(delta: float) -> void:
 		_release_grab(Vector3.ZERO, 0.0)
 
 
+## B18 (Part 2.2): what the contextual GRAB/INTERACT button should say
+## right now ("" = hide it). Mirrors _try_grab_action's consumer order
+## by PROXIMITY ONLY - it never fires anything, so polling it at 10 Hz
+## is free.
+func context_action() -> String:
+	if state == State.GRAB:
+		return "THROW"
+	if state != State.GROUND:
+		return ""
+	for trainer in get_tree().get_nodes_in_group("trainer"):
+		if trainer is Node3D and global_position.distance_to(
+				(trainer as Node3D).global_position) < 2.6:
+			return "GRAB"
+	var cast_node := get_tree().get_first_node_in_group("cast")
+	if cast_node is Node3D and global_position.distance_to(
+			(cast_node as Node3D).global_position) < 2.8:
+		return "TALK"
+	for shop in get_tree().get_nodes_in_group("shop"):
+		if shop is Node3D and global_position.distance_to(
+				(shop as Node3D).global_position) < 2.4:
+			return "INTERACT"
+	for door in get_tree().get_nodes_in_group("safehouse"):
+		if door is Node3D and global_position.distance_to(
+				(door as Node3D).global_position) < 2.4:
+			return "INTERACT"
+	var target := _punch_target(-0.6, 0.35)
+	if target and target.state not in [CLS_Enemy.State.DOWN,
+			CLS_Enemy.State.GRABBED, CLS_Enemy.State.LAUNCHED]:
+		return "GRAB"
+	if not has_gun and not has_pipe:
+		for gun in get_tree().get_nodes_in_group("gun_prop"):
+			if gun is Node3D and global_position.distance_to(
+					(gun as Node3D).global_position) < 1.7:
+				return "INTERACT"
+	if not has_pipe:
+		for pipe in get_tree().get_nodes_in_group("pipe_prop"):
+			if pipe is Node3D and global_position.distance_to(
+					(pipe as Node3D).global_position) < 1.7:
+				return "INTERACT"
+		return ""
+	return "THROW"  # pipe in hand, nothing to seize: the grab throws it
+
+
 func _equip_gun(prop: Node3D) -> void:
 	if has_pipe:  # one weapon slot: the pipe drops where you stand
 		has_pipe = false

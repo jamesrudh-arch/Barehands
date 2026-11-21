@@ -49,6 +49,13 @@ const DEFAULTS := {
 	"shake_scale": 1.0,
 	"difficulty": "street",  # street as written / hard / brutal
 	"hints": {},
+	# B18: the radar + map (Part 6B) and the hero locator (Part 1.3)
+	"radar_on": true,         # the round radar; false hides it
+	"radar_scale": 1.0,       # 0.75..1.4 of the ~20%-height base
+	"radar_north_up": false,  # true = north-up instead of camera-rotating
+	"route_line_3d": false,   # the optional ground route ribbon
+	"hero_locator": true,     # the bright ring + rim light under the hero
+	"hero_rim": 1.8,          # rim light energy, 0..3
 }
 
 var _d: Dictionary = DEFAULTS.duplicate(true)

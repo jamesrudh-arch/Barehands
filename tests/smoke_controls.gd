@@ -170,7 +170,8 @@ func _test_presets_and_editor() -> void:
 	await _frame(2)
 	_check(punch.position.x > home.x and punch.position.y > home.y,
 			"compact preset moves the cluster toward the corner")
-	_check(absf((punch.size.x / 116.0) - 0.85) < 0.01, "compact preset scales buttons to 0.85")
+	var base_sz: float = (_hud._default_rects["PunchBtn"] as Rect2).size.x
+	_check(absf((punch.size.x / base_sz) - 0.85) < 0.01, "compact preset scales buttons to 0.85")
 	# preset: left-handed mirrors across and flips the stick zone
 	s._apply_preset("left")
 	await _frame(2)
@@ -211,7 +212,7 @@ func _test_presets_and_editor() -> void:
 	_check(absf(punch.position.x - (home.x - 160.0)) < 40.0, "override is applied to the button")
 	Settings.reset_layout()
 	await _frame(2)
-	_check(absf(punch.position.x - home.x) < 0.5 and absf(punch.size.x - 116.0) < 0.5,
+	_check(absf(punch.position.x - home.x) < 0.5 and absf(punch.size.x - base_sz) < 0.5,
 			"reset layout restores the defaults")
 
 

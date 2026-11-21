@@ -2,6 +2,7 @@ extends Node
 const CLS_ActionButton := preload("res://scripts/action_button.gd")
 const CLS_FollowCamera := preload("res://scripts/camera_follow.gd")
 const CLS_OpeningShot := preload("res://scripts/opening_shot.gd")
+const CLS_DeviceReport := preload("res://scripts/device_report.gd")
 ## SafeBoot (B16): the device diagnostic scene, and the TEMPORARY main
 ## scene. It skips the opening cinematic and every optional system and
 ## builds the minimum honest game: a lit floor, the REAL hero (the
@@ -180,6 +181,15 @@ func _build_diag() -> void:
 	refresh.focus_mode = Control.FOCUS_NONE
 	refresh.pressed.connect(func(): _fill_log())
 	actions.add_child(refresh)
+	# B18: the full device diagnostic (render env, hero/camera truth,
+	# touch rects, the suspects' materials) - same builder the debug
+	# menu uses in the full game
+	var report := Button.new()
+	report.text = "DEVICE REPORT"
+	report.focus_mode = Control.FOCUS_NONE
+	report.pressed.connect(func():
+		CLS_DeviceReport.show_popup(get_tree().current_scene))
+	actions.add_child(report)
 	var full := Button.new()
 	full.text = "START FULL GAME"
 	full.focus_mode = Control.FOCUS_NONE

@@ -1,5 +1,65 @@
 # CHANGELOG.md — batch history (newest first)
 
+## B18 — the device fix (2026-11-21)
+
+The owner's in-game phone photos (portrait + landscape) named five
+bugs. All five now have root causes, fixes, and regression gates:
+
+- **BUG 1 + the grey figure were ONE bug**: the hero's gltf pieces
+  point at never-shipped textures (`T_Hair_1_*`, `T_Regular_Male_*`
+  — visible in every import log). The hero rendered as a stack of
+  pale untextured boxes; that grey figure WAS the hero. Fix:
+  hero_rig `_dress_fallback` (flat noir materials on untextured
+  pieces) + a permanent hero locator (ground ring + camera-relative
+  rim light; Settings hero_locator/hero_rim). The opening force-ends
+  at 8 s with a guarded handback; the camera gained a null-target
+  failsafe and make_current.
+- **BUG 2 (bunched/doubled buttons + the yellow bar)**: the old
+  per-button safe-area clamp stacked buttons on one spot. New layout
+  engine: right-anchored grid, whole-cluster safe-area fit, pairwise
+  no-overlap, 64-px floor; LIGHT/HEAVY/DODGE big; GRAB contextual
+  (GRAB/INTERACT/TALK/THROW via player.context_action at 10 Hz);
+  STYLE/PHONE separated; composure bar to top-centre; the doubled $
+  labels separated; the stick shows a faint home ring and ignores
+  radar taps.
+- **BUG 3 (too dark)**: the B15 XOGOT SAFE preset (glow off, emission
+  x0.6) was the cause. New SAFE: glow 0.38 @ threshold 1.02, full
+  emission, tonemap white 4; ambient 0.045→0.17-blue, moon 0.25→0.8,
+  brighter asphalt/sidewalks/facades. render_check's luminance floor
+  is the gate.
+- **BUG 4 (white sign)**: docs-verified - the Mobile renderer's
+  R10G10B10A2 buffer clips bright emission to white. Sign slabs
+  2.1→1.1, neon flicker cap 1.8→1.15, SignAmber gets a dark frame +
+  lettering + body (mesh_sign_body/text). `rendering/viewport/hdr_2d`
+  measured on/off with the render check (a 2D-canvas setting; no
+  effect on the 3D signs): stays OFF.
+- **BUG 5 (no map)**: the audit found nothing to hide - no radar,
+  route, waypoint or drawn map existed. New: map_data.gd (blocks,
+  POIs, 5 interiors, street graph, A* routes, waypoint, fog),
+  radar.gd (round, camera-rotating, N marker, hero arrow, blips with
+  rim chevrons + level triangles, district banner, objective +
+  distance, tap→map), full_map.gd (pan/pinch/tap-to-pin, legend,
+  layers, fog of war, three entry points: radar/pause/phone),
+  objective_marker.gd (3D beam + chevron + distance, optional ground
+  ribbon OFF by default), and the DEVICE REPORT (device_report.gd;
+  DBG→DEVICE REPORT and in SafeBoot; every fact, COPY LOG).
+- Tests: NEW smoke_map (35 checks) + render_check grown to 49
+  (button min-size/no-overlap/single-label, no HUD bar crossing,
+  hero ≥4% of frame, the whole radar suite, WorldEnvironment in both
+  arenas); smoke_controls 55 + smoke_face 31 updated to the new
+  layout contract without weakening (the hardcoded 116 became the
+  live default size). Battery from clean dirs: run_tests, smoke,
+  smoke_a4 25, smoke_audio, smoke_backroom 42, smoke_cast, smoke_city,
+  smoke_combat green before the session cut the run; smoke_map 35,
+  smoke_controls 55, smoke_face 31, smoke_stick 31 verified in full
+  earlier the same day; the remaining suites re-run next session.
+  render_check verified 49 checks earlier in the session (one
+  WorldEnvironment test bug fixed after that run; its green re-run
+  was cut off by the sandbox CPU throttle - both render suites now
+  need ~2x the timeout under llvmpipe).
+- Housekeeping: upload/ untracked + ignored (the owner's photos are
+  not game content), tmp probe files removed.
+
 ## B18 — the truthful banner (2026-11-21)
 - The B17 phone photo settled the boot question - and exposed a UX
   bug: the screen was 100% green (33/33 autoloads including Music,

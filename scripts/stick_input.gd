@@ -190,7 +190,15 @@ func _in_left_zone(pos: Vector2) -> bool:
 	var ok_x := pos.x < s.x * LEFT_ZONE_W
 	if bool(Settings.value("left_handed")):
 		ok_x = pos.x > s.x * (1.0 - LEFT_ZONE_W)
-	return ok_x and pos.y > s.y * TOP_GUARD
+	if not ok_x:
+		return false
+	# B18: the radar is a button, not a trackpad - a touch that lands on
+	# it opens the map and must not also grab the stick
+	var radar := get_tree().get_first_node_in_group("radar") as Control
+	if radar and radar.is_visible_in_tree() \
+			and Rect2(radar.position, radar.size).has_point(pos):
+		return false
+	return pos.y > s.y * TOP_GUARD
 
 
 func _fixed_center() -> Vector2:
@@ -238,6 +246,14 @@ func _notification(what: int) -> void:
 
 func _draw() -> void:
 	if not _active:
+		# B18 (Part 2.3): a faint ring shows where the left thumb lives
+		# even before the first touch (fixed-scheme players see their pad;
+		# floating players see the home zone)
+		var hscale: float = float(Settings.value("stick_scale"))
+		var home := _fixed_center()
+		draw_arc(home, TRAVEL * 0.55 * hscale, 0.0, TAU, 48,
+				Color(1, 1, 1, 0.10), 2.0, true)
+		draw_circle(home, 5.0, Color(1, 1, 1, 0.14))
 		return
 	var scale: float = float(Settings.value("stick_scale"))
 	match _scheme():

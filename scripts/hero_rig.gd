@@ -27,8 +27,64 @@ func _ready() -> void:
 		piece.add_child(p)
 		CLS_UalBind.attach(p)
 		_players.append(p)
+	# B18: the grey-figure fix. The hero's gltf pieces point at texture
+	# files that never shipped (T_Hair_1_*, T_Regular_Male_* - the
+	# import log says so every boot), so the hero rendered as a stack of
+	# pale untextured boxes - on the phone that read as a "blurry grey
+	# figure" while the real character seemed missing. Any piece whose
+	# surfaces carry no albedo texture gets a flat noir dress instead;
+	# pieces with working textures keep their authored look.
+	_dress_fallback()
 	_build_hat()
 	_build_coat()
+
+
+## The flat noir dress per piece (the same treatment the training dummy
+## gets): readable at phone distance, on every renderer, with zero
+## dependence on the asset pipeline.
+const PIECE_DRESS := {
+	"Body": Color(0.155, 0.145, 0.185),   # charcoal suit + skin read
+	"Torso": Color(0.13, 0.12, 0.15),     # coat blue-grey
+	"Arms": Color(0.13, 0.12, 0.15),
+	"Legs": Color(0.11, 0.11, 0.13),      # trousers
+	"Boots": Color(0.08, 0.06, 0.05),     # dark leather
+	"Beard": Color(0.13, 0.09, 0.06),     # dark brown
+}
+
+
+func _dress_fallback() -> void:
+	for piece in get_children():
+		if not (piece is Node3D):
+			continue
+		var textured := false
+		var meshes: Array[MeshInstance3D] = []
+		_collect_meshes(piece, meshes)
+		for mi in meshes:
+			if mi.mesh == null:
+				continue
+			for s in mi.mesh.get_surface_count():
+				var m: Material = mi.mesh.surface_get_material(s)
+				if m is StandardMaterial3D \
+						and (m as StandardMaterial3D).albedo_texture != null:
+					textured = true
+					break
+			if textured:
+				break
+		if textured or meshes.is_empty():
+			continue
+		var mat := StandardMaterial3D.new()
+		mat.albedo_color = PIECE_DRESS.get(piece.name,
+				Color(0.14, 0.13, 0.16))
+		mat.roughness = 0.85
+		for mi in meshes:
+			mi.material_override = mat
+
+
+func _collect_meshes(n: Node, out: Array[MeshInstance3D]) -> void:
+	if n is MeshInstance3D:
+		out.append(n)
+	for c in n.get_children():
+		_collect_meshes(c, out)
 
 
 ## Play a clip on every piece in lockstep. Returns true if the clip changed.

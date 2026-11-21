@@ -1,10 +1,12 @@
 extends Control
 
-## The Composure bar (Batch 2): bottom-centre, above the thumb zone - a
-## wide flat strip that reads at a glance in a fight. Gold while healthy,
-## orange under half, red under a quarter; when the GUARD BREAKS the strip
-## empties and a jagged "GUARD BROKEN" flash sells the mistake. Follows
-## the LevelBar pattern: a Control in main.tscn that draws itself.
+## The Composure bar (Batch 2, moved B18): top-centre, under the compass
+## strip. It lived bottom-centre "above the thumb zone" - on the phone
+## the safe-area clamp pushed the button cluster into the middle and the
+## gold strip crossed the buttons (the yellow bar in the owner's photo).
+## Top-centre owns that space outright. Gold while healthy, orange under
+## half, red under a quarter; when the GUARD BREAKS the strip empties
+## and a jagged "GUARD BROKEN" flash sells the mistake.
 
 const W := 180.0
 const H := 7.0
@@ -15,11 +17,11 @@ var _flash_t := 0.0
 func _ready() -> void:
 	add_to_group("composure_bar")
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	set_anchors_preset(Control.PRESET_CENTER_TOP)
 	offset_left = -W / 2.0
 	offset_right = W / 2.0
-	offset_top = -84.0
-	offset_bottom = -77.0
+	offset_top = 62.0
+	offset_bottom = 69.0
 	Composure.changed.connect(_on_changed)
 	Composure.guard_broke.connect(_on_break)
 	_on_changed(Composure.value)

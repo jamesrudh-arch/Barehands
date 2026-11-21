@@ -18,10 +18,11 @@ func _ready() -> void:
 	add_to_group("level_bar")
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_preset(Control.PRESET_TOP_LEFT)
-	offset_left = 96.0
-	offset_top = 48.0
-	offset_right = 260.0
-	offset_bottom = 74.0
+	# B18: right of the radar (the old x=96 spot is the radar's dish now)
+	offset_left = 176.0
+	offset_top = 64.0
+	offset_right = 340.0
+	offset_bottom = 90.0
 	var pending: Array = Progression.take_pending()
 	if not pending.is_empty():
 		level_up(Progression.level, pending)

@@ -3,6 +3,7 @@ const CLS_Enemy := preload("res://scripts/enemy.gd")
 const CLS_TestRunner := preload("res://scripts/test_runner.gd")
 const CLS_TuningPanel := preload("res://scripts/tuning_panel.gd")
 const CLS_VisualDebug := preload("res://scripts/visual_debug.gd")
+const CLS_DeviceReport := preload("res://scripts/device_report.gd")
 ## Toggleable debug overlay: FPS, memory, node count, enemies, particles.
 ## Toggle with the small DBG button (top-left) or F3 on a keyboard.
 ## Everything is built in code so main.tscn stays declarative.
@@ -77,6 +78,13 @@ func _ready() -> void:
 	vis.focus_mode = Control.FOCUS_NONE
 	vis.pressed.connect(_toggle_tool.bind("VisualPanel"))
 	jumps.add_child(vis)
+	# B18: the full on-device diagnostic - every fact, selectable + copy
+	var dev := Button.new()
+	dev.text = "DEVICE REPORT"
+	dev.focus_mode = Control.FOCUS_NONE
+	dev.pressed.connect(func():
+		CLS_DeviceReport.show_popup(get_tree().current_scene))
+	jumps.add_child(dev)
 	var style := Button.new()
 	style.text = "STYLE WHEEL"
 	style.focus_mode = Control.FOCUS_NONE

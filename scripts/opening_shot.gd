@@ -26,6 +26,9 @@ var _born_msec := 0
 # B16: SafeBoot and smoke_null_watch read this - did the cinematic
 # EVER land (skip or watchdog both count as landed)?
 static var ever_finished := false
+# B18: did the 8 s watchdog have to pry the game loose? (the device
+# report reads this)
+static var forced_end := false
 
 
 func _recapture_end() -> void:
@@ -40,13 +43,23 @@ func _ready() -> void:
 	# paused underneath us, we keep flying and we always land
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_camera = get_node("../Camera") as CLS_FollowCamera
+	# B18: if the camera or the HUD lookup fails, the cinematic declines
+	# to start - a broken reference must never hide the game for good
+	if _camera == null or get_node_or_null("../UI") == null:
+		_done = true
+		ever_finished = true
+		InputBus.locked = false
+		queue_free()
+		return
 	_camera.set_frozen(true)
 	# deferred: the follow camera's _ready places the follow pose;
 	# capture it AFTER, or a node-order change strands the camera
 	_end = _camera.global_position
 	call_deferred("_recapture_end")
 	_born_msec = Time.get_ticks_msec()
-	_look_to = get_node("../Player").global_position + Vector3.UP * 1.5
+	var hero := get_node_or_null("../Player")
+	_look_to = hero.global_position + Vector3.UP * 1.5 if hero \
+			else Vector3.UP * 1.5
 	_hud = get_node("../UI") as CanvasLayer
 	_hud.visible = false
 	InputBus.locked = true
@@ -62,10 +75,11 @@ func _input(event: InputEvent) -> void:
 func _process(delta: float) -> void:
 	if _done:
 		return
-	# the watchdog: whatever stall or pause happens elsewhere, the
-	# cinematic lands and hands the game back inside 12 s
-	if Time.get_ticks_msec() - _born_msec > 12000:
-		_finish()
+	# the watchdog (B18 Part 1.2): whatever stall or pause happens
+	# elsewhere, the cinematic lands and hands the game back within
+	# 8 s, snapping the camera to the captured pose behind the hero
+	if Time.get_ticks_msec() - _born_msec > 8000:
+		_finish(true)
 		return
 	_t += delta / DURATION
 	if _t >= 1.0:
@@ -84,20 +98,27 @@ func skip() -> void:
 	_finish()
 
 
-func _finish() -> void:
+func _finish(forced := false) -> void:
 	if _done:
 		return
 	var skipped := _t < 1.0
 	_done = true
 	ever_finished = true
+	if forced:
+		forced_end = true
 	_t = 1.0
-	_camera.global_position = _end
-	_camera.set_frozen(false)
-	_hud.visible = true
+	# B18: the handback is unconditional and each step guarded - one
+	# broken reference can never strand the HUD, the camera or the input
+	if _camera and is_instance_valid(_camera):
+		_camera.global_position = _end
+		_camera.set_frozen(false)
+	if _hud and is_instance_valid(_hud):
+		_hud.visible = true
 	InputBus.locked = false
 	InputBus.clear_queues()
-	_bars.queue_free()
-	Log.info("opening shot done (skipped: %s)" % skipped)
+	if _bars and is_instance_valid(_bars):
+		_bars.queue_free()
+	Log.info("opening shot done (skipped: %s, forced: %s)" % [skipped, forced])
 	queue_free()
 
 

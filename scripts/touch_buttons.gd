@@ -2,51 +2,67 @@ extends CanvasLayer
 const CLS_ActionButton := preload("res://scripts/action_button.gd")
 const CLS_SettingsUI := preload("res://scripts/settings_ui.gd")
 const CLS_StyleWheel := preload("res://scripts/style_wheel.gd")
-## The action side of the HUD (Stage A + combo pass). Two button schemes
-## the player chooses in Settings and the first-run picker:
+## The action side of the HUD (Stage A + combo pass + the B18 layout
+## engine). Two button schemes the player chooses in Settings and the
+## first-run picker:
 ##   face    - the console diamond: A light punch, B heavy punch, X kick,
 ##             Y grab/throw, with smaller JUMP / DODGE / SPRINT / LOCK
 ##             beside it. The SUPER button only appears when the meter is
 ##             full.
-##   classic - PUNCH (tap light / hold heavy), DODGE/BLOCK, JUMP, SPRINT,
-##             GRAB, LOCK, SUPER with its fill ring.
-## Both keep touch-DOWN firing, oversized hit areas, press animation, the
-## ui tick, haptics, cooldown rings, the layout editor and left-handed
-## mode. Buttons are rebuilt on scheme change; layouts are per-button so
-## each scheme remembers its own arrangement.
+##   classic - LIGHT (tap) and HEAVY (its own button), DODGE, JUMP,
+##             SPRINT, LOCK, SUPER with its fill ring. GRAB is
+##             CONTEXTUAL: it appears (as GRAB / INTERACT / TALK /
+##             THROW) only when something is in range - the hero's
+##             context_action() answers at 10 Hz.
+##
+## THE B18 LAYOUT ENGINE (the fix for the phone's stacked, doubled,
+## bunched buttons): one right-anchored grid of slots. The cluster is
+## fitted into the safe area AS A WHOLE - the old per-button clamp
+## pushed several buttons onto the same spot, which read as doubled
+## labels - sizes never drop below 64 canvas px, and a bounded pairwise
+## pass guarantees no two visible buttons overlap, whatever the layout
+## editor's saved overrides say. STYLE and PHONE sit in their own
+## column, clearly separated from the attack cluster. Both schemes keep
+## touch-DOWN firing, oversized hit areas, press animation, the ui tick,
+## haptics, cooldown rings, the layout editor and left-handed mode.
 
 const CLASSIC_SPECS := [
-	# name, label, sub, colour, dx, dy, size
-	["PunchBtn", "PUNCH", "", Color(1.0, 0.45, 0.35, 0.95), 152.0, 152.0, 116.0],
-	["DodgeBtn", "DODGE", "", Color(0.85, 0.9, 1.0, 0.95), 284.0, 152.0, 116.0],
-	["JumpBtn", "JUMP", "", Color(1.0, 0.78, 0.45, 0.95), 152.0, 300.0, 116.0],
-	["SprintBtn", "SPRINT", "", Color(0.55, 0.95, 1.0, 0.95), 284.0, 300.0, 116.0],
-	["GrabBtn", "GRAB", "", Color(0.75, 1.0, 0.6, 0.95), 284.0, 420.0, 116.0],
-	["LockBtn", "LOCK", "", Color(0.8, 0.8, 0.85, 0.9), 416.0, 300.0, 86.0],
-	["SuperBtn", "SUPER", "", Color(1.0, 0.62, 0.2, 1.0), 152.0, 428.0, 116.0],
-	["PhoneBtn", "PHONE", "", Color(0.45, 0.52, 0.62, 1.0), 24.0, 600.0, 64.0],
-	["StyleBtn", "STYLE", "", Color(0.9, 0.7, 0.4, 0.9), 416.0, 428.0, 86.0],
+	# name, label, sub, colour, slot (col, row from bottom-right), size
+	["PunchBtn", "LIGHT", "", Color(1.0, 0.45, 0.35, 0.95), Vector2(0, 0), 132.0],
+	["DodgeBtn", "DODGE", "", Color(0.85, 0.9, 1.0, 0.95), Vector2(1, 0), 108.0],
+	["HeavyBtn", "HEAVY", "", Color(1.0, 0.62, 0.3, 0.95), Vector2(0, 1), 118.0],
+	["GrabBtn", "GRAB", "", Color(0.75, 1.0, 0.6, 0.95), Vector2(1, 1), 96.0],
+	["JumpBtn", "JUMP", "", Color(1.0, 0.78, 0.45, 0.95), Vector2(0, 2), 84.0],
+	["SprintBtn", "SPRINT", "", Color(0.55, 0.95, 1.0, 0.95), Vector2(1, 2), 84.0],
+	["SuperBtn", "SUPER", "", Color(1.0, 0.62, 0.2, 1.0), Vector2(2, 0), 100.0],
+	["LockBtn", "LOCK", "", Color(0.8, 0.8, 0.85, 0.9), Vector2(2, 1), 76.0],
+	["StyleBtn", "STYLE", "", Color(0.9, 0.7, 0.4, 0.9), Vector2(2, 2), 78.0],
+	["PhoneBtn", "PHONE", "", Color(0.45, 0.52, 0.62, 1.0), Vector2(3, 1), 68.0],
 ]
 
 const FACE_SPECS := [
-	# the diamond: A bottom, B right, X left, Y top
-	["FaceA", "A", "LIGHT", Color(1.0, 0.82, 0.6, 0.95), 214.0, 84.0, 108.0],
-	["FaceB", "B", "HEAVY", Color(1.0, 0.42, 0.34, 0.95), 106.0, 190.0, 108.0],
-	["FaceX", "X", "KICK", Color(0.45, 0.92, 1.0, 0.95), 322.0, 190.0, 108.0],
-	["FaceY", "Y", "GRAB", Color(0.72, 1.0, 0.62, 0.95), 214.0, 296.0, 108.0],
-	["JumpBtn", "JUMP", "", Color(1.0, 0.78, 0.45, 0.95), 452.0, 148.0, 84.0],
-	["DodgeBtn", "DODGE", "", Color(0.85, 0.9, 1.0, 0.95), 452.0, 248.0, 84.0],
-	["SprintBtn", "SPRINT", "", Color(0.55, 0.95, 1.0, 0.95), 452.0, 348.0, 84.0],
-	["LockBtn", "LOCK", "", Color(0.8, 0.8, 0.85, 0.9), 322.0, 330.0, 74.0],
-	["SuperBtn", "SUPER", "", Color(1.0, 0.62, 0.2, 1.0), 106.0, 330.0, 96.0],
-	["PhoneBtn", "PHONE", "", Color(0.45, 0.52, 0.62, 1.0), 24.0, 600.0, 64.0],
-	["StyleBtn", "STYLE", "", Color(0.9, 0.7, 0.4, 0.9), 452.0, 448.0, 74.0],
+	# the diamond: A bottom-centre, B right, X left, Y top
+	["FaceA", "A", "LIGHT", Color(1.0, 0.82, 0.6, 0.95), Vector2(1, 0), 116.0],
+	["FaceB", "B", "HEAVY", Color(1.0, 0.42, 0.34, 0.95), Vector2(0, 1), 108.0],
+	["FaceX", "X", "KICK", Color(0.45, 0.92, 1.0, 0.95), Vector2(2, 1), 108.0],
+	["FaceY", "Y", "GRAB", Color(0.72, 1.0, 0.62, 0.95), Vector2(1, 2), 108.0],
+	["DodgeBtn", "DODGE", "", Color(0.85, 0.9, 1.0, 0.95), Vector2(0, 0), 96.0],
+	["SuperBtn", "SUPER", "", Color(1.0, 0.62, 0.2, 1.0), Vector2(2, 0), 96.0],
+	["JumpBtn", "JUMP", "", Color(1.0, 0.78, 0.45, 0.95), Vector2(3, 0), 84.0],
+	["SprintBtn", "SPRINT", "", Color(0.55, 0.95, 1.0, 0.95), Vector2(3, 1), 84.0],
+	["LockBtn", "LOCK", "", Color(0.8, 0.8, 0.85, 0.9), Vector2(2, 2), 74.0],
+	["StyleBtn", "STYLE", "", Color(0.9, 0.7, 0.4, 0.9), Vector2(3, 2), 78.0],
+	["PhoneBtn", "PHONE", "", Color(0.45, 0.52, 0.62, 1.0), Vector2(0, 2), 68.0],
 ]
+
+const GAP := 18.0        # between grid cells
+const MARGIN := 16.0     # from the safe-area corner
+const MIN_SIZE := 64.0   # canvas px; a thumb must be able to find it
 
 var hint_shown := false
 var _hint_fade := 0.0
 var _buttons: Dictionary = {}  # name -> ActionButton
-var _default_rects: Dictionary = {}  # name -> Rect2 before any layout
+var _default_rects: Dictionary = {}  # name -> Rect2 before any override
 var _editing := false
 var _edit_sel := ""
 var _edit_drag := false
@@ -54,14 +70,14 @@ var _edit_last := Vector2.ZERO
 var _toolbar: PanelContainer
 var _hint: Label
 var _vp: Vector2
+var _ctx_acc := 0.0
 
 
 func _ready() -> void:
 	add_to_group("hud_buttons")
-	# B17: rotate the phone or resize the window and the safe area
-	# changes - the buttons must follow (landscape with a notch ate
-	# the corner buttons on device)
-	get_viewport().size_changed.connect(_clamp_safe_area)
+	# B17/B18: rotate the phone or resize the window and the whole
+	# cluster re-lays out into the new safe area (as ONE unit)
+	get_viewport().size_changed.connect(_layout_cluster)
 	_vp = get_viewport().size
 	_build_buttons()
 	_build_hint()
@@ -77,6 +93,13 @@ func _scheme() -> String:
 
 func _specs() -> Array:
 	return FACE_SPECS if _scheme() == "face" else CLASSIC_SPECS
+
+
+func _spec_for(name: String) -> Array:
+	for spec in _specs():
+		if spec[0] == name:
+			return spec
+	return []
 
 
 func _on_setting(key: String) -> void:
@@ -110,20 +133,12 @@ func _build_buttons() -> void:
 		b.label = spec[1]
 		b.sub = spec[2]
 		b.tint = spec[3]
-		# accessibility (bible 7): button size on top of presets and
-		# the editor's per-button scale
-		var sz: float = spec[6] * clampf(float(Settings.value("button_scale")), 0.6, 1.6)
-		b.anchor_left = 1.0
-		b.anchor_right = 1.0
-		b.anchor_top = 1.0
-		b.anchor_bottom = 1.0
-		b.size = Vector2(sz, sz)
-		b.position = Vector2(-spec[4] - sz, -spec[5] - sz)
 		b.down.connect(_on_down.bind(name))
 		b.up.connect(_on_up.bind(name))
-		add_child(b)
 		_buttons[name] = b
-		_default_rects[name] = Rect2(b.position, b.size)
+		add_child(b)
+		_default_rects[name] = Rect2()
+	_layout_cluster()
 	_apply_super_visibility()
 
 
@@ -141,6 +156,10 @@ func _on_down(name: String) -> void:
 			InputBus.stamp_action("punch_down")
 			InputBus.punch_press()
 			InputBus.press_face("A")
+		"HeavyBtn":
+			InputBus.stamp_action("punch_down")
+			InputBus.queue_heavy()
+			InputBus.press_face("B")
 		"DodgeBtn":
 			InputBus.stamp_action("dodge_down")
 			InputBus.dodge_press()
@@ -198,7 +217,7 @@ func _toggle_lock() -> void:
 		cam.toggle_lock()
 
 
-# --- per-frame state: cooldown rings, charged glow ---------------------------------
+# --- per-frame state: cooldown rings, the contextual GRAB ------------------------
 
 
 func _process(delta: float) -> void:
@@ -216,12 +235,36 @@ func _process(delta: float) -> void:
 			_hint.visible = false
 		elif _hint_fade < 0.5:
 			_hint.modulate.a = _hint_fade / 0.5
+	# B18: the classic GRAB button is contextual - it only exists when
+	# something answers (the hero's context_action, 10 Hz, never fires)
+	_ctx_acc += delta
+	if _ctx_acc >= 0.1:
+		_ctx_acc = 0.0
+		_apply_context()
 
 
 func _set_ring(name: String, cd: float) -> void:
 	var b := _buttons.get(name) as CLS_ActionButton
 	if b:
 		b.cooldown = cd
+
+
+## B18 (Part 2.2): GRAB / INTERACT / TALK / THROW, shown only when
+## usable. The face scheme's Y keeps its diamond slot (its label stays
+## GRAB); classic's dedicated button appears and disappears.
+func _apply_context() -> void:
+	var b := _buttons.get("GrabBtn") as CLS_ActionButton
+	if b == null:
+		return
+	var want := ""
+	var player := get_tree().get_first_node_in_group("player")
+	if player and player.has_method("context_action"):
+		want = str(player.call("context_action"))
+	if want == "":
+		b.visible = false
+		return
+	b.visible = true
+	b.label = want
 
 
 func _on_super_meter(value: float) -> void:
@@ -242,41 +285,123 @@ func _apply_super_visibility() -> void:
 		b.visible = _scheme() == "classic" or SuperMeter.is_full()
 
 
-# --- layout: presets, editor overrides, opacity ------------------------------------
+# --- the B18 layout engine ---------------------------------------------------------
 
 
+## Desired rects from the specs (grid slots, bottom-right anchored),
+## then the stored editor overrides, then: fit the WHOLE cluster into
+## the safe area, resolve any pairwise overlap, floor the sizes.
+func _layout_cluster() -> void:
+	if _buttons.is_empty():
+		return
+	var safe := _safe_rect()
+	var scale: float = clampf(float(Settings.value("button_scale")), 0.6, 1.6)
+	var cell := 132.0 * scale + GAP
+	for name in _buttons:
+		var b := _buttons[name] as CLS_ActionButton
+		var spec := _spec_for(name)
+		if spec.is_empty():
+			continue
+		var slot: Vector2 = spec[4]
+		var sz: float = maxf(spec[5] * scale, MIN_SIZE)
+		var x: float = safe.end.x - MARGIN - (slot.x + 1.0) * cell \
+				+ (cell - sz) * 0.5
+		var y: float = safe.end.y - MARGIN - (slot.y + 1.0) * cell \
+				+ (cell - sz) * 0.5
+		b.size = Vector2(sz, sz)
+		b.position = Vector2(x, y)
+		_default_rects[name] = Rect2(b.position, b.size)
+	_apply_layout()
+
+
+## Overrides from the layout editor, then the cluster fit + overlap
+## resolve. (Nothing here clamps a single button on its own - that was
+## the stacking bug.)
 func _apply_layout() -> void:
+	if _buttons.is_empty():
+		return
 	var opacity: float = float(Settings.value("opacity"))
 	for name in _buttons:
 		var b := _buttons[name] as CLS_ActionButton
-		var def: Rect2 = _default_rects[name]
 		var over: Dictionary = Settings.layout_for(name)
-		b.position = def.position + Vector2(float(over.get("dx", 0.0)), float(over.get("dy", 0.0)))
-		b.size = def.size * float(over.get("scale", 1.0))
+		b.position = _default_rects[name].position + Vector2(
+				float(over.get("dx", 0.0)), float(over.get("dy", 0.0)))
+		b.size = _default_rects[name].size * float(over.get("scale", 1.0))
 		b.modulate = Color(1, 1, 1, opacity * float(over.get("opacity", 1.0)))
-	_clamp_safe_area()
+	_fit_cluster()
+	_resolve_overlaps()
 	_apply_super_visibility()
+	_apply_context()
 
 
-## The phone's notch and home bar eat screen; every button stays
-## inside the safe area (the Xogot lesson: controls that sit under
-## the corner curve are controls you cannot see).
-func _clamp_safe_area() -> void:
+## The safe area rect in canvas coordinates. A degenerate report
+## (headless reports (0,0,0,0)) falls back to the full visible rect so
+## the layout stays sane everywhere.
+func _safe_rect() -> Rect2:
 	var ft := get_viewport().get_final_transform().affine_inverse()
 	var safe: Rect2 = ft * Rect2(DisplayServer.get_display_safe_area())
 	safe = safe.intersection(get_viewport().get_visible_rect())
 	if safe.size.x < 8.0 or safe.size.y < 8.0:
+		return get_viewport().get_visible_rect()
+	return safe
+
+
+## Shift the WHOLE cluster inside the safe area (one unit, never button
+## by button - the per-button clamp is what stacked them on the phone).
+func _fit_cluster() -> void:
+	var safe := _safe_rect()
+	if safe.size.x < 8.0 or safe.size.y < 8.0:
 		return  # headless / degenerate: leave the layout alone
+	var box := Rect2()
+	var first := true
 	for name in _buttons:
 		var b := _buttons[name] as CLS_ActionButton
-		var r := b.get_global_rect()
-		var tx := clampf(r.position.x, safe.position.x,
-				safe.end.x - r.size.x)
-		var ty := clampf(r.position.y, safe.position.y,
-				safe.end.y - r.size.y)
-		if not is_equal_approx(tx, r.position.x) \
-				or not is_equal_approx(ty, r.position.y):
-			b.position += Vector2(tx - r.position.x, ty - r.position.y)
+		var r := Rect2(b.position, b.size)
+		box = r if first else box.merge(r)
+		first = false
+	if box.size.x < 8.0 or box.size.y < 8.0:
+		return
+	var d := Vector2.ZERO
+	if box.end.x > safe.end.x:
+		d.x = safe.end.x - box.end.x
+	if box.position.x + d.x < safe.position.x:
+		d.x = safe.position.x - box.position.x
+	if box.end.y > safe.end.y:
+		d.y = safe.end.y - box.end.y
+	if box.position.y + d.y < safe.position.y:
+		d.y = safe.position.y - box.position.y
+	if d != Vector2.ZERO:
+		for name in _buttons:
+			(_buttons[name] as CLS_ActionButton).position += d
+
+
+## Bounded pairwise pass: no two visible buttons may share pixels,
+## whatever the saved overrides and sizes say. Overlapping pairs get
+## pushed apart along the cheaper axis.
+func _resolve_overlaps() -> void:
+	for pass_i in range(8):
+		var moved := false
+		var names := _buttons.keys()
+		for i in range(names.size()):
+			for j in range(i + 1, names.size()):
+				var a := _buttons[names[i]] as CLS_ActionButton
+				var b := _buttons[names[j]] as CLS_ActionButton
+				if not a.visible or not b.visible:
+					continue
+				var ra := Rect2(a.position, a.size)
+				var rb := Rect2(b.position, b.size)
+				if not ra.intersects(rb):
+					continue
+				# push b out of a, along the cheaper axis
+				var left := ra.position.x - rb.end.x   # <= 0
+				var up := ra.position.y - rb.end.y     # <= 0
+				if absf(left) <= absf(up):
+					b.position.x += left - 2.0
+				else:
+					b.position.y += up - 2.0
+				moved = true
+		if not moved:
+			break
 
 
 # --- the layout editor ---------------------------------------------------------------

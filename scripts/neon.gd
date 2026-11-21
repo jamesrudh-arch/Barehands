@@ -21,9 +21,12 @@ func _ready() -> void:
 	mi.mesh = mi.mesh.duplicate()
 	_mat = (m as StandardMaterial3D).duplicate()
 	mi.mesh.surface_set_material(0, _mat)
-	# capped: above ~2 the sign stops being a sign and becomes a
-	# white block with a halo (the Xogot lesson)
-	_base = minf(_mat.emission_energy_multiplier, 1.8)
+	# B18 cap: the Mobile renderer's colour buffer is R10G10B10A2
+	# UNORM (reduced precision and maximum values - verified in the
+	# 4.7 internal rendering architecture docs), so energy x colour
+	# above ~1.1 clips the sign to a flat white slab. 1.15 keeps the
+	# neon reading as colour on every renderer.
+	_base = minf(_mat.emission_energy_multiplier, 1.15)
 	_mat.emission_energy_multiplier = _base
 	add_to_group("neon")
 	_seed = randf() * 100.0

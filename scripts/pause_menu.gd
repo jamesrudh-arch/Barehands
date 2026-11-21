@@ -132,6 +132,20 @@ func _build_panel() -> void:
 			ui.toggle())
 	col.add_child(ledger)
 
+	# B18 (Part 6B): the full map, entry point 2
+	var map_b := Button.new()
+	map_b.text = "MAP"
+	map_b.focus_mode = Control.FOCUS_NONE
+	map_b.custom_minimum_size = Vector2(240, 54)
+	map_b.add_theme_font_size_override("font_size", 16)
+	map_b.add_theme_stylebox_override("normal", _flat())
+	map_b.pressed.connect(func():
+		_panel.visible = false
+		var m := get_tree().get_first_node_in_group("full_map")
+		if m and m.has_method("open"):
+			m.call("open", "pause"))
+	col.add_child(map_b)
+
 	var moves := Button.new()
 	moves.text = "MOVES"
 	moves.focus_mode = Control.FOCUS_NONE

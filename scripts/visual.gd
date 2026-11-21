@@ -28,6 +28,15 @@ var shadows_on := true
 var npcs_on := true
 var cam_height := 2.8
 var cam_distance := 6.0
+# B18: the glow stack each profile APPLIES. The B15 SAFE preset turned
+# glow off and halved emission - on the phone that read as a black
+# street (owner photo, 2026-11-21). The new SAFE keeps a modest glow
+# and full emission; the sign materials themselves are capped at the
+# source now, so nothing needs the dimmer.
+var glow_threshold := 1.45
+var glow_intensity := 0.50
+var glow_bloom := 0.05
+var tonemap_white := 6.0        # the exposure ceiling (Mobile-safe: 4)
 
 
 func _ready() -> void:
@@ -43,15 +52,19 @@ func apply_profile(p: String) -> void:
 	profile = p
 	match p:
 		PROFILE_XOGOT_SAFE:
-			emission_mult = 0.6
+			emission_mult = 1.0
 			rain_on = true
 			rain_streak_width = 0.008
 			splash_on = false
 			decals_on = true
 			outlines_on = true
-			post_on = false   # no glow stack on Mobile-Metal
+			post_on = true    # B18: modest glow ON - the street must read
 			shadows_on = false
 			npcs_on = true
+			glow_threshold = 1.02
+			glow_intensity = 0.38
+			glow_bloom = 0.04
+			tonemap_white = 4.0
 		PROFILE_NIGHT:
 			emission_mult = 1.0
 			rain_on = true
@@ -62,6 +75,10 @@ func apply_profile(p: String) -> void:
 			post_on = true
 			shadows_on = true
 			npcs_on = true
+			glow_threshold = 1.45
+			glow_intensity = 0.50
+			glow_bloom = 0.05
+			tonemap_white = 6.0
 	_apply_all()
 
 
@@ -104,9 +121,13 @@ func apply_post() -> void:
 	var env := _env()
 	if env == null:
 		return
-	# the panel's POST toggle drives the glow stack directly; the
-	# profile only decides where the game BOOTS (XOGOT SAFE = off)
-	env.glow_enabled = post_on
+	# B18: the profile owns the whole glow stack + the exposure ceiling,
+	# so XOGOT SAFE is a real look, not just "glow off"
+	env.glow_enabled = post_on and glow_intensity > 0.001
+	env.glow_intensity = glow_intensity
+	env.glow_bloom = glow_bloom
+	env.glow_hdr_threshold = glow_threshold
+	env.tonemap_white = tonemap_white
 
 
 func apply_rain() -> void:
@@ -162,12 +183,14 @@ func dump_settings() -> String:
 			Quality.tier, Quality.override,
 			get_viewport().scaling_3d_scale])
 	if env:
-		lines.append("env: tonemap=%d glow=%s intensity=%.2f bloom=%.2f hdr=%.2f" % [
-				env.tonemap_mode, str(env.glow_enabled),
+		lines.append("env: tonemap=%d white=%.2f glow=%s intensity=%.2f bloom=%.2f hdr=%.2f" % [
+				env.tonemap_mode, env.tonemap_white, str(env.glow_enabled),
 				env.glow_intensity, env.glow_bloom, env.glow_hdr_threshold])
 		lines.append("env: fog=%s bg_energy=%.2f ambient_energy=%.2f" % [
 				str(env.fog_enabled), env.background_energy_multiplier,
 				env.ambient_light_energy])
+	lines.append("hdr_2d: %s" % str(ProjectSettings.get_setting(
+			"rendering/viewport/hdr_2d", false)))
 	lines.append("visual: emission_mult=%.2f rain=%s streak=%.3f splash=%s" % [
 			emission_mult, str(rain_on), rain_streak_width, str(splash_on)])
 	lines.append("visual: decals=%s outlines=%s post=%s shadows=%s npcs=%s" % [

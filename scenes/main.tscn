@@ -1,4 +1,4 @@
-[gd_scene load_steps=79 format=3]
+[gd_scene load_steps=87 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="1_player"]
 [ext_resource type="Script" path="res://scripts/camera_follow.gd" id="2_camera"]
@@ -10,6 +10,10 @@
 [ext_resource type="Script" path="res://scripts/move_list.gd" id="21_moves"]
 [ext_resource type="Script" path="res://scripts/input_strip.gd" id="22_strip"]
 [ext_resource type="Script" path="res://scripts/level_bar.gd" id="23_level"]
+[ext_resource type="Script" path="res://scripts/radar.gd" id="30_radar"]
+[ext_resource type="Script" path="res://scripts/full_map.gd" id="31_fullmap"]
+[ext_resource type="Script" path="res://scripts/objective_marker.gd" id="32_objmark"]
+[ext_resource type="Script" path="res://scripts/hero_locator.gd" id="33_locator"]
 [ext_resource type="Script" path="res://scripts/composure_bar.gd" id="24_composure"]
 [ext_resource type="Script" path="res://scripts/trainer.gd" id="24_trainer"]
 [ext_resource type="PackedScene" path="res://scenes/enemy.tscn" id="5_enemy"]
@@ -35,15 +39,15 @@
 	clearcoat_roughness = 0.12
 
 [sub_resource type="StandardMaterial3D" id="mat_sidewalk"]
-	albedo_color = Color(0.09, 0.09, 0.105, 1)
+	albedo_color = Color(0.13, 0.13, 0.15, 1)
 	roughness = 0.85
 
 [sub_resource type="StandardMaterial3D" id="mat_building_a"]
-	albedo_color = Color(0.1, 0.09, 0.11, 1)
+	albedo_color = Color(0.13, 0.12, 0.15, 1)
 	roughness = 0.9
 
 [sub_resource type="StandardMaterial3D" id="mat_building_b"]
-	albedo_color = Color(0.07, 0.08, 0.11, 1)
+	albedo_color = Color(0.10, 0.11, 0.15, 1)
 	roughness = 0.9
 
 [sub_resource type="StandardMaterial3D" id="mat_stripe"]
@@ -60,23 +64,23 @@
 	albedo_color = Color(0.1, 0.06, 0.02, 1)
 	emission_enabled = true
 	emission = Color(1, 0.58, 0.13, 1)
-	emission_energy_multiplier = 2.1
+	emission_energy_multiplier = 1.1
 
 [sub_resource type="StandardMaterial3D" id="mat_cyan"]
 	albedo_color = Color(0.02, 0.08, 0.1, 1)
 	emission_enabled = true
 	emission = Color(0.15, 0.9, 1, 1)
-	emission_energy_multiplier = 2.1
+	emission_energy_multiplier = 1.1
 
 [sub_resource type="StandardMaterial3D" id="mat_red"]
 	albedo_color = Color(0.1, 0.02, 0.02, 1)
 	emission_enabled = true
 	emission = Color(1, 0.16, 0.12, 1)
-	emission_energy_multiplier = 2.1
+	emission_energy_multiplier = 1.1
 
 [sub_resource type="ShaderMaterial" id="mat_road"]
 shader = ExtResource("14_road")
-shader_parameter/asphalt_col = Color(0.03, 0.035, 0.05, 1)
+shader_parameter/asphalt_col = Color(0.055, 0.065, 0.095, 1)
 shader_parameter/puddles = PackedVector3Array(7, -6, 1.5, -4, 3.2, 1.1, 10.5, 5.5, 1.7, -12, 4.6, 1.2, 0.5, -2.8, 0.9)
 shader_parameter/cam_pos = Vector3(0, 6, 10)
 shader_parameter/neon_a = Color(1, 0.58, 0.13, 1)
@@ -107,8 +111,26 @@ material = SubResource("mat_road")
 	material = SubResource("mat_window")
 
 [sub_resource type="BoxMesh" id="mesh_sign_amber"]
-	size = Vector3(2, 0.6, 0.1)
-	material = SubResource("mat_amber")
+size = Vector3(2, 0.6, 0.1)
+material = SubResource("mat_amber")
+
+[sub_resource type="StandardMaterial3D" id="mat_sign_body"]
+	albedo_color = Color(0.09, 0.05, 0.02, 1)
+	roughness = 0.85
+
+[sub_resource type="StandardMaterial3D" id="mat_sign_text"]
+	albedo_color = Color(0.12, 0.07, 0.03, 1)
+	emission_enabled = true
+	emission = Color(1, 0.75, 0.35, 1)
+	emission_energy_multiplier = 0.85
+
+[sub_resource type="BoxMesh" id="mesh_sign_body"]
+size = Vector3(2.3, 0.9, 0.07)
+material = SubResource("mat_sign_body")
+
+[sub_resource type="BoxMesh" id="mesh_sign_text"]
+size = Vector3(1.55, 0.22, 0.05)
+material = SubResource("mat_sign_text")
 
 [sub_resource type="BoxMesh" id="mesh_sign_cyan"]
 	size = Vector3(0.5, 2.2, 0.1)
@@ -167,15 +189,16 @@ material = SubResource("mat_road")
 background_kind = 1
 background_color = Color(0.012, 0.014, 0.025, 1)
 ambient_light_source = 2
-ambient_light_color = Color(0.045, 0.055, 0.095, 1)
+ambient_light_color = Color(0.17, 0.20, 0.32, 1)
 tonemap_mode = 3
+tonemap_white = 4.0
 fog_enabled = true
 fog_light_color = Color(0.028, 0.034, 0.06, 1)
 fog_density = 0.014
 glow_enabled = true
-glow_intensity = 0.50
+glow_intensity = 0.45
 glow_bloom = 0.05
-glow_hdr_threshold = 1.45
+glow_hdr_threshold = 1.05
 adjustment_enabled = true
 adjustment_brightness = 1.0
 adjustment_contrast = 1.08
@@ -392,7 +415,7 @@ environment = SubResource("env_night")
 [node name="Moon" type="DirectionalLight3D" parent="." groups=["street_lights"]]
 rotation = Vector3(-1, 0.4, 0)
 light_color = Color(0.55, 0.65, 0.95, 1)
-light_energy = 0.25
+light_energy = 0.55
 
 [node name="Street" type="StaticBody3D" parent="."]
 metadata/surface = "asphalt"
@@ -517,10 +540,17 @@ mesh = SubResource("mesh_sign_amber")
 script = ExtResource("9_neon")
 style = "flicker"
 
+[node name="SignBody" type="MeshInstance3D" parent="Neon/SignAmber"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.06)
+mesh = SubResource("mesh_sign_body")
+
+[node name="Lettering" type="MeshInstance3D" parent="Neon/SignAmber"]
+mesh = SubResource("mesh_sign_text")
+
 [node name="LightAmber" type="OmniLight3D" parent="Neon"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 3.4, -8.6)
 light_color = Color(1, 0.58, 0.13, 1)
-light_energy = 3.4
+light_energy = 1.9
 omni_range = 15.0
 
 [node name="WinB" type="MeshInstance3D" parent="Neon"]
@@ -536,7 +566,7 @@ style = "buzz"
 [node name="LightCyan" type="OmniLight3D" parent="Neon"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 2.8, 8.3)
 light_color = Color(0.15, 0.9, 1, 1)
-light_energy = 3.4
+light_energy = 1.9
 omni_range = 14.0
 
 [node name="WinE" type="MeshInstance3D" parent="Neon"]
@@ -552,7 +582,7 @@ style = "broken"
 [node name="LightRed" type="OmniLight3D" parent="Neon"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.2, 1.9, 0)
 light_color = Color(1, 0.16, 0.12, 1)
-light_energy = 3.2
+light_energy = 1.8
 omni_range = 12.0
 
 [node name="Parkour" type="Node3D" parent="."]
@@ -798,3 +828,15 @@ horizontal_alignment = 2
 theme_override_colors/font_color = Color(1, 0.45, 0.35, 0.9)
 theme_override_font_sizes/font_size = 15
 text = "HEAT  -----"
+
+[node name="Radar" type="Control" parent="UI" groups=["radar"]]
+script = ExtResource("30_radar")
+
+[node name="FullMap" type="CanvasLayer" parent="." groups=["full_map"]]
+script = ExtResource("31_fullmap")
+
+[node name="ObjectiveMarker" type="Node3D" parent="." groups=["objective_marker"]]
+script = ExtResource("32_objmark")
+
+[node name="HeroLocator" type="Node3D" parent="Player"]
+script = ExtResource("33_locator")
