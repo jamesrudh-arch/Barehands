@@ -65,6 +65,7 @@ func _ready() -> void:
 	_intro_lives()
 	await _hint_fires()
 	await _door_flow()
+	await _orb_checks()
 	_sonar()
 	await _reach_dummy()
 	_no_duplicates()
@@ -144,6 +145,44 @@ func _door_flow() -> void:
 			Vector2(-4.0, 8.2))
 	_check(route.size() >= 2,
 			"a street path exists from the exit to the noodle shop (%d nodes)" % route.size())
+
+
+## B18.3 6C.4: the green guide orb - exists, leads along the route,
+## waits when the hero stalls, arrives and bounces, and recalls.
+func _orb_checks() -> void:
+	var orb := get_tree().get_first_node_in_group("guide_orb") as Node3D
+	_check(orb != null, "the guide orb exists")
+	if orb == null or _hero == null:
+		return
+	await _wait_s(0.8)
+	_check(orb.global_position.distance_to(_hero.global_position) < 12.0,
+			"the orb stays near the hero (%.1f m)" % orb.global_position.distance_to(_hero.global_position))
+	_check(int(orb.get("state")) in [0, 1, 2], "the orb has a live state")
+	# the lead builds while the hero WALKS (a standing hero makes the
+	# orb wait - that is the design); drive the stick through its own
+	# test hook so the anti-drift loop keeps the value
+	var stick := get_tree().get_first_node_in_group("stick")
+	if stick and stick.has_method("debug_set_move"):
+		stick.call("debug_set_move", Vector2(0, -0.8))
+	await _wait_s(1.5)
+	if stick and stick.has_method("debug_set_move"):
+		stick.call("debug_set_move", Vector2.ZERO)
+	await _wait_s(0.3)
+	var lead: float = float(orb.call("lead_now"))
+	_check(lead > 2.0 and lead < 9.0,
+			"the orb leads the walking hero (%.1f m)" % lead)
+	# a stalled hero makes it wait
+	(_hero as CharacterBody3D).velocity = Vector3.ZERO
+	await _wait_s(1.6)
+	_check(int(orb.get("state")) == 1,
+			"a stopped hero makes the orb wait (state %d)" % int(orb.get("state")))
+	(_hero as CharacterBody3D).velocity = Vector3(3, 0, 0)
+	await _wait_s(0.5)
+	# recall brings the progress back to the hero
+	orb.call("recall")
+	await get_tree().physics_frame
+	_check(absf(float(orb.call("lead_now"))) < 3.0, "recall returns the orb to the hero")
+	(_hero as CharacterBody3D).velocity = Vector3.ZERO
 
 
 ## The sonar ping interval shortens as the distance drops.

@@ -132,9 +132,9 @@ func _build_legend() -> void:
 	var col := VBoxContainer.new()
 	_legend.add_child(col)
 	var lines := [
-		["yellow ring", "the active job objective"],
+		["green ring", "the objective (guide colour)"],
 		["magenta pin", "your waypoint (tap to place/remove)"],
-		["yellow line", "the route along the streets"],
+		["green line", "the guide's route along the streets"],
 		["blue dot", "a friend"],
 		["red dot", "an enemy that is standing"],
 		["grey dot", "a shop or service"],
@@ -449,14 +449,14 @@ func _draw_map() -> void:
 	if _route.size() >= 2:
 		for i in range(_route.size() - 1):
 			d.draw_line(_world_to_map(_route[i]), _world_to_map(_route[i + 1]),
-					Color(1.0, 0.85, 0.2, 0.95), 4.0, true)
+					Color(0.25, 1.0, 0.5, 0.95), 4.0, true)
 	# the objective
 	var nav: Dictionary = CLS_MapData.nav_target()
 	if not nav.is_empty() and _layers["jobs"]:
 		var po := _world_to_map(nav["pos"])
-		d.draw_arc(po, 10.0, 0.0, TAU, 32, Color(1.0, 0.85, 0.2, 1.0), 3.0, true)
+		d.draw_arc(po, 10.0, 0.0, TAU, 32, Color(0.25, 1.0, 0.5, 1.0), 3.0, true)
 		d.draw_string(font, po + Vector2(12, 4), "OBJECTIVE",
-				HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(1.0, 0.85, 0.2, 0.95))
+				HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(0.25, 1.0, 0.5, 0.95))
 	# the waypoint pin
 	if CLS_MapData.has_waypoint():
 		var pw := _world_to_map(CLS_MapData.waypoint())

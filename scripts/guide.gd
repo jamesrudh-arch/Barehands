@@ -303,6 +303,10 @@ func objective_pressed() -> void:
 	var cam := get_tree().get_first_node_in_group("camera")
 	if cam and cam.has_method("face_point"):
 		cam.call("face_point", nav["pos"])
+	# the guide orb returns to the hero when OBJECTIVE is tapped
+	var orb := get_tree().get_first_node_in_group("guide_orb")
+	if orb and orb.has_method("recall"):
+		orb.call("recall")
 
 
 func help_pressed() -> void:

@@ -236,14 +236,25 @@ func _draw() -> void:
 	draw_arc(c, r * 0.55, 0.0, TAU, 48, Color(0.5, 0.8, 0.85, 0.10), 1.0, true)
 	# streets + block outlines + water, clipped to the disc
 	_draw_map_geo(c, r, hero_xz)
-	# the route line (bright, objective-yellow)
+	# the route line (the guide's colour - green, cyan alt; B18.3 6C.4h)
+	var gc := Color(0.25, 1.0, 0.5, 0.9) \
+			if str(Settings.value("guide_colour")) != "cyan" \
+			else Color(0.3, 0.95, 1.0, 0.9)
 	if _route.size() >= 2:
 		for i in range(_route.size() - 1):
 			var a := _world_to_radar(_route[i], hero_xz)
 			var b := _world_to_radar(_route[i + 1], hero_xz)
 			var seg := _clip_seg(a, b, c, r - 4.0)
 			if seg.size() == 2:
-				draw_line(seg[0], seg[1], Color(1.0, 0.85, 0.2, 0.9), 3.0, true)
+				draw_line(seg[0], seg[1], gc, 3.0, true)
+	# the guide orb: a small bright moving dot
+	var orb := get_tree().get_first_node_in_group("guide_orb") as Node3D
+	if orb and orb.is_visible_in_tree():
+		var op := _world_to_radar(Vector2(orb.global_position.x,
+				orb.global_position.z), hero_xz)
+		var oc := _clamp_rim(op, c, r - 10.0)
+		draw_circle(oc, 4.0, gc)
+		draw_circle(oc, 2.0, Color(0.98, 1.0, 0.98, 0.95))
 	# POI icons (dim) - interiors only once discovered
 	for poi in CLS_MapData.poi_list():
 		if poi.get("interior", false) and not CLS_MapData.is_discovered(poi["id"]):

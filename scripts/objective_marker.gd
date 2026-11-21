@@ -29,9 +29,14 @@ func _ready() -> void:
 	cyl.bottom_radius = 0.18
 	cyl.height = 12.0
 	var bm := StandardMaterial3D.new()
-	bm.albedo_color = Color(1.0, 0.85, 0.2, 0.34)
+	# B18.3 6C.4h: the destination marker wears the guide's colour
+	# (green, cyan alt) - yellow stays for pickups only
+	var gc := Color(0.25, 1.0, 0.5) \
+			if str(Settings.value("guide_colour")) != "cyan" \
+			else Color(0.3, 0.95, 1.0)
+	bm.albedo_color = Color(gc, 0.34)
 	bm.emission_enabled = true
-	bm.emission = Color(1.0, 0.82, 0.15)
+	bm.emission = gc
 	bm.emission_energy_multiplier = 1.1
 	bm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	bm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
@@ -46,9 +51,9 @@ func _ready() -> void:
 	var prism := PrismMesh.new()
 	prism.size = Vector3(0.9, 0.6, 0.9)
 	var cm := StandardMaterial3D.new()
-	cm.albedo_color = Color(1.0, 0.85, 0.2, 0.95)
+	cm.albedo_color = Color(0.25, 1.0, 0.5, 0.95)
 	cm.emission_enabled = true
-	cm.emission = Color(1.0, 0.82, 0.15)
+	cm.emission = Color(0.25, 1.0, 0.5)
 	cm.emission_energy_multiplier = 1.1
 	cm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	cm.no_depth_test = true
@@ -76,9 +81,9 @@ func _ready() -> void:
 	var im := ImmediateMesh.new()
 	_ribbon.mesh = im
 	var rm := StandardMaterial3D.new()
-	rm.albedo_color = Color(1.0, 0.85, 0.2, 0.30)
+	rm.albedo_color = Color(0.25, 1.0, 0.5, 0.30)
 	rm.emission_enabled = true
-	rm.emission = Color(1.0, 0.82, 0.15)
+	rm.emission = Color(0.25, 1.0, 0.5)
 	rm.emission_energy_multiplier = 0.8
 	rm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	rm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
@@ -146,7 +151,7 @@ func _rebuild_ribbon(hero: Node3D) -> void:
 		dir = dir.normalized()
 		var perp := Vector2(-dir.y, dir.x) * 0.22
 		var a := p - origin
-		im.surface_set_color(Color(1.0, 0.85, 0.2, 0.30))
+		im.surface_set_color(Color(0.25, 1.0, 0.5, 0.30))
 		im.surface_add_vertex(Vector3(a.x + perp.x, 0.06, a.y + perp.y))
 		im.surface_add_vertex(Vector3(a.x - perp.x, 0.06, a.y - perp.y))
 	im.surface_end()

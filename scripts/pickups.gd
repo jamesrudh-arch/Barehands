@@ -8,8 +8,9 @@ const CLS_Pickup := preload("res://scripts/pickup.gd")
 ## replaced by the Weapons-tracked pickup pipe at the same spot.
 
 const PLACEMENTS := [
-	# the start room, by the door
-	{"kind": "bottle", "pos": Vector3(780.0, 0.0, -2.7)},
+	# the start room: a bottle BY THE BED (never at the door - the door
+	# must own the context when the tutorial says OPEN)
+	{"kind": "bottle", "pos": Vector3(780.0, 0.0, 2.3)},
 	# the street: the pipe where it always lay, a bat in the alley,
 	# a plank by the crates near the car, a chair leg by the gym mats
 	{"kind": "pipe", "pos": Vector3(6.3, 0.0, -7.6)},
