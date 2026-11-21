@@ -287,6 +287,8 @@ func _market() -> void:
 	gym_note.rotation = Vector3(0, PI, 0)
 	add_child(gym_note)
 	_front("MECHANIC", Vector3(3.5, 0, 9.6), Color(0.45, 0.8, 0.95))
+	# B19: the neighbourhood bar - its door enters a real room
+	_front("THE RAIN GLASS", Vector3(-1.2, 0, 9.6), Color(0.95, 0.7, 0.35))
 	# the roll-up: a wide light door under a lintel
 	var roll := MeshInstance3D.new()
 	var rlm := BoxMesh.new()

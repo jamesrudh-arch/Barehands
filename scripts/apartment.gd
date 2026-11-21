@@ -1,4 +1,5 @@
 extends Node3D
+const CLS_Kit := preload("res://scripts/kit.gd")
 
 ## LEVERAGE B18 Part 6C: the safehouse apartment - THE STARTING ROOM.
 ## A small code-built room off the world axis (like the noodle shop
@@ -57,25 +58,36 @@ func _build_room() -> void:
 				"mat": wall_mat},
 	]:
 		_solid(spec["size"], spec["pos"], spec["mat"])
-	# a bed roll + a crate so the room reads as a home
-	var bed := MeshInstance3D.new()
-	var bm := BoxMesh.new()
-	bm.size = Vector3(1.9, 0.35, 0.9)
-	var bmat := StandardMaterial3D.new()
-	bmat.albedo_color = Color(0.2, 0.12, 0.1)
-	bm.material = bmat
-	bed.mesh = bm
-	bed.position = Vector3(-2.2, 0.18, 2.3)
-	add_child(bed)
-	var crate := MeshInstance3D.new()
-	var cm := BoxMesh.new()
-	cm.size = Vector3(0.7, 0.7, 0.7)
-	var cmat := StandardMaterial3D.new()
-	cmat.albedo_color = Color(0.18, 0.15, 0.1)
-	cm.material = cmat
-	crate.mesh = cm
-	crate.position = Vector3(2.6, 0.35, 2.4)
-	add_child(crate)
+	# B19: a real home - the bed roll box gives way to furniture (the
+	# Kenney CC0 kit): a bed, a side table with a lamp, a bookcase, a
+	# television corner, moving boxes, a coat rack, a plant, a rug.
+	# The room keeps its light and its lived-in disorder.
+	CLS_Kit.place(self, "kenney_furniture/bedSingle.glb",
+			Vector3(-2.2, 0.0, 2.3), PI / 2.0, 1.0)
+	CLS_Kit.place(self, "kenney_furniture/sideTable.glb",
+			Vector3(-2.2, 0.0, 1.2), 0.0, 1.0)
+	CLS_Kit.place(self, "kenney_furniture/lampRoundFloor.glb",
+			Vector3(-3.0, 0.0, 1.2), 0.0, 1.0)
+	CLS_Kit.place(self, "kenney_furniture/bookcaseClosed.glb",
+			Vector3(1.2, 0.0, -3.1), 0.0, 1.15)
+	CLS_Kit.place(self, "kenney_furniture/cabinetTelevision.glb",
+			Vector3(2.6, 0.0, -2.6), -PI / 2.0, 1.05)
+	CLS_Kit.place(self, "kenney_furniture/televisionVintage.glb",
+			Vector3(2.75, 0.42, -2.6), -PI / 2.0, 1.05)
+	CLS_Kit.place(self, "kenney_furniture/rugSquare.glb",
+			Vector3(0, 0.005, 0.5), 0.0, 2.2)
+	CLS_Kit.place(self, "kenney_furniture/cardboardBoxClosed.glb",
+			Vector3(2.6, 0.0, 2.4), 0.3, 1.25)
+	CLS_Kit.place(self, "kenney_furniture/cardboardBoxOpen.glb",
+			Vector3(2.6, 0.35, 2.4), 0.1, 1.25)
+	CLS_Kit.place(self, "kenney_furniture/coatRackStanding.glb",
+			Vector3(2.9, 0.0, 0.4), 0.0, 1.0)
+	CLS_Kit.place(self, "kenney_furniture/pottedPlant.glb",
+			Vector3(-3.0, 0.0, -2.9), 0.0, 1.0)
+	CLS_Kit.place(self, "kenney_furniture/chairRounded.glb",
+			Vector3(1.4, 0.0, -1.6), 2.4, 1.05)
+	CLS_Kit.place(self, "kenney_food/cup-coffee.glb",
+			Vector3(-2.2, 0.4, 1.2), 0.0, 1.0)
 	# warm inside light - the room must never be a black hole
 	var lamp := OmniLight3D.new()
 	lamp.light_color = Color(1.0, 0.8, 0.55)

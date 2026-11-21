@@ -162,6 +162,18 @@ func _ensure(id: String) -> void:
 	_main.add_child(b)
 	b.build_block()
 	_built[id] = b
+	# B19 batch 9: the market block carries its venues - the gym, the
+	# bar and the club, each enterable through its street door
+	if id == "market" and not _venues_built:
+		_venues_built = true
+		for venue_script in ["res://scripts/gym_interior.gd",
+				"res://scripts/bar_interior.gd",
+				"res://scripts/club_interior.gd"]:
+			var venue: Node3D = (load(venue_script) as GDScript).new()
+			_main.add_child(venue)
+
+
+var _venues_built := false
 
 
 # --- the scars a block carries (bible 6: damage layer, memorials) ----------

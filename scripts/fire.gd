@@ -299,13 +299,15 @@ func _weather_answer() -> void:
 		if not is_instance_valid(s):
 			continue
 		var src := s as Node3D
-		var steam: CPUParticles3D = src.get_meta("steam")
+		# grills carry no steam layer - the defaults keep every getter
+		# honest for both source kinds
+		var steam: CPUParticles3D = src.get_meta("steam", null)
 		if steam:
 			steam.emitting = wet > 0.6
-		var outer: CPUParticles3D = src.get_meta("flame_outer")
+		var outer: CPUParticles3D = src.get_meta("flame_outer", null)
 		if outer:
 			outer.amount = int(26.0 * (1.0 - 0.3 * maxf(wet - 0.6, 0.0)))
-		var smoke: CPUParticles3D = src.get_meta("smoke")
+		var smoke: CPUParticles3D = src.get_meta("smoke", null)
 		if smoke:
 			# the wind carries it
 			smoke.gravity = Vector3(Weather.wind.x * 0.8, 0.25,

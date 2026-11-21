@@ -1,6 +1,7 @@
 extends Node3D
 const CLS_Apartment := preload("res://scripts/apartment.gd")
 const CLS_NpcRig := preload("res://scripts/npc_rig.gd")
+const CLS_Kit := preload("res://scripts/kit.gd")
 ## Interiors are separate, reached through a fade (bible 6). This is
 ## the noodle shop - the anchor of your block: the pot's always on, the
 ## owner talks, and the stairs by the counter climb to the rooms above
@@ -47,9 +48,18 @@ func try_use(_p: Node3D) -> bool:
 
 static func is_inside_interior(p: Node3D) -> bool:
 	# B18 6C: the apartment (the starting room) is an interior world
-	# too - the street fence must not reach in there either
-	return p and (absf(p.global_position.x - INTERIOR_X) < 12.0
-			or absf(p.global_position.x - CLS_Apartment.ROOM_X) < 12.0)
+	# too - the street fence must not reach in there either.
+	# B19: the three market venues (gym, bar, club) join the exemption
+	# list - their rooms sit off the axis like the shop's does.
+	if p == null:
+		return false
+	for room_x in [INTERIOR_X, CLS_Apartment.ROOM_X] + VENUE_ROOM_XS:
+		if absf(p.global_position.x - room_x) < 12.0:
+			return true
+	return false
+
+
+const VENUE_ROOM_XS := [840.0, 900.0, 960.0]
 
 
 ## Fade to the room and back. One fade at a time.
@@ -289,6 +299,22 @@ func _build_room() -> void:
 	up.font_size = 28
 	up.position = Vector3(4.0, 1.4, -3.0)
 	add_child(up)
+	# B19: the shop dresses like a business - the back bar, the food on
+	# the counter, a dining table, the clutter of a working kitchen
+	for kx in [-3.4, -2.95, -2.5]:
+		CLS_Kit.place(self, "kenney_furniture/kitchenBar.glb",
+				Vector3(kx, 0.0, -3.6), 0.0, 1.15)
+	CLS_Kit.place(self, "kenney_food/pan-stew.glb", Vector3(-2.0, 1.12, -2.15), 0.0, 1.0)
+	CLS_Kit.place(self, "kenney_food/pot-lid.glb", Vector3(1.8, 1.6, -2.2), 0.0, 1.2)
+	CLS_Kit.place(self, "kenney_food/skewer.glb", Vector3(-0.6, 1.14, -2.3), 0.4, 1.0)
+	CLS_Kit.place(self, "kenney_food/skewer.glb", Vector3(-0.2, 1.14, -2.1), 0.1, 1.0)
+	CLS_Kit.place(self, "kenney_food/cabbage.glb", Vector3(2.6, 1.16, -2.0), 0.0, 1.0)
+	CLS_Kit.place(self, "kenney_food/loaf-round.glb", Vector3(3.1, 1.15, -2.4), 0.0, 1.0)
+	CLS_Kit.place(self, "kenney_furniture/tableRound.glb", Vector3(-2.2, 0.0, 1.6), 0.0, 1.05)
+	CLS_Kit.place(self, "kenney_furniture/chair.glb", Vector3(-1.5, 0.0, 1.6), -PI / 2.0, 1.05)
+	CLS_Kit.place(self, "kenney_furniture/chair.glb", Vector3(-2.9, 0.0, 1.6), PI / 2.0, 1.05)
+	CLS_Kit.place(self, "kenney_furniture/pottedPlant.glb", Vector3(-4.3, 0.0, 3.6), 0.0, 1.0)
+	CLS_Kit.place(self, "kenney_furniture/trashcan.glb", Vector3(4.3, 0.0, 3.6), 0.0, 1.0)
 	# the owner behind the counter
 	var owner := Node3D.new()
 	owner.add_to_group("shop_owner")

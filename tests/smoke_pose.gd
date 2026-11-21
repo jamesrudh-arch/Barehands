@@ -116,14 +116,17 @@ func _hero_clip(clip: String) -> void:
 
 
 ## NPCs and the enemy: play the clip directly on the rig / player.
+## B19: a dressed enemy drives SEVERAL players in lockstep (the
+## hidden mannequin's own + one Clips player per character piece) -
+## a single first-player play would leave the piece skeletons stopped.
 func _direct_clip(char_name: String, root: Node3D, clip: String, rig: Node) -> void:
 	_current_clip = clip
 	if rig:
 		rig.play(clip)
 	else:
-		var ap := _find_ap(root)
-		ap.stop()
-		ap.play(clip, 0.0)
+		for ap in root.find_children("*", "AnimationPlayer", true, false):
+			ap.stop()
+			ap.play(clip, 0.0)
 	await _sample(char_name, root, rig)
 
 
@@ -155,6 +158,10 @@ func _sample(char_name: String, root: Node3D, rig: Node) -> void:
 			ap.stop()
 		if rig:
 			rig.play(_current_clip)
+		else:
+			# every player in lockstep (the dressed enemy contract)
+			for ap in root.find_children("*", "AnimationPlayer", true, false):
+				ap.play(_current_clip, 0.0)
 		# rest pose first, so a frozen T-pose measures ~0
 		for label in joint_ids:
 			(skel as Skeleton3D).reset_bone_pose(joint_ids[label])
