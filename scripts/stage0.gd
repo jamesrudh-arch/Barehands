@@ -73,9 +73,13 @@ func _ready() -> void:
 	actions.add_theme_constant_override("separation", 10)
 	col.add_child(actions)
 	# B18: LAUNCH FULL GAME is the FIRST button - it is the one you
-	# actually want; SafeBoot is the diagnostic drill-down
+	# actually want; SafeBoot is the diagnostic drill-down. It also
+	# arms the start sequence (studio card -> title -> menu): suites
+	# and SafeBoot boots never set the flag, so they go straight in.
 	_big_button(actions, "LAUNCH FULL GAME",
-			func(): get_tree().change_scene_to_file("res://scenes/main.tscn"))
+		func():
+			Settings.set_value("play_start_sequence", true)
+			get_tree().change_scene_to_file("res://scenes/main.tscn"))
 	_big_button(actions, "LAUNCH SAFEBOOT",
 			func(): get_tree().change_scene_to_file("res://scenes/safe_boot.tscn"))
 	_big_button(actions, "COPY LOG", _copy_log)

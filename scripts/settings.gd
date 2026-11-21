@@ -61,6 +61,7 @@ const DEFAULTS := {
 	# B18.3: voice + narration (subtitles always show)
 	"narrator_on": true,      # spoken lines when the platform TTS allows
 	"skip_intro": false,      # jump straight to the menu at launch
+	"play_start_sequence": false,  # armed by Stage 0 LAUNCH FULL GAME
 }
 
 var _d: Dictionary = DEFAULTS.duplicate(true)

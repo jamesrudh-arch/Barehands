@@ -94,6 +94,8 @@ func _first_run_spawn() -> void:
 		if blocks:
 			blocks.call("snap_camera_to", _player)
 	Log.info("Guide: first run - the hero wakes in the apartment")
+	# B18.3: the narrator walks the first minute with you
+	Narrator.say_key("tut_door")
 
 
 # --- the navigation target (MapData.nav_target reads this) -------------------
@@ -162,6 +164,13 @@ func _advance() -> void:
 	_best_dist = INF
 	_hint_t = 0.0
 	Sound.play("ui_confirm_0", -6.0, 1.1)
+	match step:
+		STEP_OPEN:
+			Narrator.say_key("tut_open")
+		STEP_REACH:
+			Narrator.say_key("tut_out")
+		STEP_DONE:
+			Narrator.say_key("tut_dummy")
 	if step == STEP_DONE:
 		_finish()
 	else:
