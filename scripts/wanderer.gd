@@ -182,7 +182,9 @@ func _walk_step(step: float) -> void:
 		_arrive()
 		return
 	var dir := to.normalized()
-	global_position += dir * step * _speed
+	# a storm hurries the street (nobody window-shops in a downpour)
+	var weather_k := 1.15 if Weather != null and Weather.intensity > 0.85 else 1.0
+	global_position += dir * step * _speed * weather_k
 	rotation.y = atan2(dir.x, dir.z)
 	_clamp_to_block()
 

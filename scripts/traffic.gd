@@ -30,6 +30,7 @@ const VEHICLES := [
 	"kenney_traffic/van.glb",
 ]
 const CRUISE := 6.5
+const WET_CRUISE := 5.2  # heavy rain: the street slows down
 const ACCEL := 3.2
 const BRAKE := 9.0
 const LOOKAHEAD := 7.5
@@ -165,7 +166,9 @@ func _drive_all(delta: float, block: String) -> void:
 		# the road ahead: hero, pedestrians on the road, the car in front
 		var hazard := _hazard_ahead(car, east, bx, player)
 		var front := _car_ahead(car, east)
-		var want := 0.0 if hazard else CRUISE
+		var cruise := CRUISE if Weather == null or Weather.intensity < 0.75 \
+				else WET_CRUISE
+		var want := 0.0 if hazard else cruise
 		if front:
 			want = mini(want, float(front.get_meta("speed")) * 0.9)
 		speed = move_toward(speed, want, (BRAKE if want < speed else ACCEL) * delta)

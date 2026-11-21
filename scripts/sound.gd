@@ -292,6 +292,19 @@ func _amb_loop(clip: String, vol_db: float) -> void:
 	_amb[clip] = p
 
 
+## B19: the weather retunes a running ambience loop - the rain bed
+## follows the sky's intensity.
+func set_amb_vol(clip: String, vol_db: float) -> void:
+	var p: AudioStreamPlayer = _amb.get(clip)
+	if p:
+		p.volume_db = vol_db
+
+
+## The running player of an ambience loop (tests and the weather read it).
+func amb_player(clip: String) -> AudioStreamPlayer:
+	return _amb.get(clip)
+
+
 # --- volumes -------------------------------------------------------------------
 
 
