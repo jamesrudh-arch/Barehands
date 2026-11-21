@@ -6,6 +6,6 @@ class_name BuildInfo
 ## COMMIT is the code commit this build was stamped from; the stamp
 ## commit itself lands one above it (see VERSION.txt at the repo root).
 const BATCH := "B18"
-const COMMIT := "e7e6b89"
-const BUILT := "2026-11-21 15:04 UTC"
-const STAMP := "B18 e7e6b89 (2026-11-21 15:04 UTC)"
+const COMMIT := "1a1c20d"
+const BUILT := "2026-11-21 16:27 UTC"
+const STAMP := "B18 1a1c20d (2026-11-21 16:27 UTC)"
