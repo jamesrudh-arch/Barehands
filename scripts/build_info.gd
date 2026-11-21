@@ -5,7 +5,7 @@ class_name BuildInfo
 ## autoload), in the debug menu, and across the whole SafeBoot log.
 ## COMMIT is the code commit this build was stamped from; the stamp
 ## commit itself lands one above it (see VERSION.txt at the repo root).
-const BATCH := "B17"
-const COMMIT := "d209d01"
-const BUILT := "2026-11-21 09:10 UTC"
-const STAMP := "B17 d209d01 (2026-11-21 09:10 UTC)"
+const BATCH := "B18"
+const COMMIT := "d4fa592"
+const BUILT := "2026-11-21 11:24 UTC"
+const STAMP := "B18 d4fa592 (2026-11-21 11:24 UTC)"
