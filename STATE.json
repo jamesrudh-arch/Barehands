@@ -3,7 +3,7 @@
   "repo": "github.com/jamesrudh-arch/Barehands, main branch",
   "godot": "4.7.2, MOBILE renderer, headless test harness at /tmp/godot",
   "continuation_protocol": "read PROJECT_BIBLE.md + this file; resume at next_step",
-  "current_batch": "Batch 17 (class-cache fix + Stage0 + root move) CLOSE-OUT: battery running cache-deleted; then push + zip",
+  "current_batch": "Batch 17 (class-cache fix + Stage0 + root move) PUSHED: code commit d209d01 + stamp commit on top; battery 33/33 green cache-deleted; next: the vertical slice review",
   "completed": [
     "Series 1 (look and feel): stability, hero + cinematic camera, wet neon night, punches that hit, pose/stress suites",
     "Series 2 Phase 1 audio (layered hits, puddle footsteps, volume sliders, mute)",
@@ -84,6 +84,6 @@
     "blocks are one loaded neighborhood at a time, not literal streamed scene files (one axis, offset 240 apart, built lazily) - same effect, cheaper; the bible's 'one streamed scene per block' reads satisfied in spirit",
     "the morning report's numbers are first-pass copy (interest/cooling lines state facts the systems computed; no art pass yet)"
   ],
-  "next_step": "Battery green -> two-phase commit (code, gen_build_info B17, stamp commit) -> push -> ls-remote + GitHub page confirm -> zip Leverage_B17_2026-11-21.zip (import the unzipped folder itself; .env EXCLUDED from the zip, flag to owner it is git-tracked) -> owner's 5 taps per XOGOT.md (STAGE 0 BUILD line, COPY LOG, LAUNCH FULL GAME, one-at-a-time toggles if broken, landscape check) -> then back to batch order: THE VERTICAL SLICE REVIEW per PROJECT_BIBLE.md -> docs/SLICE_REVIEW.md",
+  "next_step": "Owner's 5 taps per XOGOT.md (STAGE 0 BUILD line, COPY LOG, LAUNCH FULL GAME, one-at-a-time toggles if broken, landscape check). Then back to batch order: THE VERTICAL SLICE REVIEW per PROJECT_BIBLE.md -> docs/SLICE_REVIEW.md (per-section SHIPPED/THIN/MISSING/STRETCH verdicts + gap list ranked by player impact). NOTE: .env is git-tracked - excluded from the zip; flag to the owner to rotate/remove it from the repo if it holds live credentials.",
   "battery_last_full_run": "2026-11-19 P0: 18/18 green (see completed list); run pattern: HOME=<fresh dir> per suite, timeout 420, never killed"
 }
