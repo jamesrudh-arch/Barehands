@@ -17,6 +17,7 @@ var _style: Control
 var _phase := 0
 var _pf := 0
 var _fails := 0
+var _saw_pipe := false  # the pipe was taken from its pickup spot (phase 5)
 var _marks := {}  # per-phase frame marks
 
 
@@ -283,6 +284,7 @@ func _pipe() -> void:
 		InputBus.queue_grab()  # no enemy in reach: picks up the pipe
 	if _pf == 25:
 		_check(_player.get("has_pipe"), "pipe picked up near the prop")
+		_saw_pipe = true  # remembered for the finish check
 		_setup_pair(10)
 		_player.set("has_pipe", true)
 		InputBus.camera_yaw = -PI / 2.0
@@ -483,7 +485,18 @@ func _finish() -> void:
 			surfaces += 1
 	_check(surfaces >= 3, "takedown surfaces tagged: car, shutter, rail (%d)" % surfaces)
 	var pipe := get_tree().get_nodes_in_group("pipe_prop")
-	_check(pipe.size() == 1, "the pipe prop waits on the street")
+	# B18.3 unified the loose street pipe into the Weapons-tracked pickup
+	# at the same spot (6.3, -7.6) - the old visual prop group is gone by
+	# design. The contract now: exactly one pipe PICKUP waits there, or
+	# the bot already holds it (this suite picks it up at phase 5).
+	var pipe_pickup := 0
+	for p in get_tree().get_nodes_in_group("pickup"):
+		if str((p as Node).get_meta("pickup_kind", "")) == "pipe":
+			pipe_pickup += 1
+	_check(pipe.is_empty(),
+			"no loose pipe prop remains (the B18.3 unification)")
+	_check(_saw_pipe or pipe_pickup == 1,
+			"the pipe waited as the Weapons-tracked pickup (taken in phase 5, or still waiting)")
 	if _fails == 0:
 		print("SMOKE PASS")
 		get_tree().quit(0)

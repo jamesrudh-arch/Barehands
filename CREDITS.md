@@ -28,7 +28,26 @@ All third-party assets in this project are free for commercial use. Nothing here
 - **Downloaded from**: GitHub mirror (git-lfs media restored): https://github.com/slopwarefactory/terra (art/characters/quaternius/modular-outfits-fantasy/)
 - **Used for**: the hero's clothes; textures downscaled to 1024/512 px for mobile
 
-## bare-hands/assets/audio/ (Kenney sound effects)
+## assets/cast/ (Universal Base Characters - the cast and the enemies)
+
+- **What**: textured humanoid characters on the same 65-bone UAL rig - Male_Peasant_Body, Male_Knight_Body_Armor, Female_Ranger_Body + Legs, Superhero_Female_FullBody
+- **By**: Quaternius (https://quaternius.com)
+- **Packs**: Universal Base Characters, Modular Character Outfits (https://quaternius.com/packs/universalbasecharacters.html)
+- **License**: CC0 1.0 Universal — https://creativecommons.org/publicdomain/zero/1.0/
+- **Downloaded from**: the same GitHub mirrors as the hero (Xeiliex/Tactics-Bell-Web-, slopwarefactory/terra); proof of license: assets/License.txt
+- **Used for**: the street's named cast (scripts/cast.gd) and, since B18.4, the four fighting enemy kinds - MUSCLE (peasant), COLLECTOR (knight armour), CREW (ranger), BOSS (superhero). The UAL clip library drives them all through scripts/ual_bind.gd.
+
+## assets/kits/ (Kenney 3D kits - the street, B18.4)
+
+- **What**: the buildings, road, pavement, street lamps, roadworks props and the parked sedan that replace the code-built placeholder boxes
+- **By**: Kenney (https://kenney.nl)
+- **Packs**: City Kit Commercial (buildings, awnings, skyscraper), City Kit Roads (road tiles, lamps, construction props), Car Kit (sedan), City Kit buildings + pavement from the Starter Kit: City Builder
+- **License**: CC0 1.0 Universal — https://creativecommons.org/publicdomain/zero/1.0/
+- **Downloaded from**: the GitHub mirror series-ai/jam-ready-assets (kenney-city-kit-commercial, kenney-city-kit-roads, kenney-car-kit; git-lfs media CDN) and KenneyNL/Starter-Kit-City-Builder (repo code MIT, its 3D models are CC0 per its README)
+- **Proof of license**: assets/kits/LICENSE-Kenney-CC0.txt
+- **Used for**: the six main-street building plots, both sidewalks, six lamp posts, the ParkedCar body, the market/foundry blocks (buildings, marked road lanes, roadworks), the fog skyscraper, and the LookDev gallery car. Every placement falls back to the old code-built box when the kit is not imported yet (scripts/kit.gd).
+
+## assets/audio/ (Kenney sound effects)
 
 - **What**: punches, body impacts, metal/wood/glass, footsteps (concrete, wood, carpet), cloth, doors, coins, knives, UI clicks, lasers (test weapon), low-frequency hits
 - **By**: Kenney (https://kenney.nl)

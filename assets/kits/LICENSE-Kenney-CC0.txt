@@ -1,0 +1,10 @@
+Kenney assets (kenney.nl) - License: Creative Commons Zero (CC0 1.0)
+https://creativecommons.org/publicdomain/zero/1.0/
+
+Sources:
+- Car Kit, City Kit Commercial, City Kit Roads via the GitHub mirror
+  series-ai/jam-ready-assets
+  https://github.com/series-ai/jam-ready-assets
+- City Kit buildings/pavement via KenneyNL/Starter-Kit-City-Builder
+  https://github.com/KenneyNL/Starter-Kit-City-Builder
+  (repo code MIT, included 3D models and sprites are CC0 - see its README)

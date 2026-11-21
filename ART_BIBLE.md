@@ -67,16 +67,22 @@ same materials (the cap keeps the frame budget without changing the
 look). The frame budget: 60 fps iPhone 16, stable 30 fps 13 mini
 (PHONE-ONLY - the sandbox renderer cannot measure device fps).
 
-## CC0 asset roadmap (not yet integrated - stated plainly)
+## CC0 assets (integrated in B18.4)
 
-The street is code-built (facades, signs, props, car, pickups). The
-planned upgrade to real CC0 model kits - Kenney City Kit + Car Kit
-(kenney.nl, CC0) and Quaternius modular city packs (quaternius.com,
-CC0) - is NOT integrated this pass: the asset pipeline (download,
-import, material rebind, draw-call budget, render verification on
-real hardware) needs its own verified session. The code-built street
-is the working placeholder and follows every rule above. Audio is
-already Kenney CC0 (see CREDITS in the menu).
+The street wears real CC0 models now: Kenney City Kit Commercial /
+Roads / Starter buildings and the Car Kit sedan (assets/kits/, licences
+in assets/kits/LICENSE-Kenney-CC0.txt and CREDITS.md) replace the
+placeholder boxes - buildings onto their plots, kit pavement on the
+sidewalks, marked road lanes as one MultiMesh per street, lamp posts
+with warm sodium light at the curb, roadworks props, and the parked
+sedan carrying the noir light boxes. The four fighting enemy kinds wear
+Quaternius Universal Base Characters (assets/cast/) driven by the UAL
+clip library; the training dummy keeps its mannequin. Every placement
+degrades to the code-built box when a kit is not imported yet
+(scripts/kit.gd), so a fresh import never aborts the street. What
+stayed code-built on purpose: the warehouse and dock containers (honest
+industrial volumes, story-wired), the wet asphalt base (the reflection
+shader surface), neon signs and lit windows.
 
 ## LookDev
 

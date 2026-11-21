@@ -586,15 +586,17 @@ func _the_radar() -> void:
 ## main.tscn declares it; SafeBoot builds it in code at _ready, so it
 ## goes into the tree first.
 func _the_world_envs() -> void:
-	var we := load("res://scenes/main.tscn").instantiate() \
-			.find_children("*", "WorldEnvironment", true, false)
+	# explicit types: load() returns bare Resource, so a ":=" chain through
+	# instantiate() has no inferable type on 4.7 and the suite would not parse
+	var we: Array = (load("res://scenes/main.tscn") as PackedScene) \
+			.instantiate().find_children("*", "WorldEnvironment", true, false)
 	_check(not we.is_empty()
 			and (we[0] as WorldEnvironment).environment != null,
 			"main.tscn has a WorldEnvironment + Environment")
-	var sb := load("res://scenes/safe_boot.tscn").instantiate()
+	var sb: Node = (load("res://scenes/safe_boot.tscn") as PackedScene).instantiate()
 	add_child(sb)
 	await get_tree().process_frame
-	var we2 := sb.find_children("*", "WorldEnvironment", true, false)
+	var we2: Array = sb.find_children("*", "WorldEnvironment", true, false)
 	_check(not we2.is_empty()
 			and (we2[0] as WorldEnvironment).environment != null,
 			"safe_boot builds a WorldEnvironment + Environment")

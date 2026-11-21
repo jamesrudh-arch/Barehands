@@ -6,6 +6,7 @@ extends Node3D
 ## Everything is static and cheap; shafts and steam answer to the Quality tier.
 
 const ShaftShader := preload("res://shaders/shaft.gdshader")
+const CLS_Kit := preload("res://scripts/kit.gd")
 
 
 func _ready() -> void:
@@ -25,6 +26,7 @@ func _ready() -> void:
 	_safehouse()
 	_shutter()
 	_rails()
+	_kits()
 	# B18.3: the loose street pipe moved to the Pickups node (the
 	# Weapons-tracked pickup at the same spot, 6.3, -7.6)
 
@@ -402,6 +404,21 @@ func _car() -> void:
 			wheel.rotation.z = PI / 2.0
 			wheel.position = Vector3(wx, 0.32, wz)
 			car.add_child(wheel)
+	# B18.4: the Kenney CC0 sedan (Car Kit) takes over the body when the
+	# kit imports - the box body+cabin+wheels above stay as the fallback.
+	# The noir lights (heads, tails, cyan strips) ride on top either way,
+	# parked on the kit body's own nose/tail/edges.
+	var kit := CLS_Kit.place_stretch(car, "kenney_cars/sedan.glb",
+			Vector3(0, 0.02, 0), 0.0, 1.35, 1.0, 1.5)
+	if kit:
+		lower.visible = false
+		cabin.visible = false
+		for w in car.get_children():
+			if w is MeshInstance3D and (w as MeshInstance3D).mesh is CylinderMesh:
+				(w as MeshInstance3D).visible = false
+	var nose := 1.95 if kit != null else 2.11
+	var tail_x := -1.95 if kit != null else -2.11
+	var half_w := 0.99 if kit != null else 0.89
 	# B18.3 (BUG 10): the car carries its own light - headlights, tails,
 	# cyan edge strips - all inside the 1.1 emission cap
 	var lamp := StandardMaterial3D.new()
@@ -424,12 +441,12 @@ func _car() -> void:
 	strip.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	for hz in [-0.55, 0.55]:
 		var head := _box(Vector3(0.06, 0.12, 0.3), lamp)
-		head.position = Vector3(2.11, 0.62, hz)
+		head.position = Vector3(nose, 0.62, hz)
 		car.add_child(head)
 		var t2 := _box(Vector3(0.06, 0.1, 0.24), tail)
-		t2.position = Vector3(-2.11, 0.68, hz)
+		t2.position = Vector3(tail_x, 0.68, hz)
 		car.add_child(t2)
-	for sz in [-0.89, 0.89]:
+	for sz in [-half_w, half_w]:
 		var edge := _box(Vector3(3.4, 0.03, 0.02), strip)
 		edge.position = Vector3(0, 0.86, sz)
 		car.add_child(edge)
@@ -612,3 +629,80 @@ func _safehouse() -> void:
 	var panel := _box(Vector3(0.9, 1.9, 0.05), panel_mat)
 	panel.position = Vector3.UP * 1.1
 	door.add_child(panel)
+
+
+# --- the CC0 kit layer (B18.4) ----------------------------------------------------
+# Kenney City Kit / Car Kit models (CC0, assets/kits/LICENSE-Kenney-CC0.txt)
+# take over from the code-built placeholder boxes. The collision shapes
+# stay exactly where they were - the fight geometry is tuned - only the
+# box MESHES hide. Every placement falls back to the box when the kit is
+# not importable yet, so a fresh import can never abort the street.
+
+## [building node, kit file, building-line z, side (-1 north / +1 south /
+## 0 = the corner kiosk, centred on its plot)]
+const KIT_BUILDINGS := [
+	["Buildings/BuildingA", "kenney_commercial/building-f.glb", -9.0, -1],
+	["Buildings/BuildingB", "kenney_commercial/building-g.glb", -9.5, -1],
+	["Buildings/BuildingC", "kenney_commercial/building-d.glb", -9.0, -1],
+	["Buildings/BuildingD", "kenney_commercial/building-b.glb", 9.0, 1],
+	["Buildings/BuildingE", "kenney_commercial/building-g.glb", 9.5, 1],
+	["Buildings/BuildingF", "kenney_city/building-small-d.glb", 0.0, 0],
+]
+
+
+func _kits() -> void:
+	var main := get_parent()
+	if main == null:
+		return
+	var placed := 0
+	for spec in KIT_BUILDINGS:
+		if _kit_building(main, spec[0], spec[1], spec[2], spec[3]):
+			placed += 1
+	# kit pavement on both sidewalks (the same 44 x 0.24 x 5 volume as the
+	# slabs, sunk so its top sits 2 cm proud of the asphalt - no foot clip)
+	for sz in [-8.0, 8.0]:
+		var sw := main.get_node_or_null("Street/Sidewalk%s" % ("N" if sz < 0 else "S"))
+		var p := CLS_Kit.place_stretch(main, "kenney_city/pavement.glb",
+				Vector3(0, -0.22, sz), 0.0, 44.0, 4.0, 5.0)
+		if p and sw:
+			sw.visible = false
+			placed += 1
+	# street lamps: curved double-heads at the curb, warm sodium light -
+	# the OmniLight joins the tree, so the moth swarms find them
+	for lx in [-12.0, 0.0, 12.0]:
+		for side in [-1.0, 1.0]:
+			if CLS_Kit.lamp(main, Vector3(lx, 0, side * 7.2), side):
+				placed += 1
+	Log.info("StreetKits: %d CC0 kit models placed on the main street" % placed)
+
+
+## One building: uniform scale from the plot height, front face parked on
+## the plot's building line. Returns true when the kit took over.
+func _kit_building(main: Node, path: String, kit: String, front_z: float,
+		side: int) -> bool:
+	var b := main.get_node_or_null(path) as Node3D
+	if b == null:
+		return false
+	var mesh_mi := b.get_node_or_null("Mesh") as MeshInstance3D
+	var col := b.get_node_or_null("Shape") as CollisionShape3D
+	if mesh_mi == null or col == null or not (col.shape is BoxShape3D):
+		return false
+	if side == 0:
+		# the corner kiosk: uniform 3.5, centred on its own plot at ground
+		# level (the StaticBody sits at the box centre height - not y=0)
+		var k0 := CLS_Kit.place(main, kit,
+				Vector3(b.position.x, 0.0, b.position.z))
+		if k0:
+			k0.scale = Vector3(3.5, 3.5, 3.5)
+			mesh_mi.visible = false
+		return k0 != null
+	var plot_h: float = (col.shape as BoxShape3D).size.y
+	var s := plot_h / CLS_Kit.height(kit)
+	var depth := CLS_Kit.depth(kit) * s
+	var cz := front_z + side * depth * 0.5
+	var k := CLS_Kit.place(main, kit, Vector3(b.position.x, 0.0, cz))
+	if k == null:
+		return false
+	k.scale = Vector3(s, s, s)
+	mesh_mi.visible = false  # the box mesh hides; collision + windows stay
+	return true

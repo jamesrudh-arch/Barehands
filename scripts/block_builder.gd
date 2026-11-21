@@ -13,8 +13,20 @@ extends Node3D
 const ASPHALT := Color(0.055, 0.055, 0.065)
 const SIDEWALK := Color(0.16, 0.16, 0.17)
 const FACE := Color(0.09, 0.09, 0.115)
+const CLS_Kit := preload("res://scripts/kit.gd")
+
+## The kit buildings _building() cycles through (tall first) so adjacent
+## plots never wear the same model twice in a row. CC0 - Kenney City Kit.
+const KIT_BUILDINGS := [
+	"kenney_commercial/building-g.glb",
+	"kenney_commercial/building-f.glb",
+	"kenney_commercial/building-b.glb",
+	"kenney_commercial/building-d.glb",
+	"kenney_city/building-small-c.glb",
+]
 
 var block_id := ""
+var _kit_i := 0
 
 
 func build_block() -> void:
@@ -52,27 +64,53 @@ func _common() -> void:
 	road.position = Vector3(0, -0.5, 0)
 	body.add_child(road)
 	# sidewalks both sides
+	var slab_mat := StandardMaterial3D.new()
+	slab_mat.albedo_color = SIDEWALK
 	for sz in [-11.0, 11.0]:
 		var sw := MeshInstance3D.new()
 		var sm := BoxMesh.new()
 		sm.size = Vector3(44, 0.24, 5.0)
-		var smat := StandardMaterial3D.new()
-		smat.albedo_color = SIDEWALK
-		sm.material = smat
+		sm.material = slab_mat
 		sw.mesh = sm
 		sw.position = Vector3(0, -0.12, sz)
+		sw.name = "SidewalkSlab"
 		add_child(sw)
+	# B18.4: the CC0 kit pavement takes the slabs (the same 44 x 0.24 x 5
+	# volume, sunk so its top sits 2 cm proud of the asphalt - no foot
+	# clip); the plain boxes above stay as the fresh-import fallback
+	if CLS_Kit.place_stretch(self, "kenney_city/pavement.glb",
+			Vector3(0, -0.22, -11.0), 0.0, 44.0, 4.0, 5.0) \
+			and CLS_Kit.place_stretch(self, "kenney_city/pavement.glb",
+			Vector3(0, -0.22, 11.0), 0.0, 44.0, 4.0, 5.0):
+		for c in get_children():
+			if c.name == "SidewalkSlab":
+				(c as MeshInstance3D).visible = false
 	# center dashes
+	var dash_mat := StandardMaterial3D.new()
+	dash_mat.albedo_color = Color(0.65, 0.55, 0.1)
 	for i in range(-4, 5):
 		var dash := MeshInstance3D.new()
 		var dm := BoxMesh.new()
 		dm.size = Vector3(2.0, 0.02, 0.22)
-		var dmat := StandardMaterial3D.new()
-		dmat.albedo_color = Color(0.65, 0.55, 0.1)
-		dm.material = dmat
+		dm.material = dash_mat
 		dash.mesh = dm
 		dash.position = Vector3(i * 4.4, 0.005, 0)
+		dash.name = "LaneDash"
 		add_child(dash)
+	# B18.4: the kit road - marked lane tiles down the centre as ONE
+	# MultiMesh (one draw call for all 11 tiles); the dash boxes above
+	# are the fallback and hide when the row lands
+	var tiles: Array = []
+	for i in range(-5, 6):
+		tiles.append(Vector3(i * 4.0, -0.065, 0.0))  # top 1.5 cm proud
+	if CLS_Kit.tile_row(self, "kenney_roads/road-straight.glb", tiles, 4.0):
+		for c in get_children():
+			if c.name == "LaneDash":
+				(c as MeshInstance3D).visible = false
+	# lamps at the curb (warm sodium light; the moths adopt them)
+	for lx in [-12.0, 12.0]:
+		for side in [-1.0, 1.0]:
+			CLS_Kit.lamp(self, Vector3(lx, 0, side * 9.0), side)
 	# the gates back out (world coords: this node already sits at its
 	# block's offset on the axis)
 	var west_to := "riverside" if block_id == "market" else "market"
@@ -81,7 +119,11 @@ func _common() -> void:
 			"foundry" if block_id == "market" else "market", "west")
 
 
-## A building volume: dark face, lit window quads, collision.
+## A building volume: dark face, lit window quads, collision. B18.4: a
+## Kenney CC0 kit building takes the volume when it imports - uniform
+## scale from the plot height, front face on the plot's own front line,
+## the box mesh hides (collision stays: the fight geometry is tuned) and
+## the lit windows stay, constrained to the kit's real face width.
 func _building(cx: float, cz: float, w: float, d: float, h: float,
 		windows := true) -> void:
 	var body := StaticBody3D.new()
@@ -100,6 +142,13 @@ func _building(cx: float, cz: float, w: float, d: float, h: float,
 	mesh.mesh = bm
 	body.add_child(mesh)
 	add_child(body)
+	# the face the lit windows may span: the plot width, or the kit's
+	# real width when a kit building took the volume
+	var face_w := w
+	var kit := _kit_building(cx, cz, w, d, h)
+	if kit != null:
+		mesh.visible = false
+		face_w = kit
 	if windows:
 		for i in int(h / 3.2):
 			var win := MeshInstance3D.new()
@@ -119,13 +168,35 @@ func _building(cx: float, cz: float, w: float, d: float, h: float,
 			wmat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 			wm.material = wmat
 			win.mesh = wm
-			win.position = Vector3(cx - w / 2.0 + 1.2 + (i % 3) * 2.0,
-					1.6 + i * 3.0, cz + (d / 2.0 + 0.02 if cz < 0 else -(d / 2.0 + 0.02)))
+			var toward := 1.0 if cz < 0 else -1.0  # which way the street is
+			var front := cz + toward * (d / 2.0 + 0.02)
+			var fx := cx - face_w / 2.0 + 1.2 + (i % 3) * 2.0
+			fx = clampf(fx, cx - face_w / 2.0 + 1.0, cx + face_w / 2.0 - 1.0)
+			win.position = Vector3(fx, 1.6 + i * 3.0, front)
 			win.rotation = Vector3(0, PI, 0) if cz < 0 else Vector3.ZERO
 			if lit:
 				win.add_to_group("emissive_window")
 				win.set_meta("base_energy", 0.85)
 			add_child(win)
+
+
+## Try the next kit building on this plot. Returns the kit's face width
+## when it took over (the caller hides its box and narrows the windows),
+## or -1.0 when the fallback box stays.
+func _kit_building(cx: float, cz: float, w: float, d: float, h: float) -> float:
+	var rel: String = KIT_BUILDINGS[_kit_i % KIT_BUILDINGS.size()]
+	_kit_i += 1
+	if not CLS_Kit.available(rel):
+		return -1.0
+	var s := h / CLS_Kit.height(rel)
+	var depth := CLS_Kit.depth(rel) * s
+	var toward := 1.0 if cz < 0 else -1.0  # which way the street is
+	var k := CLS_Kit.place(self, rel,
+			Vector3(cx, 0.0, cz + toward * (d / 2.0 - depth / 2.0)))
+	if k == null:
+		return -1.0
+	k.scale = Vector3(s, s, s)
+	return CLS_Kit.DIMS[rel].x * s
 
 
 ## A soft radial pool: transparent centre colour fading to nothing.
@@ -246,6 +317,27 @@ func _market() -> void:
 		add_child(stain)
 	# the underpass mouth at the east end (bible 6: it connects 2-3)
 	_underpass(Vector3(16.5, 0, 0), -1)
+	# B18.4: the CC0 street props - awnings over two club fronts, a
+	# roadworks patch before the underpass, and a skyscraper silhouette
+	# in the back fog
+	CLS_Kit.place(self, "kenney_commercial/detail-awning.glb",
+			Vector3(-9.0, 2.6, -9.15), 0.0, 5.0)
+	CLS_Kit.place(self, "kenney_commercial/detail-awning.glb",
+			Vector3(8.5, 2.6, 9.15), PI, 5.0)
+	_construction(Vector3(12.5, 0, 3.6), 0.15)
+	CLS_Kit.place(self, "kenney_commercial/building-skyscraper-b.glb",
+			Vector3(-26.0, 0, -22.0), 0.4, 6.0)
+
+
+## A roadworks patch: barrier, cones, a work light (Kenney City Kit).
+func _construction(pos: Vector3, yaw: float) -> void:
+	CLS_Kit.place(self, "kenney_roads/construction-barrier.glb", pos, yaw, 6.0)
+	CLS_Kit.place(self, "kenney_roads/construction-cone.glb",
+			pos + Vector3(1.5, 0, 0.7), yaw, 5.0)
+	CLS_Kit.place(self, "kenney_roads/construction-cone.glb",
+			pos + Vector3(-1.3, 0, 1.0), yaw, 5.0)
+	CLS_Kit.place(self, "kenney_roads/construction-light.glb",
+			pos + Vector3(0.2, 0, -1.3), yaw, 5.0)
 
 
 # --- block 3: the docks ----------------------------------------------------------
@@ -254,6 +346,8 @@ func _market() -> void:
 func _foundry() -> void:
 	# the underpass exit at the west end
 	_underpass(Vector3(-16.5, 0, 0), 1)
+	# B18.4: roadworks against the warehouse wall (the dock repairs)
+	_construction(Vector3(-6.5, 0, -4.8), -0.1)
 	# the warehouse: big, dark, the final choice's door shut for now
 	var wh := StaticBody3D.new()
 	wh.position = Vector3(2.0, 5.0, -13.0)

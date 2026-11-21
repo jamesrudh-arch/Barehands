@@ -1,5 +1,70 @@
 # CHANGELOG.md — batch history (newest first)
 
+## B18.4 — push, the stress leak, and the CC0 street (2026-11-21)
+
+Three jobs from the owner, in order:
+
+- **the push**: all 18 unpushed commits (B18 through the B18.3 docs
+  stamp; the 18th the owner had not counted was 2be1f27, the
+  upload/IMG_9292.png photo commit) pushed to
+  github.com/jamesrudh-arch/Barehands main; remote verified at
+  9e8c135 = local HEAD, 0 ahead. Credential stored inside .git/ only
+  (never tracked).
+- **a (the stress node leak, owner item 2)**: the stress census
+  (STRESS_LEAK_DUMP=1, new in tests/stress_combat.gd) named the leak:
+  Heat's responders and City's district muscle erased DOWN fighters
+  from their tracking arrays WITHOUT freeing them - enemy.gd's own
+  respawn then stood each one back up as an UNTRACKED node tree that
+  lived forever (one per fight). Both spawners now drag their downed
+  men off after a 2 s linger, mirroring the jobs/kidnap rule. The test
+  itself was measuring placement timing, not leaks: the old baseline
+  (818) was taken BEFORE the deferred placement contract, ambience
+  players and crowd landed (+209 of "leak" was those). Baseline now
+  settles at tick 90 (1003), quiesce waits 2.8 s so mid-carry bodies
+  are not counted, and two honest bounds hold: end +28 <= 60 (what
+  still stands at quiesce is the hostile district's 2 muscle + crew
+  re-staffing) and combat spike +68 <= 160. STRESS PASS.
+- **b (the CC0 street, owner item 3)**: the Kenney City Kit / Car Kit
+  and the Quaternius UBC characters replace the placeholder boxes -
+  assets/kits/ (32 files, licence file inside, credits in CREDITS.md),
+  scripts/kit.gd (placement with per-axis stretch, MultiMesh road rows
+  = one draw call per street, lamp posts with warm sodium light the
+  moths adopt, 1.1 emission cap, unique node names, deferred add so a
+  mid-setup parent never drops a kit). Replaced: the six main-street
+  building boxes (commercial buildings on their plots, front faces on
+  the building line), both sidewalk slabs (kit pavement), the box car
+  body (the Kenney sedan carries the noir head/tail/strip lights), the
+  market block's five building boxes + dashes (kit buildings, marked
+  road lane, awnings, roadworks, a fog skyscraper), the foundry's
+  roadworks, and the plain mannequins on enemy kinds 1-4 (MUSCLE =
+  peasant, COLLECTOR = knight armour, CREW = ranger, BOSS = superhero
+  female - all driven by the UAL clips in lockstep with the hidden
+  mannequin player; the training dummy keeps its mannequin). Kept
+  code-built on purpose: the warehouse + dock containers (honest
+  industrial volumes, story-wired), the wet asphalt (the reflection
+  shader surface), neon signs, lit windows. DEVICE REPORT gains a
+  CC0 KITS section; LookDev judges the real sedan now. Measured on
+  the sandbox renderer (kit_probe, hero POV, 120-frame sample): draw
+  calls 280 -> 275, triangles 100,841 -> 101,379 (+15 kit models at
+  no measured cost - the hidden box meshes and mannequins paid for
+  them), the frame's pure-black share 74.0% -> 52.6% and the
+  render_check fixed-camera histogram pure-black 74.0% -> 67.2%,
+  mid-tones 8.8% -> 19.8% (the flat dark boxes became textured
+  mid-tones). smoke_kits (44 checks) pins the whole contract.
+- **test repairs found by the full battery**: smoke_depth's "pipe prop
+  waits" asserted the pre-B18.3 loose prop (stale since the pipe
+  unification; the suite's own phase-5 pickup check is the real
+  contract - now recorded and asserted at finish); smoke_tpose caught
+  that dressed enemies left the hidden mannequin player idle (the
+  player now stays in the lockstep group); render_check.gd had a
+  parse-breaking ":= load(...).instantiate()" chain (untyped on 4.7)
+  and would not even load. battery (36 suites, clean HOME per suite):
+  33 green in the run incl. stress_combat with the final enemy code;
+  smoke_depth and smoke_tpose failed mid-run and are fixed + re-run
+  green standalone in this batch; render_check 53/56 - the 3 known
+  items are pre-existing (2 llvmpipe histogram thresholds, improved
+  but not crossed: the phone judges those; 1 HUD bar crossing).
+
 ## B18.3 — the full package (2026-11-21)
 
 From the expanded prompt (photos 9296/9297 were still B17). Nine

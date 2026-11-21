@@ -1,6 +1,7 @@
 extends CharacterBody3D
 const CLS_AttackData := preload("res://scripts/attack_data.gd")
 const CLS_Player := preload("res://scripts/player.gd")
+const CLS_UalBind := preload("res://scripts/ual_bind.gd")
 ## Series-2 enemies on the pack's mannequin. kind 0 = training dummy (reacts
 ## only), 1 = brawler (the classic thug rhythm), 2 = armoured bruiser (light
 ## hits bounce off: force heavies, pipes and finishers), 3 = knife attacker
@@ -59,12 +60,29 @@ const LOOK := {
 	4: [Color(0.28, 0.08, 0.10), 0.10],  # blood-red boss
 }
 
+## B18.4: real CC0 characters per kind - Quaternius Universal Base
+## Character pieces (the same rig family the hero and the cast wear, so
+## the UAL clips drive them through UalBind). The plain UAL mannequin
+## stays for the training dummy (kind 0) and as the fallback for every
+## kind when a piece is not importable yet (fresh import) - all-or-
+## nothing per kind: a half-dressed figure reads broken.
+const KIND_BODY := {
+	1: ["res://assets/cast/Male_Peasant_Body.gltf"],        # MUSCLE
+	2: ["res://assets/cast/Male_Knight_Body_Armor.gltf"],   # COLLECTOR
+	3: ["res://assets/cast/Female_Ranger_Body.gltf",        # CREW
+		"res://assets/cast/Female_Ranger_Legs.gltf"],
+	4: ["res://assets/cast/Superhero_Female_FullBody.gltf"],  # BOSS
+}
+var _char_pieces: Array[Node3D] = []
+var _players: Array[AnimationPlayer] = []
+
 
 func _ready() -> void:
 	_build_posture_bar()
 	add_to_group("enemy")
 	hp = max_hp
 	_spawn = global_position
+	_dress_character()
 	_own_materials()
 	# B18.3 (BUG 10): a name marker above the head - who you are
 	# fighting reads at a distance
@@ -121,7 +139,65 @@ func _apply_look() -> void:
 			m.emission_energy_multiplier = edge
 
 
+## B18.4: dress the kind's real character. On success the mannequin mesh
+## hides (its player stays as the pose clock and the fallback), every
+## piece gets a "Clips" player with the UAL library grafted on - the
+## hero_rig pattern - and _play drives them all in lockstep.
+func _dress_character() -> void:
+	var files: Array = KIND_BODY.get(kind, [])
+	if files.is_empty():
+		return  # the dummy keeps its mannequin
+	for f in files:
+		var ps: PackedScene = load(f)
+		if ps == null:
+			Log.warn("Enemy: %s not importable yet - the mannequin stays" % f)
+			_char_pieces.clear()
+			return
+	for f in files:
+		var piece: Node3D = (load(f) as PackedScene).instantiate()
+		# same stage transform the mannequin wears (enemy.tscn)
+		piece.rotation.y = PI
+		piece.scale = Vector3(0.93, 0.93, 0.93)
+		_body.add_child(piece)
+		var p := AnimationPlayer.new()
+		p.name = "Clips"
+		piece.add_child(p)
+		CLS_UalBind.attach(p)
+		_players.append(p)
+		_char_pieces.append(piece)
+	if _mi != null and is_instance_valid(_mi):
+		_mi.visible = false  # the mannequin mesh yields; its player stays
+	# the mannequin's own player joins the lockstep group: its mesh is
+	# hidden but every rig in the tree keeps playing (the T-pose guard)
+	if _anim != null and is_instance_valid(_anim):
+		_players.append(_anim)
+	Log.info("Enemy: kind %d wears the CC0 character (%d pieces)"
+			% [kind, _char_pieces.size()])
+
+
 func _own_materials() -> void:
+	if not _char_pieces.is_empty():
+		# real character pieces: duplicate their meshes so each enemy owns
+		# its materials (the tint + flash treatment the mannequin got)
+		var dressed := false
+		for piece in _char_pieces:
+			for c in piece.find_children("*", "MeshInstance3D", true, false):
+				var mi := c as MeshInstance3D
+				if mi.mesh == null:
+					continue
+				mi.mesh = mi.mesh.duplicate()
+				for i in mi.mesh.get_surface_count():
+					var m: Material = mi.mesh.surface_get_material(i)
+					if m is StandardMaterial3D:
+						var d := (m as StandardMaterial3D).duplicate()
+						d.emission_enabled = true
+						d.emission = Color(1, 1, 1)
+						d.emission_energy_multiplier = 0.0
+						mi.mesh.surface_set_material(i, d)
+						_mats.append(d)
+				dressed = true
+		if dressed:
+			return
 	if _mi == null or not is_instance_valid(_mi) or _mi.mesh == null:
 		# B17: the mannequin GLB can be missing on a fresh import (not
 		# converted yet) - the capsule stays, nothing else may abort
@@ -677,6 +753,11 @@ func _apply_flash(delta: float) -> void:
 
 
 func _play(anim_name: String, blend: float = 0.25, speed := 1.0) -> void:
+	if not _players.is_empty():
+		# B18.4: the character pieces play in lockstep - UalBind owns the
+		# clip fallbacks and the warn-once, so a bad name never T-poses
+		CLS_UalBind.play_all(_players, anim_name, blend, speed)
+		return
 	if _anim == null or not is_instance_valid(_anim):
 		return  # B17: no AnimationPlayer without the GLB - poses only
 	if _anim.current_animation != anim_name:

@@ -35,6 +35,7 @@ static func build() -> String:
 	L.append("== LEVERAGE DEVICE REPORT ==")
 	L.append(_identity())
 	L.append(_render_block())
+	L.append(_kits_block())
 	L.append(_audio_block())
 	L.append(_characters_block())
 	L.append(_ambient_block())
@@ -59,6 +60,35 @@ static func _identity() -> String:
 	var ver: Dictionary = Engine.get_version_info()
 	return "BUILD: %s\nGodot: %s | device: %s" % [stamp,
 			str(ver.get("string", "?")), OS.get_name()]
+
+
+## B18.4: the CC0 KIT FACTS. What the street actually wears: live kit
+## models by kind, the enemy kinds in their CC0 characters, and the
+## licence line (the full text is assets/kits/LICENSE-Kenney-CC0.txt).
+static func _kits_block() -> String:
+	var tree := Engine.get_main_loop() as SceneTree
+	var out := "-- CC0 KITS --\n"
+	if tree == null:
+		return out + "no scene tree"
+	var kits := tree.get_nodes_in_group("cc0_kit")
+	var by_kind := {}
+	for k in kits:
+		var base: String = (k as Node).name.get_slice("_", 1) if \
+				(k as Node).name.begins_with("Kit_") else "row"
+		by_kind[base] = int(by_kind.get(base, 0)) + 1
+	var parts: Array[String] = []
+	for key in by_kind:
+		parts.append("%s x%d" % [key, int(by_kind[key])])
+	parts.sort()
+	out += "live kit models: %d (%s)\n" % [kits.size(), ", ".join(parts)]
+	var dressed := 0
+	for e in tree.get_nodes_in_group("enemy"):
+		var pieces: Array = e.get("_char_pieces") if e.get("_char_pieces") != null else []
+		if not pieces.is_empty():
+			dressed += 1
+	out += "enemies in CC0 characters: %d | dummy keeps its mannequin\n" % dressed
+	out += "kits: Kenney City Kit / Car Kit (CC0), characters: Quaternius UBC (CC0)"
+	return out
 
 
 ## B18.3 (BUG 10, Part 3B): the CHARACTER AND VEHICLE CENSUS. Every

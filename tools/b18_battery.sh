@@ -8,8 +8,8 @@ cd /home/z/my-project || exit 1
 OUT=/tmp/b18-battery.log
 : > "$OUT"
 FAIL=0
-HEADLESS="run_tests smoke smoke_a4 smoke_audio smoke_backroom smoke_cast smoke_city smoke_combat smoke_combos smoke_controls smoke_debt smoke_depth smoke_difficulty smoke_district smoke_economy smoke_face smoke_friends smoke_jobs smoke_kidnap smoke_ledger smoke_map smoke_music smoke_null_watch smoke_phone smoke_pose smoke_progression smoke_reactive smoke_stick smoke_tpose smoke_worldsim stage0_check stress_combat"
-RENDER="render_check safe_boot_check"
+HEADLESS="run_tests smoke smoke_a4 smoke_audio smoke_backroom smoke_cast smoke_city smoke_combat smoke_combos smoke_controls smoke_debt smoke_depth smoke_difficulty smoke_district smoke_economy smoke_face smoke_friends smoke_jobs smoke_kidnap smoke_kits smoke_ledger smoke_map smoke_music smoke_null_watch smoke_phone smoke_pose smoke_progression smoke_reactive smoke_stick smoke_tpose smoke_worldsim stage0_check stress_combat"
+RENDER="render_check safe_boot_check kit_probe"
 for t in $HEADLESS; do
   [ -f "tests/$t.tscn" ] || { echo "$t MISSING_TSCN" >> "$OUT"; continue; }
   rm -rf "/tmp/bat-$t" && mkdir -p "/tmp/bat-$t"

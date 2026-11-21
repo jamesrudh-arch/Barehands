@@ -1,5 +1,6 @@
 extends Node3D
 const CLS_Pickup := preload("res://scripts/pickup.gd")
+const CLS_Kit := preload("res://scripts/kit.gd")
 
 ## B18.3 PART 3C.6: the LOOKDEV strip - every important thing in the
 ## game under the final lighting, in one place: the cast (hero stand-in
@@ -122,27 +123,36 @@ func _cast_row() -> void:
 
 
 func _car() -> void:
+	# B18.4: the gallery judges the real asset - the Kenney CC0 sedan the
+	# street now parks (the box body stays only as the fresh-import
+	# fallback, same contract as street_dress).
 	var paint := StandardMaterial3D.new()
 	paint.albedo_color = Color(0.13, 0.19, 0.16)
 	paint.roughness = 0.3
 	paint.metallic = 0.5
-	var body := MeshInstance3D.new()
-	var bm := BoxMesh.new()
-	bm.size = Vector3(4.2, 0.55, 1.75)
-	bm.material = paint
-	body.mesh = bm
-	body.position = Vector3(X + 8.0, 0.55, -6.0)
-	add_child(body)
-	var cabin := MeshInstance3D.new()
-	var cm := BoxMesh.new()
-	cm.size = Vector3(2.1, 0.5, 1.6)
-	var glass := StandardMaterial3D.new()
-	glass.albedo_color = Color(0.02, 0.03, 0.05)
-	glass.roughness = 0.1
-	cm.material = glass
-	cabin.mesh = cm
-	cabin.position = Vector3(X + 7.75, 1.05, -6.0)
-	add_child(cabin)
+	var kit := CLS_Kit.place_stretch(self, "kenney_cars/sedan.glb",
+			Vector3(X + 8.0, 0.02, -6.0), -0.12, 1.35, 1.0, 1.5)
+	var nose_x := X + 10.11
+	if kit != null:
+		nose_x = X + 8.0 + 1.95
+	else:
+		var body := MeshInstance3D.new()
+		var bm := BoxMesh.new()
+		bm.size = Vector3(4.2, 0.55, 1.75)
+		bm.material = paint
+		body.mesh = bm
+		body.position = Vector3(X + 8.0, 0.55, -6.0)
+		add_child(body)
+		var cabin := MeshInstance3D.new()
+		var cm := BoxMesh.new()
+		cm.size = Vector3(2.1, 0.5, 1.6)
+		var glass := StandardMaterial3D.new()
+		glass.albedo_color = Color(0.02, 0.03, 0.05)
+		glass.roughness = 0.1
+		cm.material = glass
+		cabin.mesh = cm
+		cabin.position = Vector3(X + 7.75, 1.05, -6.0)
+		add_child(cabin)
 	var lamp := StandardMaterial3D.new()
 	lamp.albedo_color = Color(1.0, 0.88, 0.65)
 	lamp.emission_enabled = true
@@ -155,7 +165,7 @@ func _car() -> void:
 		hm2.size = Vector3(0.06, 0.12, 0.3)
 		hm2.material = lamp
 		head.mesh = hm2
-		head.position = Vector3(X + 10.11, 0.62, -6.0 + hz)
+		head.position = Vector3(nose_x, 0.62, -6.0 + hz)
 		add_child(head)
 	_label("THE CAR", Vector3(X + 8.0, 2.1, -6.0))
 
