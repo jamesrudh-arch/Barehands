@@ -37,6 +37,7 @@ static func build() -> String:
 	L.append(_render_block())
 	L.append(_audio_block())
 	L.append(_characters_block())
+	L.append(_ambient_block())
 	L.append(_env_block())
 	L.append(_hero_block())
 	L.append(_cinematic_block())
@@ -141,6 +142,29 @@ static func _census_row(n: Node, role: String, cam: Camera3D) -> String:
 	return "%s %s | vis %s | %d m | frustum %s | ~%d px | meshes %d | skel %s | %s %s%s" % [
 			role, str(n.name), str(vis), int(dist), str(in_frustum), px,
 			meshes, str(skel), mat_kind, albedo, fb]
+
+
+## B18.3 (BUG 15, Part 6): the ambient-life facts.
+static func _ambient_block() -> String:
+	var tree := Engine.get_main_loop() as SceneTree
+	var out := "-- AMBIENT LIFE --\n"
+	if tree == null:
+		return out + "no scene tree"
+	var al := tree.get_first_node_in_group("ambient_life")
+	if al == null:
+		return out + "ambient life node NOT FOUND"
+	var insects := int(al.call("insect_count"))
+	var creatures := int(al.call("creature_count"))
+	var swarm: Vector3 = al.call("nearest_lit_swarm")
+	var near := "n/a"
+	if swarm != Vector3.INF:
+		var hero := tree.get_first_node_in_group("player") as Node3D
+		if hero:
+			near = "%d m" % int(hero.global_position.distance_to(swarm))
+	out += "insects: %d (cap %d) | creatures: %d (cap %d) | nearest lit swarm: %s" % [
+			insects, int(al.call("insect_cap")), creatures,
+			int(al.call("creature_cap")), near]
+	return out
 
 
 ## B18.3 (BUG 13): the audio facts - buses, mix rate, device, the
