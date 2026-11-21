@@ -1,0 +1,15 @@
+LEVERAGE (Bare Hands 3D) - BUILD VERSION
+=======================================
+batch:  B16
+code commit: 4a84856  (the game code this build runs)
+built:  2026-11-21 07:11 UTC
+stamp:  B16 4a84856 (2026-11-21 07:11 UTC)
+
+Which folder to import: bare-hands/ (the folder that contains
+project.godot). The build stamp is visible in-game at the top-right
+corner from boot, in the debug menu, and in the SafeBoot log
+(COPY LOG).
+
+The commit that carries this VERSION.txt is one commit ABOVE the
+code commit listed here; compare the top of github.com/
+jamesrudh-arch/Barehands/commits/main with the stamp on your phone.

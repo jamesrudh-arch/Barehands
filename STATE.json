@@ -3,7 +3,7 @@
   "repo": "github.com/jamesrudh-arch/Barehands, main branch",
   "godot": "4.7.2, MOBILE renderer, headless test harness at /tmp/godot",
   "continuation_protocol": "read PROJECT_BIBLE.md + this file; resume at next_step",
-  "current_batch": "Batch 16 (build stamp + SafeBoot + Music-null guards) CLOSE-OUT: battery running; then the vertical slice review",
+  "current_batch": "Batch 16 (build stamp + SafeBoot + Music-null guards) PUSHED: code commit 4a84856 + stamp commit on top; battery 32/32 green; next: the vertical slice review",
   "completed": [
     "Series 1 (look and feel): stability, hero + cinematic camera, wet neon night, punches that hit, pose/stress suites",
     "Series 2 Phase 1 audio (layered hits, puddle footsteps, volume sliders, mute)",
@@ -83,6 +83,6 @@
     "blocks are one loaded neighborhood at a time, not literal streamed scene files (one axis, offset 240 apart, built lazily) - same effect, cheaper; the bible's 'one streamed scene per block' reads satisfied in spirit",
     "the morning report's numbers are first-pass copy (interest/cooling lines state facts the systems computed; no art pass yet)"
   ],
-  "next_step": "Battery green -> two-phase commit (code, then gen_build_info.py B16 + stamp commit) -> push -> verify hash on origin -> zip download/Leverage_B16_2026-11-21.zip (import folder: bare-hands/) -> owner runs SafeBoot on the phone and pastes COPY LOG (the autoload census settles the Music-null root cause; the stamp settles staleness) -> then THE VERTICAL SLICE REVIEW per PROJECT_BIBLE.md (per-section SHIPPED/THIN/MISSING/STRETCH verdicts + gap list ranked by player impact -> docs/SLICE_REVIEW.md)",
+  "next_step": "Owner runs SafeBoot on the phone (boot lands there now): read the corner stamp, COPY LOG, paste it back - the autoload census settles the Music-null root cause and the stamp settles staleness. Then THE VERTICAL SLICE REVIEW per PROJECT_BIBLE.md: walk every section against the shipped game, write docs/SLICE_REVIEW.md with SHIPPED/THIN/MISSING/STRETCH-PENDING verdicts + a gap list ranked by player impact.",
   "battery_last_full_run": "2026-11-19 P0: 18/18 green (see completed list); run pattern: HOME=<fresh dir> per suite, timeout 420, never killed"
 }
