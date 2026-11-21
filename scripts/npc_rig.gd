@@ -5,6 +5,7 @@ const CLS_UalBind := preload("res://scripts/ual_bind.gd")
 ## code accessories (glasses, circlets). Plays one idle clip in a loop.
 
 var _players: Array[AnimationPlayer] = []
+var _current := ""
 
 
 ## pieces: paths to gltf scenes; tint: colour identity; accent: emissive edge.
@@ -48,7 +49,13 @@ func build(pieces: Array, tint: Color, accent: Color, idle_clip := "Idle",
 
 ## Play the clip on EVERY piece (base body and outfits) in lockstep.
 func play(clip: String, _blend := 0.25, speed := 1.0) -> void:
+	_current = clip
 	CLS_UalBind.play_all(_players, clip, 0.25, speed)
+
+
+## The clip the rig is on (state machines read it).
+func current() -> String:
+	return _current
 
 
 func set_speed(speed: float) -> void:

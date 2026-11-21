@@ -266,7 +266,12 @@ func _planks_if_hostile(id: String) -> void:
 			root.add_child(plank)
 
 
-# --- the crowd (thins with the mood; bible 6) --------------------------------
+# --- the crowd (thins with the mood; bible 6 + B19 living city) ------------------
+
+## B19: district densities - the commercial street busy, the
+## residential one calm, the docks working. Halved on the LOW tier;
+## hostile streets empty; friendly streets gain a few.
+const CROWD_DENSITY := {"riverside": 6, "market": 10, "foundry": 4}
 
 
 func _wanderers(id: String) -> void:
@@ -274,11 +279,13 @@ func _wanderers(id: String) -> void:
 	if not root:
 		return
 	var mood := City.mood_of(id)
-	var n := 2
+	var n: int = CROWD_DENSITY.get(id, 5)
 	if mood in ["your street", "friendly"]:
-		n = 4
+		n += 2
 	elif mood in ["hostile", "turning hostile"]:
-		n = 0
+		n = 0  # nobody walks a hot street
+	if Quality != null and Quality.tier == Quality.LOW:
+		n /= 2
 	var crowd := root.get_node_or_null("Crowd") as Node
 	if crowd == null:
 		crowd = Node3D.new()
@@ -288,16 +295,47 @@ func _wanderers(id: String) -> void:
 	# free the surplus or spawn the difference
 	var alive: Array = []
 	for c in crowd.get_children():
-		if not c.is_queued_for_deletion():
+		var slot = (c as Node).get("queue_slot")
+		var in_queue: bool = slot != null and slot != Vector3.ZERO
+		if not c.is_queued_for_deletion() and not in_queue:
 			alive.append(c)
 	while alive.size() > n:
 		(alive.pop_back() as Node).queue_free()
 		Log.info("Blocks: %s thins - nobody walks a hot street" % id)
 	var missing := n - alive.size()
-	for i in missing:
+	var i := 0
+	while i < missing:
 		var w := CLS_Wanderer.new()
 		w.block = id
-		w.home = Vector3(BLOCK_X[id] + randf_range(-14.0, 14.0), 0.0,
-				randf_range(-7.0, 7.0))
+		var side := -1.0 if randf() < 0.5 else 1.0
+		w.home = Vector3(BLOCK_X[id] + randf_range(-16.0, 16.0), 0.0,
+				side * randf_range(9.0, 10.0))
 		crowd.add_child(w)
 		w.spawn()
+		# pairs: every third spawn walks with a partner
+		if i + 1 < missing and i % 3 == 2:
+			var b := CLS_Wanderer.new()
+			b.block = id
+			b.home = w.home + Vector3(0.9, 0.0, 0.0)
+			crowd.add_child(b)
+			b.spawn()
+			w.partner = b
+			b.partner = w
+			i += 1
+		i += 1
+	# the market's club queue (bible 6: the VELVET ROOM front) - a short
+	# line that shuffles and drifts back to the street
+	if id == "market" and n > 0:
+		var queued := 0
+		for c in crowd.get_children():
+			var slot = (c as Node).get("queue_slot")
+			if not c.is_queued_for_deletion() \
+					and slot != null and slot != Vector3.ZERO:
+				queued += 1
+		for qi in range(queued, 3):
+			var q := CLS_Wanderer.new()
+			q.block = id
+			q.queue_slot = Vector3(BLOCK_X[id] - 12.0 + qi * 0.85, 0.0, -10.2)
+			q.home = q.queue_slot
+			crowd.add_child(q)
+			q.spawn()
