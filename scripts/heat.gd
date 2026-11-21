@@ -125,7 +125,16 @@ func _response(_delta: float, p: CharacterBody3D) -> void:
 	_responders = valid
 	for r in _responders.duplicate():
 		if r.state == CLS_Enemy.State.DOWN:
-			_responder_gone(r)
+			# B18.4 stress leak: a downed responder used to be erased from
+			# the list and then stood back up via enemy.gd's respawn - alive
+			# forever, untracked, one whole node tree per fight (the stress
+			# census caught it: +2 enemy.gd and their skeletons at quiesce).
+			# Jobs and Kidnap already drag their downed men off; Heat does
+			# the same: the body lies for a beat, then the street carries
+			# it away - it never gets back up unowned.
+			if float(r.get("_state_t")) > 2.0:
+				(r as Node).queue_free()
+				_responder_gone(r)
 		elif heat < 1.0:
 			(r as Node).queue_free()
 			_responder_gone(r)

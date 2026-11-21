@@ -234,8 +234,15 @@ func _hostile_watch() -> void:
 	# a hostile district keeps two brawlers on the street while you stand in it
 	var want := 2 if hostile.get(_district_now, false) else 0
 	for m in _muscle.duplicate():
-		if not is_instance_valid(m) or m.state == CLS_Enemy.State.DOWN:
+		if not is_instance_valid(m):
 			_muscle.erase(m)
+		elif m.state == CLS_Enemy.State.DOWN:
+			# B18.4 stress leak (same rule as Heat's responders): a downed
+			# man is dragged off after a beat - never an untracked respawn
+			# standing back up inside a hostile district forever.
+			if float(m.get("_state_t")) > 2.0:
+				(m as Node).queue_free()
+				_muscle.erase(m)
 		elif want == 0 or district_at(m.global_position) != _district_now:
 			(m as Node).queue_free()
 			_muscle.erase(m)

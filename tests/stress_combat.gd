@@ -23,6 +23,7 @@ var _style: Control
 var _tick := 0
 var _cycle := 0
 var _fails := 0
+var _census_base := {}  # class/script -> count at _ready, for the leak dump
 
 
 func _offer_up() -> bool:
@@ -72,13 +73,26 @@ func _ready() -> void:
 	_thug = _main.get_node("Thug") as CharacterBody3D
 	_style = get_tree().get_first_node_in_group("style") as Control
 	Fx.hit_landed.connect(func(_kind: String, _pos: Vector3) -> void: _hits += 1)
-	_node_baseline = get_tree().get_node_count()
-	_node_max = _node_baseline
-	Log.info("stress: begin, baseline nodes %d" % _node_baseline)
+	# The baseline is NOT taken here: pickups place themselves a frame
+	# later, the ambience players and the first crowd land within the
+	# first second - counting them as "leaks" measured placement timing,
+	# not life (B18.4: the old baseline made +209 look like a leak when
+	# most of it was the placement contract). Settle first, measure at
+	# tick 90.
+	Log.info("stress: begin, waiting for deferred spawns to settle")
 
 
 func _physics_process(_delta: float) -> void:
 	_tick += 1
+	if _tick == 90:
+		# every deferred spawn has landed (pickups place a frame later,
+		# ambience and crowd within the first second): NOW the baseline
+		# means "the settled street", so any end-count above it is life
+		# that should not still be standing at quiesce.
+		_node_baseline = get_tree().get_node_count()
+		_node_max = _node_baseline
+		_census_base = _tree_census()
+		Log.info("stress: baseline settled at tick 90: %d nodes" % _node_baseline)
 	_cycle = _tick / CYCLE + 1
 	if Engine.time_scale == 1.0:
 		_last_scale_ok_tick = _tick
@@ -240,14 +254,24 @@ func _finish() -> void:
 	_health_check()
 	# B12: quiesce before counting - responders and the style-copier
 	# stand while the heat stands; zero it and let the street sweep the
-	# bodies, so the end count measures leaks, not live combat
+	# bodies, so the end count measures leaks, not live combat.
+	# B18.4: 2.8 s - long enough for a downed body's 2 s linger before
+	# the street carries it off (heat.gd's sweep), so the end count does
+	# not measure mid-carry bodies either.
 	Heat.heat = 0.0
-	await get_tree().create_timer(1.2).timeout
+	await get_tree().create_timer(2.8).timeout
 	var nodes_end := get_tree().get_node_count()
-	# B12: witnesses accelerate heat, "the war" fields the copy on top
-	# of the responders - the honest ceiling is higher now
-	_check(_node_max - _node_baseline <= 220,
-			"node count stable (baseline %d, max %d, end %d)" % [_node_baseline, _node_max, nodes_end])
+	if OS.get_environment("STRESS_LEAK_DUMP") == "1":
+		_leak_dump(nodes_end)
+	# B18.4: two honest bounds. END: what still stands at quiesce after
+	# the sweep - a crowd re-staffed by the mood, an interior built once,
+	# small life; NOT a node tree per fight. SPIKE: live combat standing
+	# at once (responders, the copy, bursts) - big, but it must not grow
+	# with runtime.
+	_check(nodes_end - _node_baseline <= 60,
+			"no leak at quiesce (baseline %d, end %d, +%d)" % [_node_baseline, nodes_end, nodes_end - _node_baseline])
+	_check(_node_max - _node_baseline <= 160,
+			"combat spike bounded (baseline %d, max %d, +%d)" % [_node_baseline, _node_max, _node_max - _node_baseline])
 	_check(Engine.time_scale == 1.0, "time_scale back to 1.0 at exit")
 	_check(_slowmo_seen, "parry slow-mo actually exercised")
 	_check(_punches > 50 and _dodges > 20, "bot actually fought (%d punches, %d dodges)" % [_punches, _dodges])
@@ -272,3 +296,42 @@ func _check(ok: bool, what: String) -> void:
 	if not ok:
 		_fails += 1
 	print("STRESS ok: " if ok else "STRESS FAIL: ", what)
+
+
+# --- leak diagnostics ---------------------------------------------------------
+
+
+## Count every node under root, grouped by class + script file. Used with the
+## baseline snapshot to name exactly WHAT leaked when the end count is high.
+func _tree_census() -> Dictionary:
+	var counts := {}
+	_census_walk(get_tree().root, counts)
+	return counts
+
+
+func _census_walk(n: Node, counts: Dictionary) -> void:
+	var key := n.get_class()
+	var s: Script = n.get_script()
+	if s != null and s.resource_path != "":
+		key += "/" + s.resource_path.get_file()
+	counts[key] = int(counts.get(key, 0)) + 1
+	for c in n.get_children():
+		_census_walk(c, counts)
+
+
+## STRESS_LEAK_DUMP=1 prints the top per-type deltas (end vs baseline) so a
+## node leak is a named list, not just a number.
+func _leak_dump(nodes_end: int) -> void:
+	var now := _tree_census()
+	var rows: Array = []
+	for k in now:
+		var delta := int(now[k]) - int(_census_base.get(k, 0))
+		if delta != 0:
+			rows.append([delta, k])
+	for k in _census_base:
+		if not now.has(k):
+			rows.append([-int(_census_base[k]), k])
+	rows.sort_custom(func(a, b): return absi(a[0]) > absi(b[0]))
+	print("LEAK DUMP: baseline %d -> end %d (+%d)" % [_node_baseline, nodes_end, nodes_end - _node_baseline])
+	for r in rows.slice(0, 25):
+		print("LEAK DUMP: %+d  %s" % [r[0], r[1]])
