@@ -60,9 +60,9 @@ func _build_world() -> void:
 	we.add_to_group("world_env")
 	var env := Environment.new()
 	env.background_mode = Environment.BG_COLOR
-	env.background_color = Color(0.012, 0.014, 0.022)
+	env.background_color = Color(0.016, 0.015, 0.016)
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(0.16, 0.19, 0.26)
+	env.ambient_light_color = Color(0.19, 0.185, 0.18)  # B19: neutral charcoal, not blue
 	env.ambient_light_energy = 1.0
 	env.tonemap_mode = Environment.TONE_MAPPER_ACES
 	env.glow_intensity = 0.5

@@ -1,5 +1,53 @@
 # CHANGELOG.md — batch history (newest first)
 
+## B19 — the full-game directive (2026-11-21)
+
+The owner's 25-part directive (upload/Pasted Content_1795296041873.txt):
+research first, purge placeholders, build the living city. Research +
+audit + plan: docs/B19_PLAN.md. Batches in order:
+
+- **1+2 (assets + placeholders)**: 80 new Kenney CC0 models + 10
+  explosion-pack sprites (industrial, suburban, traffic pool,
+  140-model furniture, food); the MERIDIAN warehouse box -> two
+  industrial sheds (collision/door/signs kept), dock containers ->
+  tinted textured crates + a working dock (chimney, tank, truck,
+  cargo), alley annexes/garages -> real outbuildings, suburban back
+  row, the jobs hostage / trainer / whole title cast -> real UBC
+  characters, the hero textured (native import + per-mesh rebind);
+  smoke_kits 70 checks.
+- **5 (living city)**: wanderer.gd rewritten as a real pedestrian -
+  pavement graph, crossings with two-way traffic courtesy, browsing,
+  phones, pairs, club queue, fight reactions (watch/record/flee),
+  district densities + clothing tints; smoke_crowd 12.
+- **6 (traffic)**: a Traffic autoload - lane graph per block, a pool
+  of six real vehicles, braking for hero/pedestrians/cars, head and
+  brake lights, spinning wheels, one shared light, a synthesised
+  engine hum; also fixes the parked sedan's sideways body; smoke_traffic 9.
+- **7 (weather)**: a Weather autoload - four states with slow drift,
+  wind, rain amount/tilt/splash answering the sky, puddle ripple
+  rings, rain audio follows, traffic slows, walkers hurry; smoke_weather 10.
+- **8 (fire)**: a Fire autoload - layered flames (core/outer/embers,
+  CC0 sprites), wind-drifted smoke, steam-on-rain, burn barrels as
+  slam_fire surfaces, scorch decals from a recycled pool of 8, at
+  most 2 flicker lights, synthesised crackle; the noodle grill;
+  dust/spark sprite bursts on takedowns and parries; smoke_fire 10.
+- **9 (interiors)**: five furnished rooms - the apartment and noodle
+  shop dressed from the kits, plus three NEW venues on the market
+  block (IRON PALM GYM with swinging bags, THE RAIN GLASS bar, THE
+  VELVET ROOM club with dancers on the UAL Dance clip); the street
+  fence exempts them all; smoke_interiors 12.
+- **10 (lighting)**: the de-blue pass - neutral charcoal ambient/fog/
+  background, a desaturated moon, neutral asphalt/sidewalk/facade
+  colours (Part 15); the phone judges the final read.
+- **3+4 (verified)**: controls/combos/stick/map suites green; the
+  Part 8 animation map audited (guard = braced pose by design,
+  combos drive cross/hook, dodge = Roll, grab = Push).
+- **11 (validation)**: tests/final_audit.gd - the final-content
+  validator (placeholder hunt, blank-surface report, hero texture,
+  the living systems alive, five doors, emission law, world bounds):
+  16/16 PASS; smoke_pose fixed for the dressed enemy (all players in
+  lockstep); the battery grows to 42 suites.
+
 ## B18.4 — push, the stress leak, and the CC0 street (2026-11-21)
 
 Three jobs from the owner, in order:

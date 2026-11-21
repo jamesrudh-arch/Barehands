@@ -10,9 +10,9 @@ extends Node3D
 ## containers, the water, a crane. The market<->foundry ends wear the
 ## underpass the bible digs between them.
 
-const ASPHALT := Color(0.055, 0.055, 0.065)
-const SIDEWALK := Color(0.16, 0.16, 0.17)
-const FACE := Color(0.09, 0.09, 0.115)
+const ASPHALT := Color(0.055, 0.055, 0.058)
+const SIDEWALK := Color(0.16, 0.155, 0.15)
+const FACE := Color(0.09, 0.088, 0.09)
 const CLS_Kit := preload("res://scripts/kit.gd")
 
 ## The kit buildings _building() cycles through (tall first) so adjacent
