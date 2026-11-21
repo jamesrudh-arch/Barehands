@@ -348,7 +348,10 @@ func _foundry() -> void:
 	_underpass(Vector3(-16.5, 0, 0), 1)
 	# B18.4: roadworks against the warehouse wall (the dock repairs)
 	_construction(Vector3(-6.5, 0, -4.8), -0.1)
-	# the warehouse: big, dark, the final choice's door shut for now
+	# the warehouse: big, dark, the final choice's door shut for now.
+	# B19: the placeholder box gives way to the Kenney industrial kit -
+	# two shed segments carry the 26 m volume; the collision, the door
+	# group and the signs stay exactly where the story expects them.
 	var wh := StaticBody3D.new()
 	wh.position = Vector3(2.0, 5.0, -13.0)
 	var col := CollisionShape3D.new()
@@ -365,6 +368,13 @@ func _foundry() -> void:
 	mesh.mesh = bm
 	wh.add_child(mesh)
 	add_child(wh)
+	var sheds := 0
+	for seg in [-4.5, 8.5]:
+		if CLS_Kit.place_stretch(self, "kenney_industrial/building-l.glb",
+				Vector3(seg, 0.0, -13.0), 0.0, 6.25, 5.2, 6.4) != null:
+			sheds += 1
+	if sheds == 2:
+		mesh.visible = false  # the box hides; collision + door + signs stay
 	var door := MeshInstance3D.new()
 	door.add_to_group("warehouse_door")
 	var dm := BoxMesh.new()
@@ -388,7 +398,19 @@ func _foundry() -> void:
 	keep_out.font_size = 40
 	keep_out.position = Vector3(2.0, 2.2, -6.8)
 	add_child(keep_out)
-	# containers on the south side
+	# B19: the dock works - a chimney stack, a fuel tank, a truck at the
+	# loading wall and stacked cargo (all Kenney industrial / car kit)
+	CLS_Kit.place(self, "kenney_industrial/chimney-medium.glb",
+			Vector3(-13.0, 0.0, -17.5), 0.0, 2.2)
+	CLS_Kit.place(self, "kenney_industrial/detail-tank.glb",
+			Vector3(15.2, 0.0, -17.0), 0.5, 2.0)
+	CLS_Kit.place(self, "kenney_traffic/truck.glb",
+			Vector3(11.5, 0.0, -8.8), PI / 2.0, 1.35)
+	for b in [Vector3(-11.5, 0.0, -8.2), Vector3(-10.2, 1.15, -8.2),
+			Vector3(-11.0, 0.0, -6.9)]:
+		CLS_Kit.place(self, "kenney_traffic/box.glb", b, 0.3, 1.6)
+	# containers on the south side. B19: the plain boxes wear the car
+	# kit's textured cargo crates, tinted per the dock palette
 	var palette := [Color(0.55, 0.2, 0.12), Color(0.15, 0.4, 0.5),
 			Color(0.5, 0.45, 0.15), Color(0.3, 0.3, 0.32)]
 	var ci := 0
@@ -411,6 +433,18 @@ func _foundry() -> void:
 		cm.mesh = cmm
 		cb.add_child(cm)
 		add_child(cb)
+		var crate := CLS_Kit.place_stretch(self, "kenney_traffic/box.glb",
+				c, (0.4 if ci % 2 == 0 else -0.3), 7.0, 3.66, 3.38)
+		if crate:
+			cm.visible = false
+			CLS_Kit.tint(crate, palette[ci % palette.size()], 0.5)
+			if ci == 0:
+				var stencil := Label3D.new()
+				stencil.text = "MERIDIAN"
+				stencil.modulate = Color(0.85, 0.8, 0.7, 0.85)
+				stencil.font_size = 96
+				stencil.position = Vector3(0, 0.15, 1.25)
+				crate.add_child(stencil)
 		ci += 1
 	# the water past the east rail
 	var water := MeshInstance3D.new()

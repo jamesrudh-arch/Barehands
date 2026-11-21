@@ -51,17 +51,42 @@ const PIECE_DRESS := {
 	"Beard": Color(0.13, 0.09, 0.06),     # dark brown
 }
 
+## B19: the shipped texture set per piece. The gltf pieces point at
+## files that never shipped (T_Regular_Male_*), which is why the hero
+## rendered flat - these ARE in the repo, so the untextured fallback
+## binds them before falling back to flat colour.
+const PIECE_TEXTURES := {
+	"Body": "res://assets/hero/T_Superhero_Male_Dark.png",
+	"Torso": "res://assets/hero/T_Ranger_BaseColor.png",
+	"Arms": "res://assets/hero/T_Ranger_BaseColor.png",
+	"Legs": "res://assets/hero/T_Ranger_BaseColor.png",
+	"Boots": "res://assets/hero/T_Ranger_BaseColor.png",
+	"Beard": "res://assets/hero/T_Hair_1_BaseColor.png",
+}
+
 
 func _dress_fallback() -> void:
+	# B19: per MESH, not per piece - a fresh import resolves most of the
+	# shipped textures natively; whatever still has none gets the rebind
+	# (the shipped set for that piece) or, as the last resort, the flat
+	# noir colour. No mesh ships untextured on purpose.
 	for piece in get_children():
 		if not (piece is Node3D):
 			continue
-		var textured := false
+		var tex_path: String = PIECE_TEXTURES.get(piece.name, "")
+		var tex: Texture2D = null
+		if tex_path != "" and ResourceLoader.exists(tex_path):
+			tex = load(tex_path)
+		var flat := StandardMaterial3D.new()
+		flat.albedo_color = PIECE_DRESS.get(piece.name,
+				Color(0.14, 0.13, 0.16))
+		flat.roughness = 0.85
 		var meshes: Array[MeshInstance3D] = []
 		_collect_meshes(piece, meshes)
 		for mi in meshes:
 			if mi.mesh == null:
 				continue
+			var textured := false
 			for s in mi.mesh.get_surface_count():
 				var m: Material = mi.mesh.surface_get_material(s)
 				if m is StandardMaterial3D \
@@ -69,15 +94,17 @@ func _dress_fallback() -> void:
 					textured = true
 					break
 			if textured:
-				break
-		if textured or meshes.is_empty():
-			continue
-		var mat := StandardMaterial3D.new()
-		mat.albedo_color = PIECE_DRESS.get(piece.name,
-				Color(0.14, 0.13, 0.16))
-		mat.roughness = 0.85
-		for mi in meshes:
-			mi.material_override = mat
+				continue  # the authored look stays
+			if tex != null:
+				var tmat := StandardMaterial3D.new()
+				tmat.albedo_texture = tex
+				# a cool noir grade over the authored colours (albedo
+				# multiplies the texture - the night lights do the rest)
+				tmat.albedo_color = Color(0.85, 0.83, 0.88)
+				tmat.roughness = 0.85
+				mi.material_override = tmat
+			else:
+				mi.material_override = flat
 
 
 func _collect_meshes(n: Node, out: Array[MeshInstance3D]) -> void:

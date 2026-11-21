@@ -1,0 +1,8 @@
+Additional Kenney packs (B19, all CC0 1.0 - kenney.nl):
+- City Kit Industrial (buildings, chimneys, tank) - the docks block
+- City Kit Suburban (residential buildings, fence) - background depth
+- Car Kit (police, suv, hatchback, van, truck, cargo box) - traffic
+- Furniture Kit (beds, sofas, tables, kitchen, lamps, plants) - interiors
+- Food Kit (skewers, pans, coffee) - the noodle shop
+- Explosion Pack (smoke/fire cloud sprites, burst) - particle textures
+Via https://github.com/series-ai/jam-ready-assets (git-lfs media CDN)

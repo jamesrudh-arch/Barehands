@@ -4,14 +4,15 @@
 Parses the GLB JSON chunk only (same safe approach as inspect_glb.py).
 The node transform chain is ignored (Kenney kit models are single-node,
 unscaled), so accessor min/max IS the usable footprint.
-Usage: python3 -I tools/kits_report.py
+Usage: python3 -I tools/kits_report.py [root_dir]
 """
 import json
 import pathlib
 import struct
 import sys
 
-KIT_ROOT = pathlib.Path("/home/z/my-project/assets/kits")
+KIT_ROOT = pathlib.Path(sys.argv[1] if len(sys.argv) > 1
+                        else "/home/z/my-project/assets/kits")
 
 
 def glb_json(data: bytes) -> dict:

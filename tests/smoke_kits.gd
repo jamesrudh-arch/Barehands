@@ -35,7 +35,15 @@ func _ready() -> void:
 			"kenney_commercial/building-d.glb", "kenney_city/building-small-d.glb",
 			"kenney_city/pavement.glb", "kenney_roads/road-straight.glb",
 			"kenney_roads/light-curved-double.glb",
-			"kenney_roads/construction-barrier.glb", "kenney_cars/sedan.glb"]:
+			"kenney_roads/construction-barrier.glb", "kenney_cars/sedan.glb",
+			# B19 kits: the docks, the traffic pool, the homes, the rooms
+			"kenney_industrial/building-l.glb", "kenney_industrial/chimney-medium.glb",
+			"kenney_industrial/detail-tank.glb", "kenney_traffic/truck.glb",
+			"kenney_traffic/box.glb", "kenney_traffic/police.glb",
+			"kenney_traffic/suv.glb", "kenney_traffic/van.glb",
+			"kenney_suburban/building-type-a.glb", "kenney_suburban/building-type-c.glb",
+			"kenney_furniture/bedSingle.glb", "kenney_furniture/loungeSofa.glb",
+			"kenney_furniture/stoolBar.glb", "kenney_food/skewer.glb"]:
 		_check(CLS_Kit.available(rel), "kit imports: %s" % rel)
 
 	# 2. the main street's six placeholder box plots wear kit buildings,
@@ -144,6 +152,62 @@ func _ready() -> void:
 	# 9. blocks 2 and 3 dress from the same kits
 	await _check_blocks()
 
+	# 10. B19: the alley and the back row - annexes, garages, suburban
+	#     depth behind the north shopfronts
+	var alley_kits := 0
+	var alley_hidden := 0
+	for p in ["Parkour/Annex1", "Parkour/Annex2", "Parkour/Garage1", "Parkour/Garage2"]:
+		var b: Node3D = main.get_node_or_null(p)
+		if b == null:
+			continue
+		for c in b.get_children():
+			if c is MeshInstance3D and not (c as MeshInstance3D).visible:
+				alley_hidden += 1
+				break
+	for c in main.get_children():
+		if c.name.begins_with("Kit_building_type") or c.name.begins_with("Kit_building_garage"):
+			alley_kits += 1
+	_check(alley_kits == 7, "alley outbuildings + suburban back row (%d kits)" % alley_kits)
+	_check(alley_hidden == 4, "the four alley box meshes hide (%d)" % alley_hidden)
+
+	# 11. B19: the hero wears real textures - natively resolved by the
+	#     import, or rebound per mesh (both count; flat is the failure)
+	var hero_textured := 0
+	var hero: Node3D = main.find_child("Hero", true, false)
+	if hero:
+		for mi in hero.find_children("*", "MeshInstance3D", true, false):
+			if (mi as MeshInstance3D).mesh == null:
+				continue
+			var done := false
+			var om: Material = (mi as MeshInstance3D).material_override
+			if om is StandardMaterial3D \
+					and (om as StandardMaterial3D).albedo_texture != null:
+				done = true
+			else:
+				for s in (mi as MeshInstance3D).mesh.get_surface_count():
+					var m: Material = (mi as MeshInstance3D).mesh.surface_get_material(s)
+					if m is StandardMaterial3D \
+							and (m as StandardMaterial3D).albedo_texture != null:
+						done = true
+						break
+			if done:
+				hero_textured += 1
+	_check(hero != null and hero_textured >= 6,
+			"the hero's meshes carry real textures (%d)" % hero_textured)
+
+	# 12. B19: the trainer is a real character, the fx sprites load
+	var trainer := get_tree().get_first_node_in_group("trainer")
+	var trainer_rig := false
+	if trainer:
+		for c in trainer.get_children():
+			if c.get_script() != null and "npc_rig" in str(c.get_script().resource_path):
+				trainer_rig = true
+	_check(trainer != null and trainer_rig,
+			"the trainer is a real UBC character (no capsule)")
+	for fx in ["smoke_1.png", "fire_1.png", "fire_core_1.png", "spark_burst.png"]:
+		_check(ResourceLoader.exists("res://assets/fx/" + fx),
+				"fx sprite ships: %s" % fx)
+
 	if _fails == 0:
 		print("KITS PASS (%d checks)" % _checks)
 		get_tree().quit(0)
@@ -187,6 +251,8 @@ func _check_blocks() -> void:
 		var buildings := 0
 		var road_rows := 0
 		var construction := 0
+		var crates := 0
+		var dock := 0
 		for c in b.get_children():
 			if c is Node3D and c.name.begins_with("Kit_"):
 				kits += 1
@@ -196,12 +262,18 @@ func _check_blocks() -> void:
 					buildings += 1
 				if c.name.begins_with("Kit_construction"):
 					construction += 1
+				if c.name.begins_with("Kit_box"):
+					crates += 1
+				if c.name.begins_with("Kit_truck") \
+						or c.name.begins_with("Kit_chimney") \
+						or c.name.begins_with("Kit_detail_tank"):
+					dock += 1
 			if c.name.begins_with("KitRow_"):
 				kits += 1
 				road_rows += 1
-		var want_buildings := 5 if block_id == "market" else 0
+		var want_buildings := 5 if block_id == "market" else 2
 		var want_construction := 4
-		var want_kits := 18 if block_id == "market" else 11
+		var want_kits := 18 if block_id == "market" else 22
 		_check(buildings == want_buildings,
 				"%s: kit buildings on the plots (%d)" % [block_id, buildings])
 		_check(road_rows == 1, "%s: the marked road lane tiles (%d rows)" % [block_id, road_rows])
@@ -214,4 +286,21 @@ func _check_blocks() -> void:
 				if c.name.begins_with("Kit_detail_awning"):
 					awnings += 1
 			_check(awnings == 2, "market: awnings over the club fronts (%d)" % awnings)
+		else:
+			# the foundry: the warehouse sheds carry the old box volume,
+			# the containers wear textured crates, the dock works
+			_check(crates >= 8, "foundry: textured cargo crates (%d)" % crates)
+			_check(dock == 3, "foundry: the dock works - truck, chimney, tank (%d)" % dock)
+			var wh_box_hidden := false
+			for c in b.get_children():
+				if c is StaticBody3D:
+					for mc in (c as Node).get_children():
+						var wmesh := mc as MeshInstance3D
+						if wmesh and not wmesh.visible and wmesh.mesh is BoxMesh \
+								and (wmesh.mesh as BoxMesh).size.x > 20.0:
+							wh_box_hidden = true
+			_check(wh_box_hidden, "foundry: the warehouse placeholder box hides")
+			_check(b.find_child("warehouse_door", true, false) != null
+					or b.get_tree().get_nodes_in_group("warehouse_door").size() > 0,
+					"foundry: the MERIDIAN door group survives")
 		b.queue_free()

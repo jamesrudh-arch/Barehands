@@ -673,7 +673,45 @@ func _kits() -> void:
 		for side in [-1.0, 1.0]:
 			if CLS_Kit.lamp(main, Vector3(lx, 0, side * 7.2), side):
 				placed += 1
+	# B19: the back-alley annexes and garages wear real models (the
+	# parkour collision tops stay exactly where the vaults expect them)
+	placed += _kit_alley(main)
+	# B19: a residential back row behind the north shopfronts - the
+	# riverside is a neighbourhood, not a single street wall
+	for spec in [["kenney_suburban/building-type-b.glb", -6.0, -0.6],
+			["kenney_suburban/building-type-d.glb", 5.0, 0.3],
+			["kenney_suburban/building-type-c.glb", 12.5, -0.9]]:
+		var k := CLS_Kit.place(main, spec[0],
+				Vector3(spec[1], 0.0, -17.5 + spec[2]), 0.15, 9.0)
+		if k:
+			placed += 1
 	Log.info("StreetKits: %d CC0 kit models placed on the main street" % placed)
+
+
+## The Parkour alley: annexes -> suburban outbuildings, garages -> real
+## garage models with roll-up doors. Crates stay code-built on purpose
+## (wood-surface parkour boxes; a crate's real shape IS a box). Returns
+## the number of kits placed.
+func _kit_alley(main: Node) -> int:
+	var placed := 0
+	for spec in [
+			["Parkour/Annex1", "kenney_suburban/building-type-a.glb", 1.7, 4.1, 2.1],
+			["Parkour/Annex2", "kenney_suburban/building-type-c.glb", 1.7, 5.5, 2.1],
+			["Parkour/Garage1", "kenney_city/building-garage.glb", 3.5, 5.8, 3.5],
+			["Parkour/Garage2", "kenney_city/building-garage.glb", 3.5, 5.8, 3.5]]:
+		var b := main.get_node_or_null(spec[0]) as Node3D
+		if b == null:
+			continue
+		var mesh_mi := b.get_node_or_null("Mesh") as MeshInstance3D
+		if mesh_mi == null:
+			continue
+		var k := CLS_Kit.place_stretch(main, spec[1],
+				Vector3(b.position.x, 0.0, b.position.z),
+				0.0, spec[2], spec[3], spec[4])
+		if k:
+			mesh_mi.visible = false
+			placed += 1
+	return placed
 
 
 ## One building: uniform scale from the plot height, front face parked on

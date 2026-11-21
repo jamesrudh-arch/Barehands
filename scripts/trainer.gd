@@ -1,20 +1,22 @@
 extends Node3D
 const CLS_Enemy := preload("res://scripts/enemy.gd")
-## The fight-club trainer - PLACEHOLDER (combo pass PART 3). The owner's
-## LEVERAGE bible (PROJECT_BIBLE.md) names no "Knuckle Room": the fight
-## club is the Block 2 gym + the underground tournaments. Until that batch
-## lands, the trainer stands by the training dummy as a hook: walking up
-## greets the player (a hint) and the hero's GRAB near the trainer opens
-## the MOVES screen to teach and practise. The real gym is in the club
-## quarter (walk east through the gate; bible 6 places the fight club
-## there with the underground tournaments) - the tournament batch wires
-## its door and replaces this silhouette.
+const CLS_NpcRig := preload("res://scripts/npc_rig.gd")
+## The fight-club trainer. The owner's LEVERAGE bible (PROJECT_BIBLE.md)
+## names no "Knuckle Room": the fight club is the Block 2 gym + the
+## underground tournaments. Until that batch lands, the trainer stands
+## by the training dummy as a hook: walking up greets the player (a
+## hint) and the hero's GRAB near the trainer opens the MOVES screen to
+## teach and practise. The real gym is in the club quarter (walk east
+## through the gate; bible 6 places the fight club there with the
+## underground tournaments) - the tournament batch wires its door.
+## B19: the placeholder capsule is gone - a real UBC character wears
+## the coach coat and the fedora.
 
 const RADIUS := 1.4  # close enough that a combat grab near enemies is never hijacked
 
 var _player: Node3D
 var _hinted := false
-var _figure: MeshInstance3D
+var _figure: Node3D
 
 
 func _ready() -> void:
@@ -23,19 +25,12 @@ func _ready() -> void:
 
 
 func _build_figure() -> void:
-	# a read-at-a-glance silhouette: broad coat-coloured body + hat disc
-	var body := MeshInstance3D.new()
-	var cm := CapsuleMesh.new()
-	cm.radius = 0.34
-	cm.height = 1.75
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(0.16, 0.10, 0.22)
-	mat.roughness = 0.85
-	cm.material = mat
-	body.mesh = cm
-	body.position = Vector3(0, 0.9, 0)
-	add_child(body)
-	_figure = body
+	# B19: a real Universal Base Character in the coach coat, hat on top
+	var rig := CLS_NpcRig.new()
+	rig.build(["res://assets/cast/Male_Peasant_Body.gltf"],
+			Color(0.16, 0.10, 0.22), Color(0.3, 0.2, 0.45), "Idle", 0.9)
+	add_child(rig)
+	_figure = rig
 	var hat := MeshInstance3D.new()
 	var hm := CylinderMesh.new()
 	hm.top_radius = 0.05
@@ -45,7 +40,7 @@ func _build_figure() -> void:
 	hmat.albedo_color = Color(0.08, 0.07, 0.09)
 	hm.material = hmat
 	hat.mesh = hm
-	hat.position = Vector3(0, 1.86, 0)
+	hat.position = Vector3(0, 1.84, 0)
 	add_child(hat)
 
 

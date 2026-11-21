@@ -1,4 +1,5 @@
 extends Node3D
+const CLS_NpcRig := preload("res://scripts/npc_rig.gd")
 
 ## B18.3 PART 0B (BUG 17): the TITLE KEY ART - a real-time 3D scene in
 ## the big-open-world-cover style. A huge EXTRUDED LEVERAGE (TextMesh)
@@ -171,9 +172,11 @@ func _build_logo() -> void:
 	add_child(_logo_mirror)
 
 
-## A posed figure: body, head, arms - distinct per role by colour,
-## scale and silhouette props. All code-built (the real character
-## rigs come with the CC0 asset pass; logged).
+## A posed figure - B19: a REAL Universal Base Character (idle clip
+## running, never a T-pose) carrying the fog-silhouette treatment: the
+## emissive body material rides on top as an override, so the cast
+## reads as shaped silhouettes with a rim, not capsules. Distinct per
+## role by colour, scale, model and silhouette props.
 func _figure(pos: Vector3, colour: Color, opts := {}) -> Node3D:
 	var fig := Node3D.new()
 	fig.position = pos
@@ -182,37 +185,19 @@ func _figure(pos: Vector3, colour: Color, opts := {}) -> Node3D:
 	body_mat.emission_enabled = true
 	body_mat.emission = colour * 0.8
 	body_mat.emission_energy_multiplier = 0.07
-	var body := MeshInstance3D.new()
-	var cap := CapsuleMesh.new()
-	cap.radius = 0.26 * float(opts.get("scale", 1.0))
-	cap.height = 1.15 * float(opts.get("scale", 1.0))
-	cap.material = body_mat
-	body.mesh = cap
-	body.position = Vector3(0, 0.75 * float(opts.get("scale", 1.0)), 0)
-	fig.add_child(body)
-	var head := MeshInstance3D.new()
-	var s := SphereMesh.new()
-	s.radius = 0.16 * float(opts.get("scale", 1.0))
-	s.height = 0.32 * float(opts.get("scale", 1.0))
-	var hm := body_mat.duplicate() as StandardMaterial3D
-	hm.albedo_color = Color(0.75, 0.62, 0.52)
-	hm.emission_energy_multiplier = 0.04
-	s.material = hm
-	head.mesh = s
-	head.position = Vector3(0, 1.55 * float(opts.get("scale", 1.0)), 0)
-	fig.add_child(head)
+	var rig := CLS_NpcRig.new()
+	rig.build([opts.get("model",
+			"res://assets/hero/Superhero_Male_FullBody.gltf")],
+			colour, colour * 0.4, "Idle",
+			float(opts.get("idle_speed", 0.85)))
+	var s := float(opts.get("scale", 1.0))
+	rig.scale = Vector3(s, s, s)
+	# the silhouette treatment: one emissive material over every surface
+	for mi in rig.find_children("*", "MeshInstance3D", true, false):
+		(mi as MeshInstance3D).material_override = body_mat
+	fig.add_child(rig)
 	if opts.get("stance", "") == "fight":
-		for side in [-1.0, 1.0]:
-			var arm := MeshInstance3D.new()
-			var ac := CapsuleMesh.new()
-			ac.radius = 0.07
-			ac.height = 0.55
-			ac.material = body_mat
-			arm.mesh = ac
-			arm.position = Vector3(side * 0.34, 1.05, 0.12)
-			arm.rotation = Vector3(-0.9, 0, side * 0.25)
-			fig.add_child(arm)
-		# the lit eyes
+		# the lit eyes (the noir hero read)
 		for side in [-1.0, 1.0]:
 			var eye := MeshInstance3D.new()
 			var eq := QuadMesh.new()
@@ -226,7 +211,7 @@ func _figure(pos: Vector3, colour: Color, opts := {}) -> Node3D:
 			em.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
 			eq.material = em
 			eye.mesh = eq
-			eye.position = Vector3(side * 0.055, 1.57, 0.14)
+			eye.position = Vector3(side * 0.055, 1.62 * s, 0.12)
 			fig.add_child(eye)
 	elif opts.get("hat", false):
 		var brim := MeshInstance3D.new()
@@ -236,41 +221,44 @@ func _figure(pos: Vector3, colour: Color, opts := {}) -> Node3D:
 		bc.height = 0.05
 		bc.material = body_mat
 		brim.mesh = bc
-		brim.position = Vector3(0, 1.66, 0)
+		brim.position = Vector3(0, 1.72 * s, 0)
 		fig.add_child(brim)
-	elif opts.get("broad", false):
-		for side in [-1.0, 1.0]:
-			var shoulder := MeshInstance3D.new()
-			var sc := SphereMesh.new()
-			sc.radius = 0.14
-			sc.height = 0.28
-			sc.material = body_mat
-			shoulder.mesh = sc
-			shoulder.position = Vector3(side * 0.3, 1.22, 0)
-			fig.add_child(shoulder)
 	return fig
 
 
 func _build_cast() -> void:
-	# BACK ROW: the three bosses, raised, back in the fog
+	# BACK ROW: the three bosses, raised, back in the fog - each a real
+	# UBC character now (B19), silhouetted by the emissive override
 	add_child(_figure(Vector3(-3.4, 0.6, -7.5), Color(0.10, 0.10, 0.13),
-			{"hat": true, "scale": 1.05}))       # the Family boss
+			{"hat": true, "scale": 1.05,
+				"model": "res://assets/cast/Male_Knight_Body_Armor.gltf"}))  # the Family boss
 	add_child(_figure(Vector3(0.0, 0.6, -8.5), Color(0.12, 0.16, 0.22),
-			{"broad": true, "scale": 1.0}))      # the Corporation
+			{"broad": true, "scale": 1.0,
+				"model": "res://assets/cast/Superhero_Female_FullBody.gltf"}))  # the Corporation
 	add_child(_figure(Vector3(3.4, 0.6, -7.5), Color(0.28, 0.10, 0.10),
-			{"scale": 1.0}))                     # the Crew leader
-	# MIDDLE ROW: the crew behind the logo, evenly spaced
+			{"scale": 1.0,
+				"model": "res://assets/cast/Male_Peasant_Body.gltf"}))  # the Crew leader
+	# MIDDLE ROW: the crew behind the logo, evenly spaced - mixed bodies
+	# so no two neighbours wear the same silhouette
 	var crew_colours := [Color(0.3, 0.24, 0.18), Color(0.16, 0.2, 0.26),
 			Color(0.24, 0.14, 0.12), Color(0.36, 0.3, 0.16),
 			Color(0.14, 0.24, 0.18), Color(0.2, 0.16, 0.26)]
+	var crew_models := ["res://assets/cast/Male_Peasant_Body.gltf",
+			"res://assets/cast/Female_Ranger_Body.gltf",
+			"res://assets/cast/Male_Knight_Body_Armor.gltf",
+			"res://assets/hero/Superhero_Male_FullBody.gltf",
+			"res://assets/cast/Superhero_Female_FullBody.gltf",
+			"res://assets/cast/Male_Peasant_Body.gltf"]
 	for i in crew_colours.size():
 		var x := -7.5 + float(i) * 3.0
 		add_child(_figure(Vector3(x, 0.0, -3.0), crew_colours[i],
-				{"scale": 0.92}))
-	# FRONT RIGHT: the hero, larger, fighting stance, eyes lit
+				{"scale": 0.92, "model": crew_models[i]}))
+	# FRONT RIGHT: the hero, larger, fighting stance, eyes lit - the
+	# hero's own model
 	add_child(_figure(Vector3(5.2, 0.0, 4.2), Color(0.14, 0.15, 0.19),
-			{"stance": "fight", "scale": 1.25}))
-	Log.info("TitleStage: cast placed (placeholder posed figures - real rigs come with the asset pass)")
+			{"stance": "fight", "scale": 1.25,
+				"model": "res://assets/hero/Superhero_Male_FullBody.gltf"}))
+	Log.info("TitleStage: cast placed (real UBC characters, idle clips running)")
 
 
 func _process(delta: float) -> void:

@@ -1,5 +1,6 @@
 extends Node
 const CLS_Enemy := preload("res://scripts/enemy.gd")
+const CLS_NpcRig := preload("res://scripts/npc_rig.gd")
 ## The jobs (bible 4F): five templates, ten core jobs, the three-beat
 ## spine of the 30-minute loop. A job is taken from the phone's board
 ## (that costs a Beat), scouted by walking its district (the marker
@@ -254,18 +255,25 @@ func _build_marker(color: Color, pos: Vector3) -> MeshInstance3D:
 
 
 func _spawn_hostage(pos: Vector3) -> void:
-	var b := MeshInstance3D.new()
-	var cap := CapsuleMesh.new()
-	cap.radius = 0.35
-	cap.height = 1.5
-	b.mesh = cap
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(0.75, 0.72, 0.62)
-	b.material_override = mat
-	b.position = pos + Vector3(0.9, 0.75, 0.0)
-	b.add_to_group("job_prop")
-	get_tree().current_scene.add_child(b)
-	_props.append(b)
+	# B19: the hostage is a real person now, not a capsule - a UBC
+	# character in pale clothes, hands-off posture, tagged. Same group,
+	# same prop bookkeeping.
+	var rig := CLS_NpcRig.new()
+	rig.build(["res://assets/cast/Female_Ranger_Body.gltf",
+			"res://assets/cast/Female_Ranger_Legs.gltf"],
+			Color(0.75, 0.72, 0.62), Color(0.4, 0.38, 0.3), "Idle", 0.55)
+	rig.position = pos + Vector3(0.9, 0.0, 0.0)
+	rig.add_to_group("job_prop")
+	var tag := Label3D.new()
+	tag.text = "HOSTAGE"
+	tag.modulate = Color(1.0, 0.55, 0.4, 0.9)
+	tag.font_size = 40
+	tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	tag.outline_size = 8
+	tag.position = Vector3(0, 2.0, 0)
+	rig.add_child(tag)
+	get_tree().current_scene.add_child(rig)
+	_props.append(rig)
 
 
 func _spawn_enemy(j: Dictionary, kind: int) -> void:

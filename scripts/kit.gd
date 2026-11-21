@@ -45,6 +45,66 @@ const DIMS := {
 	"kenney_roads/road-curve-pavement.glb": Vector3(2.0, 0.02, 2.0),
 	"kenney_roads/road-intersection.glb": Vector3(1.0, 0.02, 1.0),
 	"kenney_roads/road-straight.glb": Vector3(1.0, 0.02, 1.0),
+	# B19 kits (real-scale metres for furniture/food; the city kits stay
+	# Kenney-normalised ~1-2.5 m blocks - dims from tools/kits_report.py)
+	"kenney_industrial/building-a.glb": Vector3(2.08, 1.47, 1.24),
+	"kenney_industrial/building-l.glb": Vector3(2.08, 1.92, 1.87),
+	"kenney_industrial/chimney-medium.glb": Vector3(0.45, 1.92, 0.45),
+	"kenney_industrial/chimney-large.glb": Vector3(1.0, 1.7, 1.0),
+	"kenney_industrial/detail-tank.glb": Vector3(0.85, 0.42, 0.52),
+	"kenney_suburban/building-type-a.glb": Vector3(1.3, 0.83, 1.03),
+	"kenney_suburban/building-type-b.glb": Vector3(1.83, 1.14, 1.14),
+	"kenney_suburban/building-type-c.glb": Vector3(1.29, 1.03, 1.03),
+	"kenney_suburban/building-type-d.glb": Vector3(1.76, 1.24, 1.03),
+	"kenney_traffic/police.glb": Vector3(1.5, 1.4, 2.9),
+	"kenney_traffic/suv.glb": Vector3(1.5, 1.4, 2.55),
+	"kenney_traffic/hatchback-sports.glb": Vector3(1.3, 1.25, 2.85),
+	"kenney_traffic/van.glb": Vector3(1.5, 1.45, 2.75),
+	"kenney_traffic/truck.glb": Vector3(1.5, 1.45, 2.95),
+	"kenney_traffic/box.glb": Vector3(0.71, 0.71, 0.71),
+	"kenney_furniture/bedSingle.glb": Vector3(1.62, 0.51, 1.89),
+	"kenney_furniture/bedDouble.glb": Vector3(1.89, 0.51, 1.89),
+	"kenney_furniture/sideTable.glb": Vector3(0.53, 0.38, 0.22),
+	"kenney_furniture/sideTableDrawers.glb": Vector3(0.53, 0.38, 0.39),
+	"kenney_furniture/chairDesk.glb": Vector3(0.48, 0.42, 0.44),
+	"kenney_furniture/chair.glb": Vector3(0.48, 0.42, 0.44),
+	"kenney_furniture/chairRounded.glb": Vector3(0.48, 0.42, 0.44),
+	"kenney_furniture/stoolBar.glb": Vector3(0.27, 0.43, 0.23),
+	"kenney_furniture/table.glb": Vector3(0.73, 0.38, 0.56),
+	"kenney_furniture/tableRound.glb": Vector3(0.69, 0.37, 0.8),
+	"kenney_furniture/tableCloth.glb": Vector3(0.73, 0.38, 0.56),
+	"kenney_furniture/tableCross.glb": Vector3(0.73, 0.38, 0.56),
+	"kenney_furniture/kitchenBar.glb": Vector3(0.43, 0.42, 0.21),
+	"kenney_furniture/kitchenBarEnd.glb": Vector3(0.1, 0.42, 0.21),
+	"kenney_furniture/bookcaseClosed.glb": Vector3(0.4, 0.85, 0.25),
+	"kenney_furniture/bookcaseOpen.glb": Vector3(0.4, 0.85, 0.25),
+	"kenney_furniture/televisionModern.glb": Vector3(0.68, 0.45, 0.13),
+	"kenney_furniture/televisionVintage.glb": Vector3(0.68, 0.45, 0.13),
+	"kenney_furniture/cabinetTelevision.glb": Vector3(0.73, 0.38, 0.56),
+	"kenney_furniture/loungeSofa.glb": Vector3(0.98, 0.46, 0.41),
+	"kenney_furniture/loungeSofaLong.glb": Vector3(0.98, 0.46, 0.82),
+	"kenney_furniture/lampSquareFloor.glb": Vector3(0.12, 0.86, 0.12),
+	"kenney_furniture/lampRoundFloor.glb": Vector3(0.12, 0.86, 0.12),
+	"kenney_furniture/lampWall.glb": Vector3(0.12, 0.3, 0.12),
+	"kenney_furniture/pottedPlant.glb": Vector3(0.25, 0.54, 0.29),
+	"kenney_furniture/plantSmall1.glb": Vector3(0.25, 0.4, 0.25),
+	"kenney_furniture/cardboardBoxClosed.glb": Vector3(0.21, 0.28, 0.21),
+	"kenney_furniture/cardboardBoxOpen.glb": Vector3(0.21, 0.28, 0.21),
+	"kenney_furniture/trashcan.glb": Vector3(0.5, 0.91, 0.44),
+	"kenney_furniture/desk.glb": Vector3(0.73, 0.38, 0.56),
+	"kenney_furniture/coatRackStanding.glb": Vector3(0.3, 1.1, 0.3),
+	"kenney_furniture/rugSquare.glb": Vector3(1.0, 0.02, 1.0),
+	"kenney_furniture/tableCoffee.glb": Vector3(0.69, 0.37, 0.8),
+	"kenney_furniture/wallDoorway.glb": Vector3(1.0, 1.0, 0.1),
+	"kenney_furniture/wallWindow.glb": Vector3(1.0, 1.0, 0.1),
+	"kenney_food/skewer.glb": Vector3(0.6, 0.07, 0.06),
+	"kenney_food/cup-coffee.glb": Vector3(0.1, 0.12, 0.1),
+	"kenney_food/pan-stew.glb": Vector3(0.4, 0.15, 0.4),
+	"kenney_food/frying-pan-lid.glb": Vector3(0.4, 0.12, 0.4),
+	"kenney_food/pot-lid.glb": Vector3(0.66, 0.12, 0.63),
+	"kenney_food/bottle-ketchup.glb": Vector3(0.08, 0.25, 0.08),
+	"kenney_food/cabbage.glb": Vector3(0.2, 0.2, 0.2),
+	"kenney_food/loaf-round.glb": Vector3(0.25, 0.15, 0.25),
 }
 
 static var _scenes := {}
@@ -181,6 +241,23 @@ static func lamp(parent: Node, pos: Vector3, side: float, s := 5.2) -> bool:
 	light.add_to_group("street_lights")
 	n.add_child(light)
 	return true
+
+
+## Tint a placed kit model toward a colour while keeping its colormap:
+## every mesh is duplicated so the shared import is never touched (the
+## same ownership rule enemy.gd applies to its characters).
+static func tint(n: Node3D, color: Color, mix := 0.5) -> void:
+	for c in n.find_children("*", "MeshInstance3D", true, false):
+		var mi := c as MeshInstance3D
+		if mi.mesh == null:
+			continue
+		mi.mesh = mi.mesh.duplicate()
+		for i in mi.mesh.get_surface_count():
+			var m: Material = mi.mesh.surface_get_material(i)
+			if m is StandardMaterial3D:
+				var d := (m as StandardMaterial3D).duplicate()
+				d.albedo_color = d.albedo_color.lerp(color, mix)
+				mi.mesh.surface_set_material(i, d)
 
 
 ## Night-read safety (ART_BIBLE): no kit material may keep emission

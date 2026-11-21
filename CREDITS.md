@@ -35,7 +35,7 @@ All third-party assets in this project are free for commercial use. Nothing here
 - **Packs**: Universal Base Characters, Modular Character Outfits (https://quaternius.com/packs/universalbasecharacters.html)
 - **License**: CC0 1.0 Universal — https://creativecommons.org/publicdomain/zero/1.0/
 - **Downloaded from**: the same GitHub mirrors as the hero (Xeiliex/Tactics-Bell-Web-, slopwarefactory/terra); proof of license: assets/License.txt
-- **Used for**: the street's named cast (scripts/cast.gd) and, since B18.4, the four fighting enemy kinds - MUSCLE (peasant), COLLECTOR (knight armour), CREW (ranger), BOSS (superhero). The UAL clip library drives them all through scripts/ual_bind.gd.
+- **Used for**: the street's named cast (scripts/cast.gd) and, since B18.4, the four fighting enemy kinds - MUSCLE (peasant), COLLECTOR (knight armour), CREW (ranger), BOSS (superhero). Since B19 also: the jobs hostage, the fight-club trainer and the whole title-card cast. The UAL clip library drives them all through scripts/ual_bind.gd.
 
 ## assets/kits/ (Kenney 3D kits - the street, B18.4)
 
@@ -45,7 +45,17 @@ All third-party assets in this project are free for commercial use. Nothing here
 - **License**: CC0 1.0 Universal — https://creativecommons.org/publicdomain/zero/1.0/
 - **Downloaded from**: the GitHub mirror series-ai/jam-ready-assets (kenney-city-kit-commercial, kenney-city-kit-roads, kenney-car-kit; git-lfs media CDN) and KenneyNL/Starter-Kit-City-Builder (repo code MIT, its 3D models are CC0 per its README)
 - **Proof of license**: assets/kits/LICENSE-Kenney-CC0.txt
-- **Used for**: the six main-street building plots, both sidewalks, six lamp posts, the ParkedCar body, the market/foundry blocks (buildings, marked road lanes, roadworks), the fog skyscraper, and the LookDev gallery car. Every placement falls back to the old code-built box when the kit is not imported yet (scripts/kit.gd).
+- **Used for**: the six main-street building plots, both sidewalks, six lamp posts, the ParkedCar body, the market/foundry blocks (buildings, marked road lanes, roadworks), the fog skyscraper, and the LookDev gallery car. Every placement falls back to the old code-built box when a kit is not imported yet (scripts/kit.gd).
+
+## assets/kits/ (Kenney 3D kits - B19, the full-game directive)
+
+- **What**: the docks block (industrial buildings, chimneys, tank), residential back rows, the traffic vehicle pool, cargo crates, interior furniture, the noodle shop's food, and the fire/smoke particle sprites
+- **By**: Kenney (https://kenney.nl)
+- **Packs**: City Kit Industrial, City Kit Suburban, Car Kit (police/suv/hatchback/van/truck/box), Furniture Kit (140-model set, flat-coloured, texture-free by design), Food Kit, Explosion Pack (2D particle sprites)
+- **License**: CC0 1.0 Universal — https://creativecommons.org/publicdomain/zero/1.0/
+- **Downloaded from**: the GitHub mirror series-ai/jam-ready-assets (git-lfs media CDN); installer: tools/b19_assets.py, dimensions measured by tools/kits_report.py
+- **Proof of license**: assets/fx/LICENSE-Kenney-CC0.txt (covers the B19 set)
+- **Used for**: the MERIDIAN warehouse (two industrial sheds), textured dock containers, the loading dock (chimney, tank, truck, cargo), the alley annexes/garages, the suburban depth row, the hero's furniture and the traffic pool (B19 batches 2-9 as they land).
 
 ## assets/audio/ (Kenney sound effects)
 
