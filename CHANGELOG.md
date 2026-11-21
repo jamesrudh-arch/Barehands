@@ -1,5 +1,27 @@
 # CHANGELOG.md — batch history (newest first)
 
+## B18 — the truthful banner (2026-11-21)
+- The B17 phone photo settled the boot question - and exposed a UX
+  bug: the screen was 100% green (33/33 autoloads including Music,
+  SafeBoot, FULL GAME, stamp `B17 d209d01` = the exact pushed code)
+  yet its own banner said "FIRST-RUN IMPORT IN PROGRESS - wait, then
+  tap RETRY", because on Xogot the class cache never exists. The
+  owner read it (fairly) as "the game cannot launch".
+- The banner now reports the census OUTCOME: green "ALL STAGES
+  GREEN - nothing is importing ... tap LAUNCH FULL GAME" when
+  everything passed without the cache (the phone's permanent state),
+  yellow retry guidance only on real FAILs, silence when the cache
+  exists. LAUNCH FULL GAME is now the first button.
+- stage0_check grew to 17/18 checks (banner truth, colour, button
+  order). safe_boot_check's stale hardcoded "B16" stamp assertion -
+  a latent FAIL on HEAD since the B17 stamp bump - now compares
+  against BuildInfo.STAMP itself.
+- Proofs with the class cache deleted: stage0_check 18/18,
+  safe_boot_check 27/27, smoke_null_watch 993 frames, smoke - all
+  green, 0 script errors. Phone: XOGOT.md items 12/13/14/16/17
+  CONFIRMED by the owner's photo; remaining taps are the 30-second
+  full-game walk and the landscape check.
+
 ## B17 — the class-cache fix, Stage 0, and a device-proven boot path (2026-11-21)
 - The B16 grey screen closed the loop: the phone's every failure was
   ONE mechanism, now REPRODUCED in the sandbox. A fresh Xogot import

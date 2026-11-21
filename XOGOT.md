@@ -1,14 +1,33 @@
-# XOGOT ON iPHONE - the device truth table (B17)
+# XOGOT ON iPHONE - the device truth table (B18)
 
 The game: Godot 4.7, Mobile renderer, GDScript only, no native
 plugins. It runs in Xogot on an iPhone. This file is the exact
 procedure for the phone and the line-by-line list of what is
-VERIFIED in the sandbox (and how) versus what only the phone can
-prove (and the exact tap that proves it).
+VERIFIED (sandbox or PHONE, and how) versus what only the phone can
+still prove (and the exact tap that proves it).
 
-## THE B17 ROOT CAUSE, FOUND AND REPRODUCED
+## THE ONE THING TO KNOW
 
-Every phone failure so far traces to ONE mechanism, reproduced in
+Xogot boots the game into **STAGE 0** - a dark magenta diagnostic
+launcher, **not an error screen**. Its job is to prove which build is
+running and that every system is alive before the game starts.
+**The game itself starts with the LAUNCH FULL GAME button** (first
+button, bottom row since B18). A GREEN banner ("ALL STAGES GREEN")
+means everything is healthy - tap LAUNCH FULL GAME and play; nothing
+is importing and nothing needs waiting for. A YELLOW banner appears
+only when a stage actually FAILED.
+
+Why this section exists: B17's banner said "FIRST-RUN IMPORT IN
+PROGRESS - wait for Xogot to finish importing, then tap RETRY" on
+exactly that healthy state, because on Xogot the class cache NEVER
+exists (see below) - so the phone showed the warning on every run
+while every line said PASS, and the owner rightly read the screen as
+"the game cannot launch". B18 fixed the wording; a phone photo of
+B17 (2026-11-21) had already proven everything was green underneath.
+
+## THE B17 ROOT CAUSE, FOUND, REPRODUCED - AND PHONE-CONFIRMED
+
+Every phone failure before B17 traced to ONE mechanism, reproduced in
 the sandbox on 2026-11-21 (log: delete .godot/global_script_class_
 cache.cfg, run the game):
 
@@ -39,50 +58,59 @@ nulls found on the way (enemy mannequin, UAL attach, jobs' City
 signal) are guarded, and the project sits at the REPO ROOT with a
 unique name per batch so a stale cached import cannot load.
 
+**PHONE-CONFIRMED (photo, 2026-11-21):** the owner's B17 run landed
+on STAGE 0 with `class cache: MISSING` (the phone's PERMANENT state -
+Xogot never writes it) and still showed all 33 autoloads PASS
+including Music, SafeBoot PASS, FULL GAME PASS, 0 FAIL lines, on
+BUILD B17 d209d01 - the exact pushed code commit. The condition that
+killed every previous build now boots clean on the device itself.
+
 ## THE PHONE PROCEDURE (exact)
 
-1. Unzip `Leverage_B17_2026-11-21.zip` in the Files app. You get a
+1. Unzip `Leverage_B18_2026-11-21.zip` in the Files app. You get a
    folder with `project.godot` DIRECTLY inside it - that folder IS
    the project. (The repo root is the project now; no subfolder.)
 2. Force-quit Xogot (swipe away).
 3. Reopen Xogot -> Import -> pick THAT folder (the one containing
-   project.godot). The project name must read **LEVERAGE B17** -
+   project.godot). The project name must read **LEVERAGE B18** -
    anything else is a stale copy: delete old Xogot project entries
    and import again.
 4. WAIT for the import to fully finish (spinner stopped).
-5. Run once. You land on STAGE 0 (dark magenta diagnostic screen).
-6. Close and run a SECOND time (the truth run).
-7. Read the BUILD line on STAGE 0: `B17 <hash> (<date>)`. Compare
+5. Run once. You land on STAGE 0 (dark magenta launcher): read the
+   GREEN banner and tap **LAUNCH FULL GAME** (first button) to play.
+6. Close and run a SECOND time after a fresh import (the truth run).
+7. Read the BUILD line on STAGE 0: `B18 <hash> (<date>)`. Compare
    with the top commit at github.com/jamesrudh-arch/Barehands/
    commits/main - it must be the code commit right under the
-   "B17 build stamp" commit.
+   "B18 build stamp" commit.
 
 ## VERIFIED vs PHONE-ONLY
 
 Legend: VERIFIED = proven in the sandbox, with the method.
-PHONE-ONLY = needs your device, with the exact tap and what to
-send back.
+PHONE-CONFIRMED = the owner's device proved it (photo/log sent).
+PHONE-ONLY = still needs your device, with the exact tap.
 
-| # | Item | Status | How / what to send |
+| # | Item | Status | How / what was sent |
 |---|------|--------|--------------------|
-| 1 | Class-cache immunity: 0 parse errors, 33/33 autoloads alive with the cache deleted | VERIFIED | class cache deleted, stage0_check + smoke_null_watch + smoke all PASS, 0 SCRIPT ERROR |
-| 2 | First run before ANY import pass (clean clone, no .godot): Stage0 PASS 14 checks, SafeBoot PASS 27 checks, 0 script errors | VERIFIED | clean clone + Xvfb opengl3 render, suites stage0_check / safe_boot_check |
-| 3 | Stage0 screen: magenta, stamp, 39 numbered boot stages, COPY LOG, user://boot_log.txt, 4 buttons | VERIFIED | stage0_check (14 checks) under render |
-| 4 | SafeBoot: floor, real hero, real touch controls, follow camera, dummy, big log, 8 one-at-a-time toggles | VERIFIED | safe_boot_check (27 checks) under render |
-| 5 | Build stamp at boot corner + debug menu + Stage0 + SafeBoot + VERSION.txt | VERIFIED | gen at commit time; stage0/safeboot checks assert it on screen |
-| 6 | Music no longer Nil-able by parse failure; the four bare Music sites guarded (one-time error, no spam) | VERIFIED | reproduction log (before: Music NULL) vs post-fix census (33/33); null_watch 995 frames 0 errors |
+| 1 | Class-cache immunity: 0 parse errors, 33/33 autoloads alive with the cache deleted | VERIFIED | cache deleted: stage0_check 18 checks, smoke_null_watch 993 frames, smoke PASS, 0 SCRIPT ERROR |
+| 2 | First run before ANY import pass (clean clone, no .godot): Stage0 + SafeBoot PASS, 0 script errors | VERIFIED | clean clone + Xvfb opengl3 render (B17); re-proven B18 with cache deleted |
+| 3 | Stage0 screen: magenta, stamp, 39 numbered boot stages, truthful banner, COPY LOG, user://boot_log.txt, 4 buttons, LAUNCH FULL GAME first | VERIFIED | stage0_check 17 checks (cache present) + 18 checks (cache deleted: green banner names LAUNCH FULL GAME, colour green) |
+| 4 | SafeBoot: floor, real hero, real touch controls, follow camera, dummy, big log, 8 one-at-a-time toggles | VERIFIED | safe_boot_check 27/27 (B18 re-run, cache deleted) |
+| 5 | Build stamp at boot corner + debug menu + Stage0 + SafeBoot + VERSION.txt | VERIFIED | gen at commit time; the suite compares the corner label against BuildInfo.STAMP itself (never a hardcoded batch string - that went stale once) |
+| 6 | Music no longer Nil-able by parse failure; the four bare Music sites guarded | VERIFIED | reproduction log (before: Music NULL) vs post-fix census; null_watch 0 errors |
 | 7 | White-sign render test: pure-white area < 1.5%, orange halo < 10% | VERIFIED | render_check (26 checks) under render, every battery |
-| 8 | Rain: code-generated streak + dot textures, billboard particles (no pale squares, no texture file to lose) | VERIFIED | rain.gd textures are runtime ImageTexture; render_check pale-block scan passes |
-| 9 | Grey figure = node "Dummy", tan since B15 | VERIFIED | node named in the SafeBoot log; safe_boot_check asserts "Dummy" in the log |
-| 10 | Cinematic watchdog: force-finish at 12 s | VERIFIED | opening_shot.gd (12000 ms), smoke_null_watch asserts it landed |
+| 8 | Rain: code-generated streak + dot textures, billboard particles | VERIFIED | rain.gd runtime ImageTexture; render_check pale-block scan |
+| 9 | Grey figure = node "Dummy", tan since B15 | VERIFIED | SafeBoot log; safe_boot_check asserts "Dummy" |
+| 10 | Cinematic watchdog: force-finish at 12 s | VERIFIED | opening_shot.gd; smoke_null_watch asserts it landed |
 | 11 | Touch controls inside safe areas, incl. landscape rotation | VERIFIED | _clamp_safe_area + viewport size_changed re-clamp; smoke_controls |
-| 12 | STAGE 0 draws on YOUR phone (magenta, not grey) | PHONE-ONLY | tap: run the project. Send: photo or "STAGE 0 shows magenta + BUILD line B17 <hash>" |
-| 13 | The BUILD stamp matches github.com main | PHONE-ONLY | tap: read the STAGE 0 BUILD line. Send: the exact line |
-| 14 | The boot stages all PASS on device | PHONE-ONLY | tap: COPY LOG on STAGE 0. Send: the whole pasted log |
-| 15 | Full game: hero moves, controls visible, signs coloured, rain streaks | PHONE-ONLY | tap: LAUNCH FULL GAME, walk with the left thumb. Send: what you see (photo if wrong) |
-| 16 | Xogot re-imports cleanly after deleting an old entry | PHONE-ONLY | tap: delete old "Bare Hands 3D"/"LEVERAGE B16" entries in Xogot, import fresh. Send: the project name it shows |
-| 17 | GPU adapter name + renderer on device | PHONE-ONLY | tap: COPY LOG on STAGE 0 (line 2). Send: the log |
+| 12 | STAGE 0 draws on the phone (magenta, not grey) | **PHONE-CONFIRMED** | photo IMG_9292 (2026-11-21): magenta screen, title, all four buttons, census log |
+| 13 | The BUILD stamp matches github main | **PHONE-CONFIRMED** | photo: `B17 d209d01 (2026-11-21 09:10 UTC)` = the code commit under stamp commit 3969938 |
+| 14 | The boot stages all PASS on device | **PHONE-CONFIRMED** | photo: 33/33 autoloads PASS (incl. Music), SafeBoot PASS, FULL GAME PASS, 0 FAIL lines |
+| 15 | Full game: hero moves, controls visible, signs coloured, rain streaks | PHONE-ONLY | tap: LAUNCH FULL GAME, walk with the left thumb ~30 s. Send: what you see (photo if wrong) |
+| 16 | Xogot re-imports cleanly after deleting an old entry | **PHONE-CONFIRMED** | fresh B17 import ran the exact pushed code (the BUILD line is the proof) |
+| 17 | GPU adapter name + renderer on device | **PHONE-CONFIRMED** | photo: Godot 4.7.2-stable iOS, renderer mobile, GPU Apple A15 GPU (Apple8); also `class cache: MISSING` measured on device |
 | 18 | If anything is still wrong: which system | PHONE-ONLY | tap: LAUNCH SAFEBOOT, toggle ONE system at a time. Send: which toggle breaks it + COPY LOG |
+| 19 | Landscape rotation: buttons stay inside the screen | PHONE-ONLY | rotate to landscape in the full game. Send: "buttons stay inside" or a photo |
 
 ## THE VISUAL DEBUG PANEL (in-game)
 
@@ -93,20 +121,24 @@ ground splash, decals, outlines, NPCs, camera height, camera
 distance, XOGOT SAFE preset, NIGHT (desktop) preset, COPY SETTINGS,
 SCREENSHOT PNG. Every change applies live.
 
-## WHAT I NEED FROM YOU (the 5 taps, in order)
+## WHAT I NEED FROM YOU (the remaining taps)
 
-1. Import the unzipped `Leverage_B17_2026-11-21` folder (the one
-   with project.godot inside), WAIT for import, run, close, run
-   again. -> Send: the STAGE 0 BUILD line (or a photo).
-2. On STAGE 0: COPY LOG. -> Send: the pasted log.
-3. LAUNCH FULL GAME, walk around 30 s. -> Send: "hero moves, controls
-   visible, signs coloured, rain streaks" or what differs.
-4. If (and only if) something is broken: LAUNCH SAFEBOOT from STAGE
-   0, toggle ONE system at a time until it breaks. -> Send: which
-   toggle + COPY LOG.
-5. Rotate the phone to landscape in the full game. -> Send: "buttons
-   stay inside the screen" or a photo.
+Your CURRENT B17 import is fine for these - the game code did not
+change in B18 (only the diagnostic screen's banner wording and
+button order); on B17, LAUNCH FULL GAME is the SECOND button from
+the left.
 
-That is everything. With (1) and (2) the on-device truth is on the
-table: the stamp settles staleness, the census settles every
-autoload, and the rest is a named toggle away.
+1. On STAGE 0: tap **LAUNCH FULL GAME**, walk around 30 s with the
+   left thumb. -> Send: "hero moves, controls visible, signs
+   coloured, rain streaks" or what differs (photo if wrong).
+2. Rotate the phone to landscape in the full game. -> Send:
+   "buttons stay inside the screen" or a photo.
+3. If (and only if) something is broken: back on STAGE 0, LAUNCH
+   SAFEBOOT, toggle ONE system at a time until it breaks. -> Send:
+   which toggle + COPY LOG.
+
+The B18 zip (`Leverage_B18_2026-11-21.zip`) is there whenever you
+re-import next - it shows the green truthful banner and puts
+LAUNCH FULL GAME first. With (1) and (2) clean, the device-proven
+boot path is fully closed and the next batch is the vertical slice
+review per PROJECT_BIBLE.md.

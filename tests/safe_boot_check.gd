@@ -1,6 +1,7 @@
 extends Node
 const CLS_ActionButton := preload("res://scripts/action_button.gd")
 const CLS_SafeBoot := preload("res://scripts/safe_boot.gd")
+const CLS_BuildInfo := preload("res://scripts/build_info.gd")
 ## safe_boot_check (B16): renders the SafeBoot diagnostic scene with a
 ## real renderer and PROVES it: the base world builds (floor, hero,
 ## camera, dummy, real touch controls), the log fills, the autoload
@@ -74,9 +75,13 @@ func _ready() -> void:
 				"the build stamp is in the log")
 		_check("Dummy" in log_box.text,
 				"the grey-figure answer (node 'Dummy') is in the log")
-	# the stamp autoload: a top-right label with the batch number
+	# the stamp autoload: a top-right label with the EXACT generated
+	# stamp (B18: compared against BuildInfo itself - a hardcoded "B16"
+	# here went stale at the B17 stamp bump and failed the suite on HEAD)
 	var stamp_layer := get_node_or_null("/root/BuildStamp")
-	_check(stamp_layer != null and "B16" in stamp_layer.get_child(0) 			.get_child(0).text, "the boot-corner build stamp is on screen")
+	_check(stamp_layer != null and CLS_BuildInfo.STAMP
+			in stamp_layer.get_child(0).get_child(0).text,
+			"the boot-corner build stamp is on screen")
 
 	# the frame itself
 	var img := get_viewport().get_texture().get_image()

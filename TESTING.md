@@ -353,6 +353,34 @@ half; the agent never marks phone-only lines verified):
   cannot be child-checked before it is in the tree - check its
   script and its build method instead. main.tscn's root is a plain
   Node3D by design: do not demand a root script there.
+- **B18 the truthful banner (a phone photo became a test)**: the
+  owner's photo of B17 showed a fully green census on device - and
+  the owner still could not play, because the B17 banner read
+  "FIRST-RUN IMPORT IN PROGRESS - wait, then tap RETRY" over it. On
+  Xogot the class cache NEVER exists, so that banner showed on every
+  phone run while everything passed: a diagnostic screen whose own
+  banner blocked the launch it certified. Fix: the banner is set
+  AFTER the census - green "ALL STAGES GREEN ... tap LAUNCH FULL
+  GAME" when every stage passed without the cache, yellow retry
+  guidance ONLY when a stage actually FAILED, silence when the cache
+  exists; LAUNCH FULL GAME moved to the FIRST button. stage0_check
+  extended to 17 (cache present) / 18 (cache deleted) checks: the
+  banner label exists (the only autowrap Label on the screen), its
+  text matches the census outcome, the all-clear colour is green
+  (g > r), first button is LAUNCH FULL GAME. The same battery found
+  a LATENT suite bug: safe_boot_check asserted a hardcoded "B16" in
+  the boot-corner stamp - stale since the B17 stamp bump (B17's
+  clean-clone proof ran before the bump, so it never fired); the
+  check now compares against BuildInfo.STAMP itself. Battery, cache
+  deleted (Xvfb opengl3 + headless): stage0_check 18, safe_boot 27,
+  null_watch 993 frames, smoke - all PASS, 0 SCRIPT ERROR. Lessons:
+  (1) a diagnostic screen must gate its warnings on the OUTCOME of
+  its checks, never on a precondition - the missing cache is the
+  phone's PERMANENT state, not a transient import; (2) never
+  hardcode the batch string in an assertion - read the generated
+  stamp; (3) xvfb-run needs xauth; when it is missing, start Xvfb
+  manually (Xvfb :99 -screen 0 1280x720x24 &) and run the suites
+  with DISPLAY=:99.
 
 - **B10 battery regressions**: (1) the map grew TAKE buttons - the
   B8 'one button only' assertion kept its intent (no fast travel) and

@@ -6,25 +6,32 @@ This repo root IS the Godot project: **`project.godot` sits at the
 top level**. Import the folder that contains it - the unzipped repo
 root itself, NOT any subfolder.
 
-1. Download the zip (e.g. `Leverage_B17_YYYY-MM-DD.zip`) and unzip it
-   in the Files app. You get a folder like `Leverage_B17_2026-11-21`
+1. Download the zip (e.g. `Leverage_B18_YYYY-MM-DD.zip`) and unzip it
+   in the Files app. You get a folder like `Leverage_B18_2026-11-21`
    with `project.godot` directly inside it.
 2. **Force-quit Xogot** (swipe it away) so no cached project or old
    import can linger.
 3. Reopen Xogot, tap Import, and pick **the folder that contains
    `project.godot`** (the unzipped repo root).
 4. **Wait for the import to finish** (the spinner/progress must fully
-   stop). The project name is unique per batch (`LEVERAGE B17`) - if
+   stop). The project name is unique per batch (`LEVERAGE B18`) - if
    Xogot shows any other name, you imported a stale copy: force-quit
    and delete the old project entry in Xogot first.
-5. Run. You land on **STAGE 0** (a dark magenta diagnostic screen).
-   Read the BUILD line: it must say `B17` and the commit hash of the
+5. Run. You land on **STAGE 0** - a dark magenta screen. **This is
+   the launcher, not an error.** It proves which build runs and that
+   every system is alive; the game itself starts from its buttons.
+6. Read the BUILD line: it must say `B18` and the commit hash of the
    top commit on github.com/jamesrudh-arch/Barehands/commits/main.
-6. Close the project and **run it a second time** (first run after an
-   import can be mid-import in places; the second run is the truth).
-7. On STAGE 0: tap COPY LOG and paste the whole thing back to the
-   agent. Then LAUNCH SAFEBOOT, tap COPY LOG there too if anything
-   looks wrong, and LAUNCH FULL GAME to play.
+   If the banner under the info lines is **GREEN** ("ALL STAGES
+   GREEN"), everything is healthy: **tap LAUNCH FULL GAME** (first
+   button, bottom row) and play. Nothing is importing; nothing to
+   wait for. A YELLOW banner appears only when a stage actually
+   FAILED - then wait for the import to settle, tap RETRY, and if it
+   stays red tap COPY LOG and paste the log to the agent.
+7. Close the project and **run it a second time** after a fresh
+   import (first run can be mid-import in places; the second run is
+   the truth). LAUNCH SAFEBOOT is there for diagnostics: one toggle
+   per system if something ever looks wrong.
 
 If the screen is grey, nothing is drawing - the STAGE 0 log (or its
 absence) tells the agent exactly which layer died. See XOGOT.md for

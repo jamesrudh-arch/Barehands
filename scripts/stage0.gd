@@ -10,6 +10,14 @@ extends Control
 ##
 ## The stamp comes from res://VERSION.txt (a plain text file at the
 ## repo root) read with FileAccess - no script involved.
+##
+## B18: the banner is set AFTER the census and tells the truth: green
+## "all clear, tap LAUNCH FULL GAME" when every stage passed without
+## the class cache (Xogot never writes it on device - the phone's
+## PERMANENT state), retry guidance only when something actually
+## FAILED. B17's banner claimed "FIRST-RUN IMPORT IN PROGRESS - wait,
+## then tap RETRY" on that same healthy state, and the owner rightly
+## read it as "the game cannot launch".
 
 const MAGENTA := Color(0.16, 0.02, 0.12, 1.0)
 
@@ -64,10 +72,12 @@ func _ready() -> void:
 	var actions := HBoxContainer.new()
 	actions.add_theme_constant_override("separation", 10)
 	col.add_child(actions)
-	_big_button(actions, "LAUNCH SAFEBOOT",
-			func(): get_tree().change_scene_to_file("res://scenes/safe_boot.tscn"))
+	# B18: LAUNCH FULL GAME is the FIRST button - it is the one you
+	# actually want; SafeBoot is the diagnostic drill-down
 	_big_button(actions, "LAUNCH FULL GAME",
 			func(): get_tree().change_scene_to_file("res://scenes/main.tscn"))
+	_big_button(actions, "LAUNCH SAFEBOOT",
+			func(): get_tree().change_scene_to_file("res://scenes/safe_boot.tscn"))
 	_big_button(actions, "COPY LOG", _copy_log)
 	_big_button(actions, "RETRY", func(): _run_stages())
 
@@ -83,6 +93,14 @@ func _big_button(row: Control, text: String, cb: Callable) -> void:
 	b.add_theme_font_size_override("font_size", 16)
 	b.pressed.connect(cb)
 	row.add_child(b)
+
+
+## The banner: green all-clear or yellow retry-guidance. Green means
+## "the census is green, nothing is importing, go play".
+func _set_banner(text: String, all_clear: bool) -> void:
+	_banner.text = text
+	_banner.add_theme_color_override("font_color",
+			Color(0.55, 1.0, 0.6) if all_clear else Color(1.0, 0.95, 0.4))
 
 
 ## Everything the info line shows. Engine singletons only.
@@ -103,13 +121,9 @@ func _fill_info() -> void:
 			Time.get_datetime_string_from_system(true),
 			"EXISTS" if cache_ok else "MISSING",
 	]
-	if not cache_ok:
-		_banner.text = ("FIRST-RUN IMPORT IN PROGRESS - the global class "
-				+ "cache is missing. Wait for Xogot to finish importing, "
-				+ "then tap RETRY. The stages below show what is alive "
-				+ "right now.")
-	else:
-		_banner.text = ""
+	# The banner is NOT set here: before the census has run, no honest
+	# message exists. _run_stages sets it once the stages are done.
+	_banner.text = ""
 
 
 ## The stamp from res://VERSION.txt - a text file, no scripts.
@@ -170,6 +184,25 @@ func _run_stages() -> void:
 	# added to the tree
 	num = _check_scene(num, "FULL GAME", "res://scenes/main.tscn",
 			["Player", "Camera"], "", false)
+
+	# The truthful banner (B18): failures get retry guidance; an
+	# all-green census without the cache gets a green "go play" that
+	# names the button. "FAIL" only ever appears in FAIL lines.
+	var failed := false
+	for line in _stage_lines:
+		if (line as String).find("FAIL") != -1:
+			failed = true
+			break
+	if failed:
+		_set_banner("BOOT FAILURES ABOVE - if this is the first run, wait "
+				+ "for Xogot's import to fully finish, then tap RETRY. If "
+				+ "it stays red, tap COPY LOG and send the log.", false)
+	elif not FileAccess.file_exists(
+			"res://.godot/global_script_class_cache.cfg"):
+		_set_banner("ALL STAGES GREEN - nothing is importing and there is "
+				+ "nothing to wait for: Xogot never writes the class cache "
+				+ "on device, and this build does not need it. Tap LAUNCH "
+				+ "FULL GAME to play.", true)
 
 	_stage(num, "boot stages complete - log written to user://boot_log.txt")
 	_flush_log()

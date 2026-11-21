@@ -1,9 +1,9 @@
 {
   "project": "LEVERAGE (working title during Series 1-2: Bare Hands 3D)",
   "repo": "github.com/jamesrudh-arch/Barehands, main branch",
-  "godot": "4.7.2, MOBILE renderer, headless test harness at /tmp/godot",
+  "godot": "4.7.2, MOBILE renderer, test harness at /tmp/godot-dl (Xvfb :99 manual start - xauth is missing for xvfb-run)",
   "continuation_protocol": "read PROJECT_BIBLE.md + this file; resume at next_step",
-  "current_batch": "Batch 17 (class-cache fix + Stage0 + root move) PUSHED: code commit d209d01 + stamp commit on top; battery 33/33 green cache-deleted; next: the vertical slice review",
+  "current_batch": "Batch 18 (truthful Stage0 banner + stale stamp-assertion fix) PUSHED: B17 boot path PHONE-CONFIRMED by owner photo (33/33 autoloads, SafeBoot, FULL GAME PASS with cache MISSING on device, stamp = pushed code commit); remaining phone taps: 30 s full-game walk + landscape rotation; then the vertical slice review",
   "completed": [
     "Series 1 (look and feel): stability, hero + cinematic camera, wet neon night, punches that hit, pose/stress suites",
     "Series 2 Phase 1 audio (layered hits, puddle footsteps, volume sliders, mute)",
