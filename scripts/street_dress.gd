@@ -361,7 +361,10 @@ func _props() -> void:
 ## A parked noir sedan at the east curb - the heaviest takedown surface.
 func _car() -> void:
 	var paint := StandardMaterial3D.new()
-	paint.albedo_color = Color(0.05, 0.10, 0.07)
+	# B18.3 (BUG 10): a near-black car on a night street is invisible -
+	# the paint stays dark-noir but readable, and the car carries its
+	# own lights: cyan edge strips, warm headlights, red tails
+	paint.albedo_color = Color(0.13, 0.19, 0.16)
 	paint.roughness = 0.3
 	paint.metallic = 0.5
 	var glass := StandardMaterial3D.new()
@@ -371,6 +374,7 @@ func _car() -> void:
 	tire.albedo_color = Color(0.02, 0.02, 0.025)
 	tire.roughness = 0.95
 	var car := StaticBody3D.new()
+	car.name = "ParkedCar"
 	car.position = Vector3(12.5, 0.0, -2.6)
 	car.rotation.y = -0.12
 	add_child(car)
@@ -398,6 +402,40 @@ func _car() -> void:
 			wheel.rotation.z = PI / 2.0
 			wheel.position = Vector3(wx, 0.32, wz)
 			car.add_child(wheel)
+	# B18.3 (BUG 10): the car carries its own light - headlights, tails,
+	# cyan edge strips - all inside the 1.1 emission cap
+	var lamp := StandardMaterial3D.new()
+	lamp.albedo_color = Color(1.0, 0.88, 0.65)
+	lamp.emission_enabled = true
+	lamp.emission = Color(1.0, 0.85, 0.6)
+	lamp.emission_energy_multiplier = 1.0
+	lamp.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	var tail := StandardMaterial3D.new()
+	tail.albedo_color = Color(1.0, 0.2, 0.12)
+	tail.emission_enabled = true
+	tail.emission = Color(1.0, 0.16, 0.1)
+	tail.emission_energy_multiplier = 0.8
+	tail.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	var strip := StandardMaterial3D.new()
+	strip.albedo_color = Color(0.3, 0.95, 0.9)
+	strip.emission_enabled = true
+	strip.emission = Color(0.25, 0.9, 0.85)
+	strip.emission_energy_multiplier = 0.6
+	strip.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	for hz in [-0.55, 0.55]:
+		var head := _box(Vector3(0.06, 0.12, 0.3), lamp)
+		head.position = Vector3(2.11, 0.62, hz)
+		car.add_child(head)
+		var t2 := _box(Vector3(0.06, 0.1, 0.24), tail)
+		t2.position = Vector3(-2.11, 0.68, hz)
+		car.add_child(t2)
+	for sz in [-0.89, 0.89]:
+		var edge := _box(Vector3(3.4, 0.03, 0.02), strip)
+		edge.position = Vector3(0, 0.86, sz)
+		car.add_child(edge)
+	# the headlight spill on the wet asphalt ahead of the nose
+	_glow_quad(Vector3(15.6, 0.03, -2.6), Color(1.0, 0.85, 0.55),
+			Vector2(2.6, 1.7), -0.12, 0.10)
 	car.set_meta("slam_surface", "car")
 
 

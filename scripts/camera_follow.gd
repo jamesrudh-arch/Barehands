@@ -30,6 +30,7 @@ var _fov_punch := 0.0  # impact FOV kick, decays fast (negative = zoom in)
 
 func _ready() -> void:
 	add_to_group("camera")
+	_add_fill_light()
 	# B18: the target lookup must never strand the camera - if the
 	# authored path fails, the player group answers; if that fails too
 	# the camera stays put as the active scene camera instead of
@@ -103,6 +104,20 @@ func face_point(p: Vector3) -> void:
 	if Vector2(d.x, d.z).length() < 0.5:
 		return
 	_yaw = atan2(-d.x, -d.z)
+
+
+## B18.3 (Part 3B.4): a soft fill light riding the camera so
+## characters are never fully black against the night street.
+func _add_fill_light() -> void:
+	if get_node_or_null("CameraFill") != null:
+		return
+	var fill := OmniLight3D.new()
+	fill.name = "CameraFill"
+	fill.light_color = Color(0.62, 0.70, 0.85)
+	fill.light_energy = 0.32
+	fill.omni_range = 16.0
+	fill.omni_attenuation = 1.6
+	add_child(fill)
 
 
 var _road_mat: ShaderMaterial

@@ -24,6 +24,7 @@ var _t := 0.0
 var _state_t := 0.0
 var _spawn := Vector3.ZERO
 var _mats: Array[StandardMaterial3D] = []
+var fallback_figure := false  # B18.3: the lit capsule took over (census fact)
 var _flash := 0.0
 var _flash_color := Color(1, 1, 1)
 var _edge := 0.0          # the intended per-kind silhouette glow
@@ -65,6 +66,19 @@ func _ready() -> void:
 	hp = max_hp
 	_spawn = global_position
 	_own_materials()
+	# B18.3 (BUG 10): a name marker above the head - who you are
+	# fighting reads at a distance
+	var tag := Label3D.new()
+	tag.text = ["DUMMY", "MUSCLE", "COLLECTOR", "CREW", "BOSS"][kind] \
+			if kind in [0, 1, 2, 3, 4] else "THUG"
+	tag.modulate = Color(1.0, 0.62, 0.5, 0.9)
+	tag.font_size = 44
+	tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	tag.outline_size = 10
+	tag.outline_modulate = Color(0.02, 0.02, 0.03)
+	tag.no_depth_test = true
+	tag.position = Vector3(0, 2.35, 0)
+	add_child(tag)
 	# P0.1 T-pose fix: an enemy that spawns beyond the 10 m think radius
 	# never entered WALK, so _think's idle branch skipped it and NOTHING
 	# ever called play() - the mannequin stood in the glb rest pose
@@ -111,6 +125,17 @@ func _own_materials() -> void:
 	if _mi == null or not is_instance_valid(_mi) or _mi.mesh == null:
 		# B17: the mannequin GLB can be missing on a fresh import (not
 		# converted yet) - the capsule stays, nothing else may abort
+		# B18.3 (BUG 10): the fallback becomes a LIT red faction figure,
+		# never a dark grey tube lost in the night
+		fallback_figure = true
+		var m := StandardMaterial3D.new()
+		m.albedo_color = Color(0.35, 0.12, 0.10)
+		m.emission_enabled = true
+		m.emission = Color(0.9, 0.22, 0.16)
+		m.emission_energy_multiplier = 0.45
+		for c in get_children():
+			if c is MeshInstance3D and (c as MeshInstance3D).mesh is CapsuleMesh:
+				(c as MeshInstance3D).material_override = m
 		return
 	_mi.mesh = _mi.mesh.duplicate()
 	for i in _mi.mesh.get_surface_count():

@@ -36,6 +36,7 @@ static func build() -> String:
 	L.append(_identity())
 	L.append(_render_block())
 	L.append(_audio_block())
+	L.append(_characters_block())
 	L.append(_env_block())
 	L.append(_hero_block())
 	L.append(_cinematic_block())
@@ -57,6 +58,89 @@ static func _identity() -> String:
 	var ver: Dictionary = Engine.get_version_info()
 	return "BUILD: %s\nGodot: %s | device: %s" % [stamp,
 			str(ver.get("string", "?")), OS.get_name()]
+
+
+## B18.3 (BUG 10, Part 3B): the CHARACTER AND VEHICLE CENSUS. Every
+## hero, enemy, street NPC, trainer and vehicle, with the facts that
+## decide whether it can be SEEN: exists, visible, distance to the
+## camera, frustum, mesh + skeleton counts, the first material and its
+## albedo, the animation playing, an approximate on-screen pixel area,
+## and whether the lit fallback figure took over. Pixel areas are
+## ESTIMATES from the camera projection (the true raster count needs a
+## GPU readback).
+static func _characters_block() -> String:
+	var tree := Engine.get_main_loop() as SceneTree
+	var out := "-- CHARACTERS + VEHICLES --\n"
+	if tree == null:
+		return out + "no scene tree"
+	var cam := tree.get_first_node_in_group("camera") as Camera3D
+	var rows: Array[String] = []
+	var groups := [["player", "HERO"], ["enemy", "ENEMY"],
+			["cast", "NPC"], ["trainer", "TRAINER"]]
+	for g in groups:
+		for n in tree.get_nodes_in_group(g[0]):
+			rows.append(_census_row(n, g[1], cam))
+	# vehicles: the parked car (slam_surface == "car"; crates and bins
+	# share the takedown meta but are not vehicles)
+	var seen := {}
+	for n in tree.root.find_children("*", "StaticBody3D", true, false):
+		if str(n.get_meta("slam_surface", "")) == "car" and not seen.has(n):
+			seen[n] = true
+			rows.append(_census_row(n, "VEHICLE", cam))
+	if rows.is_empty():
+		return out + "nothing alive found"
+	for r in rows:
+		out += r + "\n"
+	var dark := 0
+	for n in tree.get_nodes_in_group("enemy"):
+		if n is Node3D and bool(n.get("fallback_figure")):
+			dark += 1
+	out += "lit fallback figures in use: %d" % dark
+	return out
+
+
+static func _census_row(n: Node, role: String, cam: Camera3D) -> String:
+	var n3 := n as Node3D
+	var vis: bool = n3.is_visible_in_tree()
+	var pos := n3.global_position
+	var dist := -1.0
+	var in_frustum := false
+	var px := -1
+	if cam:
+		dist = cam.global_position.distance_to(pos)
+		if not cam.is_position_behind(pos):
+			var sp := cam.unproject_position(pos)
+			var vr := cam.get_viewport().get_visible_rect()
+			in_frustum = vr.has_point(sp)
+			# approximate: a 0.9 m wide figure at this distance + fov
+			var w := 0.9 / maxf(dist, 0.5) * vr.size.y
+			px = int(w * w)
+	var meshes := 0
+	var skel := false
+	var mat_kind := "none"
+	var albedo := "-"
+	for c in n3.find_children("*", "MeshInstance3D", true, false):
+		meshes += 1
+		var mi := c as MeshInstance3D
+		if mi.get_node_or_null("../Skeleton3D") != null or mi.find_children("Skeleton3D", "", true, false).size() > 0:
+			skel = true
+		if mi.mesh != null and mi.mesh.get_surface_count() > 0 and mat_kind == "none":
+			var m := mi.mesh.surface_get_material(0)
+			mat_kind = str(m.get_class()) if m != null else "null"
+			if m is StandardMaterial3D:
+				var a: Color = (m as StandardMaterial3D).albedo_color
+				albedo = "(%.2f, %.2f, %.2f)" % [a.r, a.g, a.b]
+	var anim := "-"
+	for c in n3.find_children("*", "AnimationPlayer", true, false):
+		if (c as AnimationPlayer).current_animation != "":
+			anim = str((c as AnimationPlayer).current_animation)
+			break
+	var fb := ""
+	if n.get("fallback_figure") != null and bool(n.get("fallback_figure")):
+		fb = " [LIT FALLBACK]"
+	return "%s %s | vis %s | %d m | frustum %s | ~%d px | meshes %d | skel %s | %s %s%s" % [
+			role, str(n.name), str(vis), int(dist), str(in_frustum), px,
+			meshes, str(skel), mat_kind, albedo, fb]
 
 
 ## B18.3 (BUG 13): the audio facts - buses, mix rate, device, the

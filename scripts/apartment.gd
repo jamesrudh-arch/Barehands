@@ -267,7 +267,9 @@ func arrive_from_street() -> void:
 
 func _process(delta: float) -> void:
 	# the frame breathes so it reads as THE way out, even in the dark
+	# (B18.3 BUG 11: the breathing stays inside the 1.15 sign cap so it
+	# can never read as a white flicker on the phone)
 	_pulse += delta
 	if _frame:
-		var e: float = 1.1 + 0.35 * (0.5 + 0.5 * sin(_pulse * 2.2))
+		var e: float = 1.0 + 0.12 * (0.5 + 0.5 * sin(_pulse * 2.2))
 		(_frame.mesh.material as StandardMaterial3D).emission_energy_multiplier = e
