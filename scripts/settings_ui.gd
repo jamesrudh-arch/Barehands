@@ -89,6 +89,30 @@ func _build() -> void:
 	_slider(col, "Screen shake", "shake_scale", 0.0, 1.0, 0.05)
 	_toggle(col, "Haptics", "haptics_on")
 	_slider(col, "Haptic strength", "haptic_str", 0.0, 1.0, 0.05)
+	# B18.3 (Part 6E.2): per-bus volume sliders + the narrator + intro
+	_title(col, "AUDIO")
+	for b in ["Master", "Music", "SFX", "Ambience", "Voice", "UI"]:
+		var row := HBoxContainer.new()
+		var lbl := Label.new()
+		lbl.text = "%s volume" % b
+		lbl.custom_minimum_size = Vector2(230, 30)
+		row.add_child(lbl)
+		var sl := HSlider.new()
+		sl.min_value = 0.0
+		sl.max_value = 1.0
+		sl.step = 0.05
+		sl.value = Sound.get_bus_vol(b)
+		sl.custom_minimum_size = Vector2(240, 30)
+		sl.value_changed.connect(func(v): Sound.set_bus_vol(b, v))
+		row.add_child(sl)
+		col.add_child(row)
+	_toggle(col, "Narrator voice (subtitles always on)", "narrator_on")
+	_toggle(col, "Skip intro at launch", "skip_intro")
+	var tb := Button.new()
+	tb.text = "TEST SOUND"
+	tb.focus_mode = Control.FOCUS_NONE
+	tb.pressed.connect(func(): Sound.test_buses())
+	col.add_child(tb)
 	_layout_section(col)
 
 	var done := Button.new()

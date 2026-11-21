@@ -33,10 +33,20 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	for stem in ["music_bed", "music_tension", "music_combat", "music_heartbeat"]:
 		var stream: AudioStream = load("res://assets/audio/%s.wav" % stem)
+		var synth := false
+		if stream == null:
+			# B18.3 (BUG 13): a fresh device import can lose a file -
+			# synthesize the stem in code so music never depends on
+			# shipped audio. Logged so the DEVICE REPORT can name it.
+			stream = _synth_stem(stem)
+			synth = true
 		if stream is AudioStreamWAV:
 			(stream as AudioStreamWAV).loop_mode = AudioStreamWAV.LOOP_FORWARD
 			(stream as AudioStreamWAV).loop_begin = 0
 			(stream as AudioStreamWAV).loop_end = (stream as AudioStreamWAV).data.size() / 2
+		if stream == null:
+			Log.warn("Music: stem %s unavailable entirely" % stem)
+			continue
 		var p := AudioStreamPlayer.new()
 		p.name = stem
 		p.bus = "Music"
@@ -46,11 +56,70 @@ func _ready() -> void:
 		p.play()
 		_layers[stem] = p
 		_targets[stem] = -60.0
+		if synth:
+			Log.warn("Music: %s synthesized in code (file missing)" % stem)
 	_resolve_one.bus = "Music"
 	add_child(_resolve_one)
 	# enter quietly: bed rises over the first bar
 	_targets["music_bed"] = -8.0
 	Log.info("Music: ready, 88 BPM, bar %.2fs" % BAR)
+
+
+## B18.3: the menu loop - bed only, state held, while the title or menu
+## is up. set_menu_mode(false) hands control back to the director.
+func set_menu_mode(on: bool) -> void:
+	if on:
+		force_state("explore")
+		_hold_until = Time.get_ticks_msec() + 1000000
+		_targets["music_bed"] = -6.0
+		_targets["music_tension"] = -60.0
+		_targets["music_combat"] = -60.0
+		_targets["music_heartbeat"] = -60.0
+	else:
+		_hold_until = 0
+		_set_explore_targets()
+
+
+## A code-synthesized stem loop (rough, but never silent) for the case
+## where the shipped WAV did not load.
+func _synth_stem(stem: String) -> AudioStreamWAV:
+	var rate := 22050
+	var dur := 2.0
+	var n := int(rate * dur)
+	var data := PackedByteArray()
+	data.resize(n * 2)
+	for i in n:
+		var t := float(i) / float(rate)
+		var s := 0.0
+		var env := 0.0
+		match stem:
+			"music_bed":
+				env = minf(1.0, t * 2.0) * minf(1.0, (dur - t) * 2.0) * 0.32
+				s = (sin(TAU * 220.0 * t) + sin(TAU * 261.6 * t)
+						+ sin(TAU * 329.6 * t)) / 3.0
+			"music_tension":
+				env = (0.5 + 0.5 * sin(TAU * 1.0 * t)) * 0.3
+				s = 2.0 * fmod(110.0 * t, 1.0) - 1.0
+			"music_combat":
+				env = 1.0 if fmod(t * 4.0, 1.0) < 0.45 else 0.0
+				env *= 0.3
+				s = 1.0 if fmod(220.0 * t, 1.0) < 0.5 else -1.0
+			"music_heartbeat":
+				var ph := fmod(t, 1.0)
+				env = 0.0
+				if ph < 0.5:
+					env = (exp(-ph * 18.0)
+							+ (0.6 * exp(-(ph - 0.18) * 18.0) if ph > 0.18 else 0.0)) * 0.5
+				s = sin(TAU * 58.0 * t)
+			_:
+				env = 0.25
+				s = sin(TAU * 440.0 * t)
+		data.encode_s16(i * 2, int(clampf(s * env, -1.0, 1.0) * 16000.0))
+	var wav := AudioStreamWAV.new()
+	wav.format = AudioStreamWAV.FORMAT_16_BITS
+	wav.mix_rate = rate
+	wav.data = data
+	return wav
 
 
 func _process(delta: float) -> void:

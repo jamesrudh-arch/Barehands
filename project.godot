@@ -22,6 +22,7 @@ Visual="*res://scripts/visual.gd"
 Fx="*res://scripts/fx.gd"
 Sound="*res://scripts/sound.gd"
 Music="*res://scripts/music.gd"
+Narrator="*res://scripts/narrator.gd"
 Tactics="*res://scripts/tactics.gd"
 Composure="*res://scripts/composure.gd"
 FightScore="*res://scripts/fight_score.gd"
@@ -47,6 +48,9 @@ window/size/viewport_height=720
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 window/handheld/orientation=4
+[audio]
+
+general/text_to_speech=true
 [input]
 punch={
 "deadzone": 0.2,

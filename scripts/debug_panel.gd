@@ -85,6 +85,13 @@ func _ready() -> void:
 	dev.pressed.connect(func():
 		CLS_DeviceReport.show_popup(get_tree().current_scene))
 	jumps.add_child(dev)
+	# B18.3 (BUG 13): prove the audio path - a tone on every bus, logged
+	var snd := Button.new()
+	snd.text = "TEST SOUND"
+	snd.focus_mode = Control.FOCUS_NONE
+	snd.pressed.connect(func():
+		_label.text = Sound.test_buses())
+	jumps.add_child(snd)
 	var style := Button.new()
 	style.text = "STYLE WHEEL"
 	style.focus_mode = Control.FOCUS_NONE

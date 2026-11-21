@@ -6,7 +6,7 @@ extends Node
 ## neon hum, distant sirens) alive on the Ambience bus. Volume sliders and
 ## their persistence live here too.
 
-const BUSES := ["Master", "Music", "SFX", "Ambience", "Voice"]
+const BUSES := ["Master", "Music", "SFX", "Ambience", "Voice", "UI"]
 const SETTINGS := "user://settings.cfg"
 
 var _bank: Dictionary = {}  # clip name -> AudioStream
@@ -45,16 +45,90 @@ func _load_bank() -> void:
 	var dir := DirAccess.open("res://assets/audio")
 	if dir == null:
 		Log.warn("Sound: no assets/audio folder")
-		return
-	dir.list_dir_begin()
-	var name := dir.get_next()
-	while name != "":
-		if name.ends_with(".ogg") or name.ends_with(".wav"):
-			var key := name.get_basename()
-			_bank[key] = load("res://assets/audio/" + name)
-		name = dir.get_next()
-	dir.list_dir_end()
+	else:
+		dir.list_dir_begin()
+		var name := dir.get_next()
+		while name != "":
+			if name.ends_with(".ogg") or name.ends_with(".wav"):
+				var key := name.get_basename()
+				_bank[key] = load("res://assets/audio/" + name)
+			name = dir.get_next()
+		dir.list_dir_end()
+	_ensure_generated()
 	Log.info("Sound: bank has %d clips" % _bank.size())
+
+
+## B18.3: stingers and cues the file bank does not carry, synthesized in
+## code so missions, the guide and the phone are never silent even if a
+## fresh import loses an audio file.
+func _ensure_generated() -> void:
+	var recipes := {
+		"mission_start": {"freqs": [330.0, 440.0, 550.0], "dur": 0.5, "wave": "saw", "vol": 0.55},
+		"mission_success": {"freqs": [523.0, 659.0, 784.0, 1047.0], "dur": 0.6, "wave": "sine", "vol": 0.5},
+		"mission_fail": {"freqs": [440.0, 370.0, 294.0, 220.0], "dur": 0.8, "wave": "saw", "vol": 0.45},
+		"guide_chime": {"freqs": [880.0, 1320.0], "dur": 0.3, "wave": "sine", "vol": 0.4},
+		"phone_buzz": {"freqs": [160.0, 0.0, 160.0, 0.0, 160.0], "dur": 0.8, "wave": "square", "vol": 0.35},
+	}
+	for key in recipes:
+		if _bank.has(key):
+			continue
+		_bank[key] = _synth_clip(recipes[key])
+
+
+func _synth_clip(spec: Dictionary) -> AudioStreamWAV:
+	var rate := 22050
+	var total := int(rate * float(spec["dur"]))
+	var data := PackedByteArray()
+	data.resize(total * 2)
+	var seg := maxi(1, total / maxi(1, (spec["freqs"] as Array).size()))
+	var idx := 0
+	for f0 in spec["freqs"]:
+		var f: float = f0
+		for i in mini(seg, total - idx):
+			var t := float(i) / float(rate)
+			var env: float = minf(1.0, t * 80.0) * exp(-t * 3.5)
+			var s := 0.0
+			if f > 0.0:
+				match spec["wave"]:
+					"saw":
+						s = 2.0 * fmod(f * t, 1.0) - 1.0
+					"square":
+						s = 1.0 if fmod(f * t, 1.0) < 0.5 else -1.0
+					_:
+						s = sin(TAU * f * t)
+			data.encode_s16((idx + i) * 2, int(clampf(s * env * float(spec["vol"]), -1.0, 1.0) * 16000.0))
+		idx += seg
+	var wav := AudioStreamWAV.new()
+	wav.format = AudioStreamWAV.FORMAT_16_BITS
+	wav.mix_rate = rate
+	wav.data = data
+	return wav
+
+
+## B18.3 Part 6E.1: TEST SOUND - a clear tone on every bus, one by one,
+## with a log line per bus. Returns the log so the DEVICE REPORT and the
+## debug panel can show exactly what played where.
+func test_buses() -> String:
+	var log_lines: Array[String] = []
+	var order := ["Master", "Music", "SFX", "Ambience", "Voice", "UI"]
+	for bus in order:
+		var idx := AudioServer.get_bus_index(bus)
+		if idx < 0:
+			log_lines.append("%s: NO SUCH BUS" % bus)
+			continue
+		var p := AudioStreamPlayer.new()
+		p.bus = bus
+		p.stream = _synth_clip({"freqs": [660.0 if bus != "Master" else 440.0],
+				"dur": 0.25, "wave": "sine", "vol": 0.6})
+		p.volume_db = -6.0
+		add_child(p)
+		p.finished.connect(p.queue_free)
+		p.play()
+		var state := "MUTE" if AudioServer.is_bus_mute(idx) else "ok"
+		log_lines.append("%s: tone played (vol %.0f dB, %s)"
+				% [bus, AudioServer.get_bus_volume_db(idx), state])
+		Log.info("Sound: TEST %s" % log_lines[-1])
+	return "\n".join(log_lines)
 
 
 func _make_pool(into: Array[AudioStreamPlayer], count: int, bus: String) -> void:
@@ -69,13 +143,17 @@ func _make_pool(into: Array[AudioStreamPlayer], count: int, bus: String) -> void
 
 
 ## One-shot with random pitch jitter so repeats never sound mechanical.
+## UI clips always ride the UI bus; the Voice pool serves Voice only,
+## every other bus shares the bigger SFX pool.
 func play(clip: String, vol_db := 0.0, pitch := 1.0, jitter := 0.05, bus := "SFX") -> void:
+	if bus == "SFX" and clip.begins_with("ui_"):
+		bus = "UI"
 	var stream: AudioStream = _bank.get(clip)
 	if stream == null:
 		Log.warn("Sound: missing clip %s" % clip)
 		return
 	last_played = clip
-	for p in _pool if bus == "SFX" else _voice_pool:
+	for p in _voice_pool if bus == "Voice" else _pool:
 		if not p.playing:
 			p.stream = stream
 			p.volume_db = vol_db
@@ -84,7 +162,7 @@ func play(clip: String, vol_db := 0.0, pitch := 1.0, jitter := 0.05, bus := "SFX
 			p.play()
 			return
 	# pool busy: steal the first slot rather than drop the sound
-	var steal: AudioStreamPlayer = (_pool[0] if bus == "SFX" else _voice_pool[0])
+	var steal: AudioStreamPlayer = (_voice_pool[0] if bus == "Voice" else _pool[0])
 	steal.stream = stream
 	steal.volume_db = vol_db
 	steal.pitch_scale = pitch

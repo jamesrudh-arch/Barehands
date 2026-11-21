@@ -58,6 +58,9 @@ const DEFAULTS := {
 	"hero_rim": 1.8,          # rim light energy, 0..3
 	# B18 6C: the never-lost guidance
 	"sonar_on": true,         # the panned objective ping
+	# B18.3: voice + narration (subtitles always show)
+	"narrator_on": true,      # spoken lines when the platform TTS allows
+	"skip_intro": false,      # jump straight to the menu at launch
 }
 
 var _d: Dictionary = DEFAULTS.duplicate(true)

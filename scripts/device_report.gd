@@ -35,6 +35,7 @@ static func build() -> String:
 	L.append("== LEVERAGE DEVICE REPORT ==")
 	L.append(_identity())
 	L.append(_render_block())
+	L.append(_audio_block())
 	L.append(_env_block())
 	L.append(_hero_block())
 	L.append(_cinematic_block())
@@ -56,6 +57,53 @@ static func _identity() -> String:
 	var ver: Dictionary = Engine.get_version_info()
 	return "BUILD: %s\nGodot: %s | device: %s" % [stamp,
 			str(ver.get("string", "?")), OS.get_name()]
+
+
+## B18.3 (BUG 13): the audio facts - buses, mix rate, device, the
+## bank, the Music autoload, null-stream players, TTS state.
+static func _audio_block() -> String:
+	var tree := Engine.get_main_loop() as SceneTree
+	var out := "-- AUDIO --\n"
+	if tree == null:
+		return out + "no scene tree"
+	var buses: Array[String] = []
+	for i in AudioServer.bus_count:
+		buses.append("%s %s dB%s%s" % [AudioServer.get_bus_name(i),
+				"%.1f" % AudioServer.get_bus_volume_db(i),
+				" MUTE" if AudioServer.is_bus_mute(i) else "",
+				" SOLO" if AudioServer.is_bus_solo(i) else ""])
+	out += "buses (%d): %s\n" % [AudioServer.bus_count, " | ".join(buses)]
+	out += "mix rate: %d Hz\n" % AudioServer.get_mix_rate()
+	out += "configured driver: %s\n" % str(ProjectSettings.get_setting(
+			"audio/driver/driver", "Default"))
+	var sound: Node = tree.root.get_node_or_null("/root/Sound")
+	var music: Node = tree.root.get_node_or_null("/root/Music")
+	var bank := 0
+	if sound:
+		bank = int((sound.get("_bank") as Dictionary).size())
+	out += "SfxSynth bank: %s (%d clips)\n" % [
+			"loaded" if sound else "NIL", bank]
+	out += "Music autoload: %s\n" % ("exists" if music else "NIL")
+	var nulls := 0
+	var playing := 0
+	var players := 0
+	for n in tree.root.find_children("*", "AudioStreamPlayer", true, false):
+		players += 1
+		if n.stream == null:
+			nulls += 1
+		elif (n as AudioStreamPlayer).playing:
+			playing += 1
+	out += "players: %d total, %d playing, %d with NULL stream\n" % [
+			players, playing, nulls]
+	var narr: Node = tree.root.get_node_or_null("/root/Narrator")
+	var tts_voices := "no"
+	if narr and narr.has_method("tts_enabled") and narr.call("tts_enabled"):
+		tts_voices = "yes"
+	out += "TTS setting: %s | English voice: %s | narrator fallback used: %s" % [
+			str(ProjectSettings.get_setting("audio/general/text_to_speech", false)),
+			tts_voices,
+			"yes" if narr and bool(narr.get("fallback_used")) else "no"]
+	return out
 
 
 static func _render_block() -> String:
