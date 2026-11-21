@@ -1,5 +1,68 @@
 # CHANGELOG.md — batch history (newest first)
 
+## B18.3 — the full package (2026-11-21)
+
+From the expanded prompt (photos 9296/9297 were still B17). Nine
+committed chunks:
+
+- **a (audio, BUG 13)**: Narrator autoload (TTS verified against the
+  4.7 docs: audio/general/text_to_speech + tts_get_voices_for_language
+  + tts_speak; iOS libs default-on; empty-voice + delay caveats),
+  subtitles ALWAYS, radio-babble fallback, the 8-line intro script +
+  3 call scripts; TEST SOUND (a tone on every bus, debug + settings);
+  AUDIO section in the DEVICE REPORT; UI bus + Master compressor +
+  limiter; music stems SYNTHESIZED IN CODE when files are missing;
+  generated mission stingers + guide chime + phone buzz.
+- **b (start sequence, BUG 14)**: studio card D'YOUNGS GAMES (gold
+  self-drawing ring, DY monogram, serif wordmark, sweep, swell +
+  chime), content notice, LEVERAGE title card over the live street,
+  loading card, MAIN MENU (PLAY/CONTINUE-greyed/SETTINGS/CREDITS,
+  menu music, Kenney credit). Gated to Stage 0 LAUNCH FULL GAME so
+  every suite boots clean. smoke_start 11.
+- **c+d (fight controls + pickups/weapons, BUG 8 + 12)**: the FIGHT
+  scheme default (X punch, Y heavy tap/hold-charge, B kick with the
+  context swap + the 6 m combat-priority rule, A dodge, GUARD/GRAB/
+  SPRINT pills, SUPER centre, STYLE wheel), new combos ONE-TWO-THREE
+  (A A A) + STEP KICK (A X); pickups (pipe/bat/bottle/plank/chair-leg
+  + cash/health/painkillers/key/burner) with glow + bob + [B] prompts
+  and the placement contract; the Weapons autoload (durability per
+  landed hit, break, HUD chip); the legacy street pipe unified.
+  smoke_pickups 24.
+- **e (the green guide, BUG 9)**: the follow-me orb (lead 4-6 m, wait
+  + pulse, re-route, arrival bounce, trail, chevrons, edge arrow),
+  the route + beam + map legend in guide green (cyan alt), the orb
+  dot on the radar, recall on OBJECTIVE. smoke_guide 23.
+- **f (everything visible, BUG 10 + 11)**: the CHARACTER + VEHICLE
+  CENSUS in the DEVICE REPORT, the lit red fallback figure when an
+  enemy GLB fails, name tags over heads, the camera fill light, the
+  parked car readable (brighter paint + headlights + tails + cyan
+  edges + spill), the apartment door breathing capped inside 1.15.
+- **g (ambient life, BUG 15)**: the moth swarm (MultiMesh orbits at
+  lamp-height lights, scatters when you walk through, caps 40/20 by
+  the device guess), rats + pigeons + the stray cat reacting with
+  sounds, the AMBIENT section in the report. smoke_ambient 12.
+- **h (the art bar, BUG 16)**: ART_BIBLE.md (palette, the 1.1 Mobile
+  emission cap rule, materials, presets, the CC0 roadmap stated as
+  NOT integrated), the LookDev gallery from the debug menu,
+  histogram gates in render_check (white < 1.5%, black < 55%,
+  mid-tones > 25%), graphics facts in the report. smoke_lookdev 6.
+- **i (the 3D title, BUG 17)**: the extruded TextMesh LEVERAGE rising
+  from the wet ground with a mirrored fake reflection, the cast in
+  layers (bosses in fog, crew row, hero front-right with lit eyes),
+  magenta/cyan rims, dolly + light sweep, behind the title card AND
+  the menu; the 2D chromatic wordmark is the logged fallback.
+
+Suites green this pass: run_tests, smoke, smoke_guide 23,
+smoke_pickups 24, smoke_ambient 12, smoke_start 11, smoke_lookdev 6,
+smoke_map 35, smoke_controls 55, smoke_face 31, smoke_stick 31,
+smoke_audio, smoke_null_watch, smoke_city, smoke_combat, smoke_combos
+61, stage0_check (+ the full battery re-run from clean dirs; two
+suite-contract fixes along the way: the picker now offers three
+schemes, the worldsim street-door selection). The push is STILL
+credential-blocked (.git-auth missing since the sandbox recycle); a
+bundle carries all commits. hdr_2d was measured B18.2 (identical white
+share both ways - stays OFF per the verified docs).
+
 ## B18.2 — never lost + orientation lock (2026-11-21)
 
 The second B18 drop, from the expanded prompt (photos IMG_9296/9297:
