@@ -133,7 +133,7 @@ func _build_logo() -> void:
 	var tm := TextMesh.new()
 	tm.text = "LEVERAGE"
 	tm.depth = 0.55
-	tm.size = 2.6
+	tm.font_size = 64
 	tm.curve_step = 4.0
 	var f := SystemFont.new()
 	f.font_names = PackedStringArray(["Arial Black", "Arial", "sans-serif"])
