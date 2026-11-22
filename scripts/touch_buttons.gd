@@ -119,7 +119,10 @@ func _ready() -> void:
 
 func _scheme() -> String:
 	var s := str(Settings.value("button_scheme"))
-	return s if s in ["face", "fight"] else "classic"
+	# Gate A: the FIGHTING scheme (X PUNCH / Y HEAVY / B KICK / A DODGE)
+	# is the default - the phone showed the CLASSIC word buttons because
+	# an unset setting fell through to "classic"
+	return s if s in ["face", "fight", "classic"] else "fight"
 
 
 func _specs() -> Array:

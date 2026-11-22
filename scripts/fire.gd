@@ -299,19 +299,16 @@ func _weather_answer() -> void:
 		if not is_instance_valid(s):
 			continue
 		var src := s as Node3D
-		# grills carry no steam layer - the defaults keep every getter
+		# grills carry no steam layer - has_meta keeps every getter
 		# honest for both source kinds
-		var steam: CPUParticles3D = src.get_meta("steam", null)
-		if steam:
-			steam.emitting = wet > 0.6
-		var outer: CPUParticles3D = src.get_meta("flame_outer", null)
-		if outer:
-			outer.amount = int(26.0 * (1.0 - 0.3 * maxf(wet - 0.6, 0.0)))
-		var smoke: CPUParticles3D = src.get_meta("smoke", null)
-		if smoke:
-			# the wind carries it
-			smoke.gravity = Vector3(Weather.wind.x * 0.8, 0.25,
-					Weather.wind.z * 0.8)
+		if src.has_meta("steam"):
+			(src.get_meta("steam") as CPUParticles3D).emitting = wet > 0.6
+		if src.has_meta("flame_outer"):
+			(src.get_meta("flame_outer") as CPUParticles3D).amount = int(
+					26.0 * (1.0 - 0.3 * maxf(wet - 0.6, 0.0)))
+		if src.has_meta("smoke"):
+			(src.get_meta("smoke") as CPUParticles3D).gravity = Vector3(
+					Weather.wind.x * 0.8, 0.25, Weather.wind.z * 0.8)
 
 
 ## Place a scorch mark: recycled from the capped Decal pool (oldest

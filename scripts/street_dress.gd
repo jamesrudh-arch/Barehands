@@ -7,6 +7,7 @@ extends Node3D
 
 const ShaftShader := preload("res://shaders/shaft.gdshader")
 const CLS_Kit := preload("res://scripts/kit.gd")
+const CLS_Watcher := preload("res://scripts/watcher.gd")
 
 
 func _ready() -> void:
@@ -699,6 +700,11 @@ func _kits() -> void:
 			CLS_Kit.place(main, "kenney_food/cup-coffee.glb",
 					Vector3(-6.65, 0.64, 9.0), 0.0, 1.0)
 			Fire.grill_fire(main, Vector3(-6.3, 0.72, 8.9))
+	# Gate A: the thug on the wall - the street watches you back
+	var thug := CLS_Watcher.new()
+	thug.setup(Vector3(12.8, 0.0, -7.0), PI * 0.5, Color(0.18, 0.16, 0.2),
+			"VULTURE", ["res://assets/cast/Male_Knight_Body_Armor.gltf"])
+	main.add_child.call_deferred(thug)
 	Log.info("StreetKits: %d CC0 kit models placed on the main street" % placed)
 
 

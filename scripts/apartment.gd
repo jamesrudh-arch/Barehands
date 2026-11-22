@@ -285,3 +285,14 @@ func _process(delta: float) -> void:
 	if _frame:
 		var e: float = 1.0 + 0.12 * (0.5 + 0.5 * sin(_pulse * 2.2))
 		(_frame.mesh.material as StandardMaterial3D).emission_energy_multiplier = e
+	# Gate A (the owner was stuck in this room): during the guide's
+	# OPEN step the door opens ITSELF when the hero walks into it - no
+	# way to be trapped, even if the prompt is missed
+	if not _busy and str(get_meta("door_state", "closed")) == "closed":
+		var guide := get_tree().get_first_node_in_group("guide")
+		var hero := get_tree().get_first_node_in_group("player") as Node3D
+		if guide and hero and int(guide.get("step")) == 1:  # STEP_OPEN
+			var d := Vector2(hero.global_position.x - global_position.x,
+					hero.global_position.z - (global_position.z - 3.2))
+			if d.length() < 2.4:
+				_open_out()

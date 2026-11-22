@@ -4,6 +4,31 @@ Godot 4.7, Mobile renderer, Metal 4 on supported iPhones. This file is
 the exact phone procedure plus the text storyboards of every new
 screen, so you can compare what you SEE with what was built.
 
+## GATE A (B20) — WHAT TO EXPECT ON THE PHONE
+
+The B20 build (the GATE A zip) exists to answer ONE question: can you
+SEE the world, HEAR clean audio, and WALK OUT of the apartment?
+
+1. Import the new zip (the folder with `project.godot`). The project
+   name reads LEVERAGE B18; the stamp on screen reads B20 <hash>.
+2. On boot the safe lights are ON (XOGOT SAFE is the mobile default):
+   the street and the rooms are lit by a warm sun + a camera light -
+   nothing should be a black void. If it still reads dark: DBG ->
+   VISUAL DEBUG -> BRIGHT (or the Brightness slider up to 2.0).
+3. Walk out: the guide starts by itself (FIND THE DOOR -> the frame
+   glows). Walk into the door - it OPENS BY ITSELF during the guide -
+   then you land on the street. If you are ever stuck: DBG -> GO
+   OUTSIDE.
+4. Listen: the music is a soft warm pad (quiet), the rain is soft. If
+   anything crackles, note WHEN (always / on hits / on the loop).
+5. The buttons are the FIGHTING diamond now: X PUNCH, Y HEAVY,
+   B KICK, A DODGE (letters big, action names small). The amber chip
+   strip now sits top-centre - nothing crosses the buttons.
+6. THEN: DBG -> DEVICE REPORT -> select all, copy, and paste the text
+   back. That report (plus what you see/hear) decides everything next.
+
+## THE OLD PHONE PROCEDURE (kept for reference)
+
 ## THE PHONE PROCEDURE (exact)
 
 1. Unzip `Leverage_B18_3_FullPackage_2026-11-21.zip` in Files. The

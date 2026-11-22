@@ -315,6 +315,29 @@ func _build_room() -> void:
 	CLS_Kit.place(self, "kenney_furniture/chair.glb", Vector3(-2.9, 0.0, 1.6), PI / 2.0, 1.05)
 	CLS_Kit.place(self, "kenney_furniture/pottedPlant.glb", Vector3(-4.3, 0.0, 3.6), 0.0, 1.0)
 	CLS_Kit.place(self, "kenney_furniture/trashcan.glb", Vector3(4.3, 0.0, 3.6), 0.0, 1.0)
+	# Gate A: the shop has CUSTOMERS - two at the table (a crouched
+	# idle reads as sitting at its height), different builds, a bowl each
+	for cust in [
+			[Vector3(-2.85, 0.0, 1.6), Color(0.35, 0.3, 0.4),
+					"res://assets/cast/Male_Peasant_Body.gltf"],
+			[Vector3(-1.5, 0.0, 1.65), Color(0.3, 0.38, 0.32),
+					"res://assets/cast/Female_Ranger_Body.gltf"]]:
+		var cr := CLS_NpcRig.new()
+		cr.build([cust[2]], cust[1], cust[1] * 0.35, "Crouch_Idle", 0.55)
+		cr.position = cust[0]
+		cr.rotation.y = PI + randf_range(-0.4, 0.4)
+		add_child(cr)
+		var bowl := MeshInstance3D.new()
+		var bwm := CylinderMesh.new()
+		bwm.top_radius = 0.09
+		bwm.bottom_radius = 0.07
+		bwm.height = 0.06
+		var bwmat := StandardMaterial3D.new()
+		bwmat.albedo_color = Color(0.85, 0.8, 0.7)
+		bwm.material = bwmat
+		bowl.mesh = bwm
+		bowl.position = cust[0] + Vector3(0.28, 0.42, 0.05)
+		add_child(bowl)
 	# the owner behind the counter
 	var owner := Node3D.new()
 	owner.add_to_group("shop_owner")

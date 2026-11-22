@@ -76,7 +76,9 @@ func _ready() -> void:
 	await get_tree().create_timer(0.7).timeout
 	var steaming := 0
 	for s in get_tree().get_nodes_in_group("fire_source"):
-		var steam: CPUParticles3D = (s as Node).get_meta("steam")
+		var steam: CPUParticles3D = null
+		if (s as Node).has_meta("steam"):
+			steam = (s as Node).get_meta("steam")
 		if steam and steam.emitting:
 			steaming += 1
 	_check(steaming >= 1, "rain on fire makes steam (%d steaming)" % steaming)
@@ -84,7 +86,9 @@ func _ready() -> void:
 	await get_tree().create_timer(0.7).timeout
 	var steaming_after := 0
 	for s in get_tree().get_nodes_in_group("fire_source"):
-		var steam: CPUParticles3D = (s as Node).get_meta("steam")
+		var steam: CPUParticles3D = null
+		if (s as Node).has_meta("steam"):
+			steam = (s as Node).get_meta("steam")
 		if steam and steam.emitting:
 			steaming_after += 1
 	_check(steaming_after == 0, "dry weather keeps the steam off (%d)" % steaming_after)

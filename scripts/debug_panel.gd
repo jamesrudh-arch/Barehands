@@ -135,6 +135,36 @@ func _ready() -> void:
 	def_b.focus_mode = Control.FOCUS_NONE
 	def_b.pressed.connect(func(): Ledger.debug_default())
 	jumps.add_child(def_b)
+	# Gate A (the owner was stuck inside): one-tap moves between the
+	# apartment and the street, whatever else is going on
+	var out_b := Button.new()
+	out_b.text = "GO OUTSIDE"
+	out_b.focus_mode = Control.FOCUS_NONE
+	out_b.pressed.connect(func(): _teleport("outside"))
+	jumps.add_child(out_b)
+	var in_b := Button.new()
+	in_b.text = "GO INSIDE"
+	in_b.focus_mode = Control.FOCUS_NONE
+	in_b.pressed.connect(func(): _teleport("inside"))
+	jumps.add_child(in_b)
+
+
+## Gate A teleports (the debug menu and the pause menu both call in):
+## "outside" lands on the street in front of the apartment's door,
+## "inside" lands in the apartment by its door. The camera snaps.
+func _teleport(where: String) -> void:
+	var p := get_tree().get_first_node_in_group("player") as Node3D
+	if p == null:
+		return
+	if where == "inside":
+		p.global_position = Vector3(780.0, 0.02, 1.8)  # the apartment spawn
+	else:
+		p.global_position = Vector3(-2.0, 0.02, 7.6)  # the street door exit
+	var blocks := get_tree().root.get_node_or_null("/root/Blocks")
+	if blocks:
+		blocks.call("snap_camera_to", p)
+	_label.text = "teleported %s - hero at %s" % [where, str(p.global_position.round())]
+	Log.info("Debug: teleport %s -> %s" % [where, str(p.global_position.round())])
 
 
 ## Batch 5: a random friend calls, right now, whatever the hero is doing.

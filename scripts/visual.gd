@@ -7,9 +7,12 @@ const CLS_FollowCamera := preload("res://scripts/camera_follow.gd")
 ##
 ## Two profiles:
 ##   NIGHT  - the desktop night as authored (glow on, full emission)
-##   XOGOT SAFE - for Xogot/iOS Mobile-Metal: glow off, emission
+##   XOGOT SAFE - Gate A FULLBRIGHT SAFE MODE: strong even lighting
+##     (a sun + a camera fill light + raised warm ambient) so no
+##     playable surface can render black on any device, emission
 ##     capped, simple tonemap, minimal particles. Applied by default
-##     on mobile so the phone boots safe; the panel can go back.
+##     on mobile so the phone boots VISIBLE; BRIGHT / NORMAL / MOODY
+##     presets and a live brightness slider (0.5..2.0) tune it.
 
 signal visual_changed
 
@@ -17,6 +20,7 @@ const PROFILE_NIGHT := "night"
 const PROFILE_XOGOT_SAFE := "xogot_safe"
 
 var profile := PROFILE_NIGHT
+var safe_brightness := 1.0        # Gate A: the safe-mode brightness dial
 var emission_mult := 1.0        # multiplies every neon/window energy
 var rain_on := true
 var rain_streak_width := 0.008  # metres; thin streaks, not squares
@@ -82,8 +86,26 @@ func apply_profile(p: String) -> void:
 	_apply_all()
 
 
-## Push every setting to the live scene. Safe to call any time; finds
-## whatever exists and leaves the rest alone.
+## Gate A: the brightness presets. BRIGHT lifts every safe light,
+## MOODY dims them toward the authored night (never below readability).
+func apply_brightness_preset(id: String) -> void:
+	match id:
+		"bright":
+			set_brightness(1.5)
+		"normal":
+			set_brightness(1.0)
+		"moody":
+			set_brightness(0.65)
+
+
+## The live brightness dial (Visual Debug + Settings sliders).
+func set_brightness(b: float) -> void:
+	safe_brightness = clampf(b, 0.5, 2.0)
+	if profile == PROFILE_XOGOT_SAFE:
+		_apply_safe_lights()
+	visual_changed.emit()
+
+
 func _apply_all() -> void:
 	apply_emission()
 	apply_post()
@@ -93,7 +115,63 @@ func _apply_all() -> void:
 	apply_shadows()
 	apply_npcs()
 	apply_camera()
+	_apply_safe_lights()
 	visual_changed.emit()
+
+
+## Gate A FULLBRIGHT: a sun, a camera fill light and raised warm
+## ambient - the guarantee that no playable surface can render black,
+## whatever a specific GPU does with the authored night. Everything
+## scales with safe_brightness; NIGHT removes the safe lights again.
+func _apply_safe_lights() -> void:
+	var env := _env()
+	var scene := get_tree().current_scene if is_inside_tree() else null
+	if env != null:
+		if profile == PROFILE_XOGOT_SAFE:
+			# warm neutral ambient, lifted by the dial
+			env.ambient_light_color = Color(0.5, 0.48, 0.45)
+			env.ambient_light_energy = 1.1 * safe_brightness
+		else:
+			env.ambient_light_color = Color(0.2, 0.19, 0.185)
+			env.ambient_light_energy = 1.0
+	var sun := get_node_or_null("/root/Visual/SafeSun") as DirectionalLight3D
+	var fill := get_node_or_null("/root/Visual/SafeFill") as OmniLight3D
+	if profile == PROFILE_XOGOT_SAFE:
+		if sun == null:
+			sun = DirectionalLight3D.new()
+			sun.name = "SafeSun"
+			sun.rotation = Vector3(-0.9, 0.4, 0)
+			add_child(sun)
+		sun.light_color = Color(1.0, 0.96, 0.9)
+		sun.light_energy = 0.85 * safe_brightness
+		sun.shadow_enabled = false
+		if fill == null:
+			fill = OmniLight3D.new()
+			fill.name = "SafeFill"
+			fill.omni_range = 26.0
+			add_child(fill)
+		fill.light_color = Color(1.0, 0.9, 0.78)
+		fill.light_energy = 0.55 * safe_brightness
+		fill.shadow_enabled = false
+		# the fill rides the camera so characters are never fully dark
+		var cam := get_tree().get_first_node_in_group("camera") as Node3D
+		if cam:
+			fill.global_position = cam.global_position - cam.global_transform.basis.z * 3.0
+	else:
+		if sun:
+			sun.queue_free()
+		if fill:
+			fill.queue_free()
+
+
+## The camera fill light follows the camera every frame (cheap).
+func _process(_delta: float) -> void:
+	if profile != PROFILE_XOGOT_SAFE:
+		return
+	var fill := get_node_or_null("SafeFill") as OmniLight3D
+	var cam := get_tree().get_first_node_in_group("camera") as Node3D
+	if fill and cam:
+		fill.global_position = cam.global_position - cam.global_transform.basis.z * 3.0
 
 
 func _env() -> Environment:
@@ -196,6 +274,11 @@ func dump_settings() -> String:
 	lines.append("visual: decals=%s outlines=%s post=%s shadows=%s npcs=%s" % [
 			str(decals_on), str(outlines_on), str(post_on),
 			str(shadows_on), str(npcs_on)])
+	# Gate A safe mode: the fullbright facts the DEVICE REPORT needs
+	lines.append("safe_mode: profile=%s brightness=%.2f sun=%s fill=%s" % [
+			profile, safe_brightness,
+			str(get_node_or_null("SafeSun") != null),
+			str(get_node_or_null("SafeFill") != null)])
 	lines.append("camera: height=%.2f distance=%.2f" % [cam_height, cam_distance])
 	var hud := get_tree().get_first_node_in_group("hud")
 	var buttons := 0

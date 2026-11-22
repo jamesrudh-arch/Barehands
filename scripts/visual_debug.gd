@@ -86,6 +86,20 @@ func _build() -> void:
 	_button(presets, "SCREENSHOT PNG", _screenshot)
 	_button(presets, "CLOSE", func(): visible = false)
 
+	# Gate A: the safe-mode brightness presets + the live slider
+	_title(col, "SAFE MODE BRIGHTNESS")
+	var bright_row := HBoxContainer.new()
+	bright_row.add_theme_constant_override("separation", 8)
+	col.add_child(bright_row)
+	_button(bright_row, "BRIGHT", func():
+		Visual.apply_brightness_preset("bright"); _refresh_all())
+	_button(bright_row, "NORMAL", func():
+		Visual.apply_brightness_preset("normal"); _refresh_all())
+	_button(bright_row, "MOODY", func():
+		Visual.apply_brightness_preset("moody"); _refresh_all())
+	_slider(col, "Brightness (safe mode)", "", 0.5, 2.0, 0.05, 1.0,
+			func(v): Visual.set_brightness(v))
+
 	_title(col, "GLOW / POST")
 	var env := _env()
 	_slider(col, "Glow on/off", "", 0, 1, 1, 1,

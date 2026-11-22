@@ -34,6 +34,7 @@ static func build() -> String:
 	var L: Array[String] = []
 	L.append("== LEVERAGE DEVICE REPORT ==")
 	L.append(_identity())
+	L.append(_gate_a_block())
 	L.append(_render_block())
 	L.append(_kits_block())
 	L.append(_audio_block())
@@ -48,8 +49,78 @@ static func build() -> String:
 	L.append(_census_block())
 	L.append(_suspects_block())
 	L.append(_errors_block())
+	L.append(_phone_only_block())
 	L.append("== END OF DEVICE REPORT ==")
 	return "\n".join(L)
+
+
+## Gate A (SAFE MODE): the one-glance state - safe profile, brightness,
+## people count, movement, door, guide - and what only the phone can
+## prove. This is the section to read first on the device.
+static func _gate_a_block() -> String:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		return "-- GATE A --\nno scene tree"
+	var out := "-- GATE A SAFE MODE --\n"
+	var vis := _node("/root/Visual")
+	if vis:
+		out += "safe profile: %s | brightness %.2f | sun %s | fill %s\n" % [
+				str(vis.get("profile")), float(vis.get("safe_brightness")),
+				str(vis.get_node_or_null("SafeSun") != null),
+				str(vis.get_node_or_null("SafeFill") != null)]
+	# people: everyone with a body, on the street and in the rooms
+	var peds := tree.get_nodes_in_group("wanderer").size()
+	var cast_n := tree.get_nodes_in_group("cast_npc").size()
+	var owners := tree.get_nodes_in_group("shop_owner").size()
+	var enemies := tree.get_nodes_in_group("enemy").size()
+	var cars := tree.get_nodes_in_group("traffic").size()
+	var watchers := tree.get_nodes_in_group("watcher").size()
+	out += "people: %d pedestrians | %d cast | %d shop staff | %d watchers | %d enemies | %d cars\n" \
+			% [peds, cast_n, owners, watchers, enemies, cars]
+	# movement + lock + door + guide, right now
+	var p := tree.get_first_node_in_group("player") as Node3D
+	var ib := tree.root.get_node_or_null("/root/InputBus")
+	if p:
+		out += "hero: %s | input locked: %s\n" % [
+				str(p.global_position.round()),
+				str(ib.get("locked")) if ib else "?"]
+	var door_state := "none found"
+	for n in tree.get_nodes_in_group("door_prompt"):
+		if str(n.get_meta("door_name", "")).contains("APARTMENT"):
+			door_state = str(n.get_meta("door_state", "?"))
+			break
+	out += "apartment door: %s\n" % door_state
+	var guide := tree.get_first_node_in_group("guide")
+	if guide:
+		var nav: Dictionary = guide.call("current_target") \
+				if guide.has_method("current_target") else {}
+		out += "guide: step %s | target %s\n" % [
+				str(guide.get("step")),
+				str(nav.get("text", "-"))]
+	# the scheme the buttons actually wear
+	var settings := tree.root.get_node_or_null("/root/Settings")
+	var scheme := "fight"
+	if settings and settings.has_method("value"):
+		scheme = str(settings.call("value", "button_scheme"))
+	out += "button scheme: %s (fight = X PUNCH / Y HEAVY / B KICK / A DODGE)\n" \
+			% scheme
+	return out
+
+
+## The honest tail: what this report CANNOT prove from inside the game.
+static func _phone_only_block() -> String:
+	return ("-- PHONE-ONLY (cannot be proven in the sandbox) --\n"
+			+ "1. The world is VISIBLE and no area is pure black or pure white"
+			+ " (look at the street, then the apartment).\n"
+			+ "2. Characters and cars show as visible bodies (walk the street;"
+			+ " count the people you can see).\n"
+			+ "3. Audio is CLEAN: music plays softly, no crackle, no harsh"
+			+ " loop (stand still 10 s and listen; then tap TEST SOUND).\n"
+			+ "4. You can WALK OUT: hold the joystick, leave the apartment"
+			+ " through the door (it also opens by itself during the guide).\n"
+			+ "5. The green guide leads: follow the orb from the apartment"
+			+ " to the street.\n"
+			+ "Paste this whole report back as text.")
 
 
 static func _identity() -> String:
@@ -243,6 +314,20 @@ static func _audio_block() -> String:
 			playing += 1
 	out += "players: %d total, %d playing, %d with NULL stream\n" % [
 			players, playing, nulls]
+	# Gate A: the stream audit verdicts (the crackle hunt facts)
+	if sound and sound.has_method("audio_facts"):
+		var facts: Dictionary = sound.call("audio_facts")
+		var flagged: Array[String] = []
+		var ok := 0
+		for clip in facts.get("facts", {}):
+			var v: Dictionary = facts["facts"][clip]
+			if str(v.get("flag")) == "ok":
+				ok += 1
+			else:
+				flagged.append("%s(%s)" % [clip, v.get("flag")])
+		out += "audio audit: %d/%d streams ok | flagged: %s\n" % [
+				ok, facts.get("facts", {}).size(),
+				", ".join(flagged) if not flagged.is_empty() else "none"]
 	var narr: Node = tree.root.get_node_or_null("/root/Narrator")
 	var tts_voices := "no"
 	if narr and narr.has_method("tts_enabled") and narr.call("tts_enabled"):

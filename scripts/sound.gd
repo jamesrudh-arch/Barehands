@@ -54,8 +54,97 @@ func _load_bank() -> void:
 				_bank[key] = load("res://assets/audio/" + name)
 			name = dir.get_next()
 		dir.list_dir_end()
-	_ensure_generated()
-	Log.info("Sound: bank has %d clips" % _bank.size())
+		_ensure_generated()
+		_audit_bank()
+		Log.info("Sound: bank has %d clips" % _bank.size())
+
+
+## Gate A (the crackle hunt): the audio sanity pass. FILE streams are
+## trusted - they were mastered offline (tools/master_audio.py + the
+## Kenney CC0 originals) and verified by tools/audio_audit.py, and the
+## engine importer may re-encode them in ways a runtime byte-decode
+## would misread. Streams GENERATED in code (the synth fallbacks) are
+## decoded and audited here: peak, DC, silence, the loop-wrap step.
+## Anything that fails is MUTED by removal from the bank and logged:
+## a broken stream must never reach the speaker.
+func _audit_bank() -> void:
+	_audio_facts.clear()
+	var dropped: Array[String] = []
+	var files := 0
+	for key in _bank.keys():
+		var stream: AudioStream = _bank[key]
+		if not (stream is AudioStreamWAV) or not stream.resource_path.is_empty():
+			_audio_facts[key] = {"flag": "file"}  # mastered offline, trusted
+			files += 1
+			continue
+		var verdict := audit_stream(stream)
+		_audio_facts[key] = verdict
+		if str(verdict["flag"]) != "ok":
+			dropped.append("%s(%s)" % [key, verdict["flag"]])
+			_bank.erase(key)
+	if not dropped.is_empty():
+		Log.warn("Sound: audio audit dropped %d generated stream(s): %s"
+				% [dropped.size(), ", ".join(dropped)])
+	Log.info("Sound: audio audit - %d file streams trusted, %d generated audited, %d dropped"
+			% [files, _bank.size() - files, dropped.size()])
+
+
+## {peak_db, rms_db, dc, seam, flag} for one stream - the numbers the
+## DEVICE REPORT prints. WAVs only; anything else reads "ok".
+func audit_stream(stream: AudioStream) -> Dictionary:
+	var out := {"peak_db": -99.0, "rms_db": -99.0, "dc": 0.0,
+			"seam": 0.0, "flag": "ok"}
+	var wav := stream as AudioStreamWAV
+	if wav == null or wav.data.is_empty():
+		out["flag"] = "not-wav"
+		return out
+	# only runtime-generated mono 16-bit streams are decoded here
+	var s := PackedInt32Array()
+	var n := wav.data.size() / 2
+	if n < 64:
+		out["flag"] = "silent"
+		return out
+	for i in n:
+		s.append(wav.data.decode_s16(i * 2))
+	var peak := 0
+	var sum_sq := 0.0
+	var sum := 0.0
+	for v in s:
+		var a := absi(v)
+		if a > peak:
+			peak = a
+		sum_sq += float(v) * float(v)
+		sum += float(v)
+	var rms := sqrt(sum_sq / n)
+	out["peak_db"] = 8.685889638 * log(maxf(peak, 1.0) / 32768.0)  # 20/ln(10)
+	out["rms_db"] = 8.685889638 * log(maxf(rms, 1.0) / 32768.0)
+	out["dc"] = sum / n / 32768.0
+	# the loop-wrap step vs typical adjacent-sample movement
+	var wrap := absi(s[0] - s[n - 1])
+	var typical := 0.0
+	var count := 0
+	for i in range(0, n - 1, 97):
+		typical += absi(s[i + 1] - s[i])
+		count += 1
+	typical /= maxf(count, 1.0)
+	out["seam"] = wrap / maxf(typical, 1.0)
+	# the verdict
+	if rms < 30.0:
+		out["flag"] = "silent"
+	elif absf(out["dc"]) > 0.02:
+		out["flag"] = "dc"
+	elif float(wav.loop_end) > 1.0 and float(out["seam"]) > 6.0 \
+			and float(wav.data.size()) / 2.0 / float(wav.mix_rate) >= 1.0:
+		out["flag"] = "loop-seam"
+	return out
+
+
+## The audit facts for the DEVICE REPORT: stream count, flags, buses.
+func audio_facts() -> Dictionary:
+	return {"streams": _bank.size(), "facts": _audio_facts.duplicate()}
+
+
+var _audio_facts: Dictionary = {}  # clip -> audit verdict
 
 
 ## B18.3: stingers and cues the file bank does not carry, synthesized in

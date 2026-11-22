@@ -60,8 +60,9 @@ func _ready() -> void:
 			Log.warn("Music: %s synthesized in code (file missing)" % stem)
 	_resolve_one.bus = "Music"
 	add_child(_resolve_one)
-	# enter quietly: bed rises over the first bar
-	_targets["music_bed"] = -8.0
+	# Gate A: enter quietly - the bed rises to a LOW target (the old
+	# -8 read as one loud wall of sound next to the old hot stems)
+	_targets["music_bed"] = -14.0
 	Log.info("Music: ready, 88 BPM, bar %.2fs" % BAR)
 
 
@@ -71,7 +72,7 @@ func set_menu_mode(on: bool) -> void:
 	if on:
 		force_state("explore")
 		_hold_until = Time.get_ticks_msec() + 1000000
-		_targets["music_bed"] = -6.0
+		_targets["music_bed"] = -12.0
 		_targets["music_tension"] = -60.0
 		_targets["music_combat"] = -60.0
 		_targets["music_heartbeat"] = -60.0
@@ -152,23 +153,23 @@ func _on_bar() -> void:
 		State.EXPLORE:
 			_set_explore_targets()
 		State.TENSION:
-			_targets["music_bed"] = -10.0
-			_targets["music_tension"] = -5.0
+			_targets["music_bed"] = -16.0
+			_targets["music_tension"] = -12.0
 			_targets["music_combat"] = -60.0
-			_targets["music_heartbeat"] = -26.0 if heat > 0.5 else -40.0
+			_targets["music_heartbeat"] = -30.0 if heat > 0.5 else -44.0
 		State.COMBAT:
-			_targets["music_bed"] = -14.0
-			_targets["music_tension"] = -8.0
-			# the combat layer rises with the style rank (D..S -> -10..-1 dB)
-			_targets["music_combat"] = lerpf(-10.0, -1.0, clampf(style_rank / 4.0, 0.0, 1.0))
-			_targets["music_heartbeat"] = lerpf(-22.0, -10.0, clampf(heat / 5.0, 0.0, 1.0))
+			_targets["music_bed"] = -20.0
+			_targets["music_tension"] = -15.0
+			# the combat layer rises with the style rank (D..S -> -14..-6 dB)
+			_targets["music_combat"] = lerpf(-14.0, -6.0, clampf(style_rank / 4.0, 0.0, 1.0))
+			_targets["music_heartbeat"] = lerpf(-28.0, -18.0, clampf(heat / 5.0, 0.0, 1.0))
 
 
 func _set_explore_targets() -> void:
-	_targets["music_bed"] = -8.0
+	_targets["music_bed"] = -14.0
 	_targets["music_tension"] = -60.0
 	_targets["music_combat"] = -60.0
-	_targets["music_heartbeat"] = -34.0 if heat > 1.0 else -60.0
+	_targets["music_heartbeat"] = -38.0 if heat > 1.0 else -60.0
 
 
 ## Who is near the hero right now? Sets state and handles the resolve flow.

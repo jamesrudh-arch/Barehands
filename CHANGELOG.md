@@ -1,5 +1,50 @@
 # CHANGELOG.md — batch history (newest first)
 
+## B20 — GATE A: SEE, HEAR, MOVE (2026-11-22, the final master prompt)
+
+The owner's iPhone shows a black world, harsh crackling audio and a
+stuck hero. Gate A of the master prompt (PRIORITY 0) is the only work:
+make the game visible, audible and walkable, then STOP for the DEVICE
+REPORT. Every visual/audio claim is PHONE-ONLY until that report.
+
+- **A1 FULLBRIGHT SAFE MODE** (visual.gd): the XOGOT SAFE profile now
+  carries a warm sun + a camera-attached fill light + raised ambient,
+  all scaled by a live brightness dial (0.5-2.0) with BRIGHT / NORMAL
+  / MOODY presets in the Visual Debug panel; NIGHT removes the safe
+  lights again.
+- **A3 SANE AUDIO - the crackle is DIAGNOSED AND FIXED**: every
+  project-owned loop had a loop-seam click, hot unfiltered noise beds
+  and DC (facts: tools/audio_audit.py). All 13 re-mastered offline
+  (tools/master_audio.py: 44.1 kHz, periodic/crossfaded seamless
+  loops, band-limited beds, RMS targets -20..-30 dBFS, peak -3 dB).
+  Music targets lowered throughout (bed -14 dB, combat -6 dB max).
+  The runtime audit (Sound.audit_stream) now checks GENERATED streams
+  (files are mastered offline and trusted); anything failing is muted
+  and logged. The DEVICE REPORT prints the verdicts.
+- **A4 MOVE + LEAVE THE ROOM**: the apartment door opens itself
+  during the guide's OPEN step when the hero is within 2.4 m (no way
+  to be trapped); GO OUTSIDE / GO INSIDE buttons in the debug menu.
+- **A5 PEOPLE**: two customers at the noodle-shop table + the VULTURE
+  thug leaning on the alley wall, watching you (scripts/watcher.gd).
+- **A6 THE GUIDE ALWAYS STARTS**: the intro runs whenever the hero is
+  home (not only on the true first run), and a standing objective
+  (the trainer) keeps the radar/route/objective alive forever - the
+  phone's "no objective" is dead.
+- **A7 CONTROLS**: the FIGHTING scheme (X PUNCH / Y HEAVY / B KICK /
+  A DODGE) is now the DEFAULT (the phone showed the classic word
+  buttons because an unset setting fell through to "classic"); the
+  input strip moved to top-centre, clear of the buttons (the "yellow
+  bar crossing the screen" was this strip's chips flashing over the
+  cluster).
+- **A8 DEVICE REPORT**: a GATE A section first (safe profile,
+  brightness, people census, hero position, input lock, door state,
+  guide step, button scheme) + an honest PHONE-ONLY tail listing the
+  five things only the owner's eyes and ears can confirm.
+- tests/smoke_safe.gd: 16 checks, all green (safe mode, brightness
+  dial + presets, X/Y/B/A defaults, strip clear, audio bank sane,
+  music low, door auto-open, street landing, people, standing
+  objective).
+
 ## B19 — the full-game directive (2026-11-21)
 
 The owner's 25-part directive (upload/Pasted Content_1795296041873.txt):

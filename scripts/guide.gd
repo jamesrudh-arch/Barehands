@@ -23,6 +23,7 @@ const STEP_FIND := 0
 const STEP_OPEN := 1
 const STEP_REACH := 2
 const STEP_DONE := 3
+const STEP_STAND := 4  # Gate A: the standing street objective
 
 var step := STEP_DONE
 var _hint_t := 0.0
@@ -69,33 +70,33 @@ func _build_ui() -> void:
 	_layer.add_child(_skip)
 
 
-## A first-run hero wakes in the apartment (Part 6C.7: exactly one
-## clearly marked door to the street).
+## The hero's boot guidance (Gate A: the guide ALWAYS starts). The
+## room intro runs when the hero wakes in or near the apartment - the
+## first run OR any boot that lands there. When the intro is done (or
+## the hero starts on the street), a standing objective keeps the
+## radar, the route and the objective text alive, so nothing ever
+## reads "no objective".
 func _first_run_spawn() -> void:
 	_player = get_tree().get_first_node_in_group("player") as Node3D
 	if _player == null:
 		return
-	# B18 6C: the room intro runs on the TRUE first run only. Suites and
-	# every later boot set first_run_done, which skips the room - the
-	# street boot every other system expects stays intact.
-	if Settings.hint_done("intro_done") or bool(Settings.value("first_run_done")):
-		step = STEP_DONE
+	var in_apartment := absf(_player.global_position.x - 780.0) < 14.0
+	if in_apartment and not Settings.hint_done("intro_done"):
+		step = STEP_FIND
+		_best_dist = INF
+		Log.info("Guide: the hero wakes in the apartment - the intro runs")
+		Narrator.say_key("tut_door")
 		return
-	step = STEP_FIND
+	if in_apartment:
+		# the intro ran before but the hero is home again: re-offer the
+		# door steps (they are the way out - the owner was stuck here)
+		step = STEP_FIND
+		_best_dist = INF
+		return
+	# on the street: a standing objective (the training dummy corner)
+	step = STEP_STAND
 	_best_dist = INF
-	var ap: Node3D = null
-	for n in get_tree().get_nodes_in_group("door_prompt"):
-		if str(n.name).begins_with("Apartment"):
-			ap = n
-			break
-	if ap:
-		_player.global_position = ap.global_position + Vector3(0, 0.02, 1.8)
-		var blocks := get_tree().root.get_node_or_null("/root/Blocks")
-		if blocks:
-			blocks.call("snap_camera_to", _player)
-	Log.info("Guide: first run - the hero wakes in the apartment")
-	# B18.3: the narrator walks the first minute with you
-	Narrator.say_key("tut_door")
+	Log.info("Guide: standing objective - the trainer's corner")
 
 
 # --- the navigation target (MapData.nav_target reads this) -------------------
@@ -108,6 +109,8 @@ func current_target() -> Dictionary:
 			return {"text": _step_text(), "pos": _door_pos()}
 		STEP_REACH:
 			return {"text": _step_text(), "pos": Vector3(-1.3, 0.0, -4.5)}
+		STEP_STAND:
+			return {"text": _step_text(), "pos": Vector3(-3.4, 1.0, -6.2)}
 	return {}
 
 
@@ -119,6 +122,8 @@ func _step_text() -> String:
 			return "OPEN THE DOOR - stand close, tap INTERACT"
 		STEP_REACH:
 			return "REACH THE TRAINING DUMMY - warm up"
+		STEP_STAND:
+			return "FIND THE TRAINER - learn your moves"
 	return ""
 
 
@@ -157,6 +162,11 @@ func _step_check() -> void:
 			if Vector2(pos.x, pos.z).distance_to(
 					Vector2(-1.3, -4.5)) < 3.0:
 				_advance()
+		STEP_STAND:
+			# the standing objective completes at the trainer's corner
+			if Vector2(pos.x, pos.z).distance_to(
+					Vector2(-3.4, -6.2)) < 3.0:
+				_finish()
 
 
 func _advance() -> void:
