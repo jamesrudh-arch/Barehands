@@ -75,8 +75,13 @@ static func _gate_a_block() -> String:
 			"active" if cam and cam.is_current() else "NOT CURRENT"]
 	var wx := _node("/root/Weather")
 	if wx:
+		# (B22 fix, take two: Node.get() takes ONE argument and the wind
+		# must be rounded as a Vector2 BEFORE str() - the B21 line was a
+		# latent parse error that the battery's stress_combat exposed)
+		var wind = wx.get("wind")
 		out += "weather: %s | wind %s\n" % [
-				str(wx.get("kind")), str(wx.get("wind")).round()]
+				str(wx.get("kind")),
+				str((wind as Vector2).round()) if wind is Vector2 else str(wind)]
 	var vis := _node("/root/Visual")
 	if vis:
 		out += "safe profile: %s | brightness %.2f | sun %s | fill %s\n" % [

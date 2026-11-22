@@ -45,7 +45,7 @@ func _follow_weather() -> void:
 	_rain.amount = int(base * (0.45 + 0.55 * k))
 	if _rain.mesh is QuadMesh:
 		var wm: StandardMaterial3D = (_rain.mesh as QuadMesh).material
-		wm.albedo_color = Color(0.6, 0.7, 0.85, 0.18 + 0.16 * k)
+		wm.albedo_color = Color(0.62, 0.72, 0.9, 0.24 + 0.2 * k)
 	# the wind tilts the fall
 	var w: Vector3 = Weather.wind
 	_rain.direction = Vector3(w.x * 0.35, -1.0, w.z * 0.35).normalized()

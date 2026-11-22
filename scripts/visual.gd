@@ -130,7 +130,7 @@ func _apply_safe_lights() -> void:
 		if profile == PROFILE_XOGOT_SAFE:
 			# warm neutral ambient, lifted by the dial
 			env.ambient_light_color = Color(0.5, 0.48, 0.45)
-			env.ambient_light_energy = 1.1 * safe_brightness
+			env.ambient_light_energy = 1.35 * safe_brightness
 		else:
 			env.ambient_light_color = Color(0.2, 0.19, 0.185)
 			env.ambient_light_energy = 1.0
@@ -143,7 +143,7 @@ func _apply_safe_lights() -> void:
 			sun.rotation = Vector3(-0.9, 0.4, 0)
 			add_child(sun)
 		sun.light_color = Color(1.0, 0.96, 0.9)
-		sun.light_energy = 0.85 * safe_brightness
+		sun.light_energy = 1.05 * safe_brightness
 		sun.shadow_enabled = false
 		if fill == null:
 			fill = OmniLight3D.new()
@@ -151,7 +151,7 @@ func _apply_safe_lights() -> void:
 			fill.omni_range = 26.0
 			add_child(fill)
 		fill.light_color = Color(1.0, 0.9, 0.78)
-		fill.light_energy = 0.55 * safe_brightness
+		fill.light_energy = 0.75 * safe_brightness
 		fill.shadow_enabled = false
 		# the fill rides the camera so characters are never fully dark
 		var cam := get_tree().get_first_node_in_group("camera") as Node3D

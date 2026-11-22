@@ -91,10 +91,18 @@ func _build_room() -> void:
 	# warm inside light - the room must never be a black hole
 	var lamp := OmniLight3D.new()
 	lamp.light_color = Color(1.0, 0.8, 0.55)
-	lamp.light_energy = 1.6
-	lamp.omni_range = 9.0
-	lamp.position = Vector3(0, 2.4, 0.5)
+	lamp.light_energy = 2.2
+	lamp.omni_range = 12.0
+	lamp.position = Vector3(0, 2.6, 0.5)
 	add_child(lamp)
+	# B22 (VLM inspection): the ceiling and door wall read as flat black -
+	# a soft second light by the door so the exit reads as a real opening
+	var door_glow := OmniLight3D.new()
+	door_glow.light_color = Color(0.7, 0.95, 0.8)
+	door_glow.light_energy = 0.9
+	door_glow.omni_range = 5.0
+	door_glow.position = Vector3(0, 1.8, -2.6)
+	add_child(door_glow)
 
 
 ## A solid box: collision + mesh together.

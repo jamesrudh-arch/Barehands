@@ -49,17 +49,35 @@ func _wait(sec: float) -> void:
 
 func _the_four() -> void:
 	_check(_cast != null, "the cast node exists")
-	_check(_cast.npcs.size() == 4, "four characters (%d)" % _cast.npcs.size())
+	_check(_cast.npcs.size() == 14, "fourteen street rigs (%d)" % _cast.npcs.size())
+	var who := {}
+	for n in _cast.npcs:
+		who[n.name] = true
+	for expected in ["Velvet", "Pilsner", "Marrow", "The Duchess", "Mama Sun",
+			"Little Ash", "Tam", "Raz", "The Drunk", "Coach Okafor",
+			"Officer Kessler", "The Mechanic", "The Club Owner", "Yuen"]:
+		_check(who.get(expected, false), "named cast: %s present" % expected)
+	# the bible's 16: the street fourteen + SAUL (phone-only, the kidnap
+	# arc) + VULTURE (the wall-leaning watcher)
+	_check(get_tree().get_first_node_in_group("watcher") != null,
+			"Vulture (the watcher) is posted")
+	_check(Trust.FRIENDS.has("brother"), "Saul (the brother) lives on the phone")
 	var names := []
 	for n in _cast.npcs:
 		names.append(n.name)
 	for want in ["Velvet", "Pilsner", "Marrow", "The Duchess"]:
 		_check(names.has(want), "%s is in the cast" % want)
-	# distinct colour identities
+	# distinct colour identities (B22: fourteen, each unique - the
+	# VLM inspection demands the cast read as individuals)
 	var colors := []
 	for n in _cast.npcs:
 		colors.append(n.color.to_html())
-	_check(colors.size() == 4 and colors.size() == 4, "four identities")
+	var uniq := {}
+	for c in colors:
+		uniq[c] = true
+	_check(colors.size() == 14 and uniq.size() == 14,
+			"fourteen distinct colour identities (%d rigs, %d unique)" % [
+					colors.size(), uniq.size()])
 	# each has a rigged body with the shared UAL rig playing an idle
 	for n in _cast.npcs:
 		var rig: CLS_NpcRig = (n.node as Node3D).get_node("Rig")

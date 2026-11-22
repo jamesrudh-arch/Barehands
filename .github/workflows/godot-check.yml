@@ -25,6 +25,9 @@ jobs:
           unzip -oq godot.zip
           chmod +x Godot_v4.7.2-stable_linux.x86_64
 
+      - name: Build identity check (staleness gate)
+        run: bash tools/check_build_identity.sh
+
       - name: Import project (class cache + script parse)
         run: ./Godot_v4.7.2-stable_linux.x86_64 --headless --path . --import
 

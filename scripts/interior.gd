@@ -243,6 +243,14 @@ func _build_room() -> void:
 	cmesh.mesh = cmm
 	counter.add_child(cmesh)
 	add_child(counter)
+	# B22 (VLM inspection): the shop read as "a counter floating in
+	# darkness" - a warm room light so walls, floor and staff are VISIBLE
+	var room_lamp := OmniLight3D.new()
+	room_lamp.light_color = Color(1.0, 0.82, 0.55)
+	room_lamp.light_energy = 1.9
+	room_lamp.omni_range = 9.0
+	room_lamp.position = Vector3(0, 2.5, -1.4)
+	add_child(room_lamp)
 	for sx in [-2.4, -0.8, 0.8, 2.4]:
 		var stool := MeshInstance3D.new()
 		var sm := CylinderMesh.new()

@@ -10,8 +10,8 @@ extends Node3D
 ## containers, the water, a crane. The market<->foundry ends wear the
 ## underpass the bible digs between them.
 
-const ASPHALT := Color(0.055, 0.055, 0.058)
-const SIDEWALK := Color(0.16, 0.155, 0.15)
+const ASPHALT := Color(0.11, 0.11, 0.115)  # B22: 0.055 read as unlit void
+const SIDEWALK := Color(0.2, 0.195, 0.19)
 const FACE := Color(0.09, 0.088, 0.09)
 const CLS_Kit := preload("res://scripts/kit.gd")
 
@@ -107,10 +107,16 @@ func _common() -> void:
 		for c in get_children():
 			if c.name == "LaneDash":
 				(c as MeshInstance3D).visible = false
-	# lamps at the curb (warm sodium light; the moths adopt them)
-	for lx in [-12.0, 12.0]:
+	# lamps at the curb (warm sodium light; the moths adopt them).
+	# B22 (VLM inspection): four end lamps left the mid-street reading
+	# as unlit void - densified to every 4 m, skipping the crossing
+	for lx in [-12.0, -8.0, -4.0, 4.0, 8.0, 12.0]:
+		# VLM round 2: pools read as absent against the lifted ambient -
+		# push the lamps so the sodium pools are clearly visible
+		var full := absf(lx) >= 12.0  # corner lamps full, mid-street soft
 		for side in [-1.0, 1.0]:
-			CLS_Kit.lamp(self, Vector3(lx, 0, side * 9.0), side)
+			CLS_Kit.lamp(self, Vector3(lx, 0, side * 9.0), side, 5.2,
+					2.1 if full else 1.6, 12.0 if full else 9.0)
 	# the gates back out (world coords: this node already sits at its
 	# block's offset on the axis)
 	var west_to := "riverside" if block_id == "market" else "market"

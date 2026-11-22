@@ -228,15 +228,16 @@ static func tile_row(parent: Node, rel: String, positions: Array,
 ## OmniLight joins the tree (so the ambient moth swarms adopt it) and the
 ## "street_lights" group (so the quality tier can dim it). Returns true
 ## when placed.
-static func lamp(parent: Node, pos: Vector3, side: float, s := 5.2) -> bool:
+static func lamp(parent: Node, pos: Vector3, side: float, s := 5.2,
+		energy := 1.5, rng := 11.0) -> bool:
 	var n := place(parent, "kenney_roads/light-curved-double.glb", pos,
 			PI if side > 0 else 0.0, s)
 	if n == null:
 		return false
 	var light := OmniLight3D.new()
 	light.light_color = Color(1.0, 0.7, 0.35)  # warm sodium (ART_BIBLE)
-	light.light_energy = 1.5
-	light.omni_range = 11.0
+	light.light_energy = energy
+	light.omni_range = rng
 	light.position = Vector3(0, 3.3, -side * 1.1)  # head over the road
 	light.add_to_group("street_lights")
 	n.add_child(light)

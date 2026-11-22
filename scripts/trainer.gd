@@ -22,6 +22,14 @@ var _figure: Node3D
 func _ready() -> void:
 	add_to_group("trainer")
 	_build_figure()
+	# B22 (VLM inspection): the corner read as a black void in the combat
+	# evidence shots - the fights need light to be WATCHABLE
+	var lamp := OmniLight3D.new()
+	lamp.light_color = Color(1.0, 0.85, 0.6)
+	lamp.light_energy = 1.8
+	lamp.omni_range = 11.0
+	lamp.position = Vector3(0, 2.6, 0)
+	add_child(lamp)
 
 
 func _build_figure() -> void:

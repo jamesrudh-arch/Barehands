@@ -5,15 +5,21 @@
 - **Layer 1, static**: `godot --headless --import` must exit 0 (all
   scripts parse, all resources resolve). Every suite boot is itself a
   parse check - a broken script fails loudly.
-- **Layer 2, logic (headless, 40 suites)**: run_tests + the smoke_*
+- **Layer 0, identity**: tools/check_build_identity.sh (battery step
+  0 + CI) - the in-game stamp, VERSION.txt and the project name must
+  agree with git or the battery fails before any suite runs.
+- **Layer 2, logic (headless, 41 suites)**: run_tests + the smoke_*
   family + stage0_check + final_audit - player, input, camera, combat,
   NPCs, traffic, weather, audio, economy, missions, save/load, crowd,
   interiors, city, map, phone, ledger, progression...
 - **Layer 3, rendered integration (software GL)**: render_check,
   safe_boot_check, kit_probe (full-resolution) + the LIVE-PLAY
   evidence suites (640x360): live_walk (the apartment walk-out through
-  the real stick pipeline) and live_play (street, peds, traffic, shop,
-  combat staging). Evidence PNGs land in /tmp/lp_shots/.
+  the real stick pipeline) and live_play (street, peds, traffic, the
+  shop front, combat staging, with luminance gates). Evidence PNGs
+  land in /tmp/lp_shots/ and download/live_shots_b22/. The B22
+  evidence was VLM-inspected; the interior room remains
+  suite-verified only (a harness-side enter() stalled mid-fade).
 - **Layer 4, the iPhone**: DEVICE TEST REQUIRED - only the owner's
   Xogot run + the pasted DEVICE REPORT can prove the Metal/iOS path.
   No Linux result is ever reported as device verification.

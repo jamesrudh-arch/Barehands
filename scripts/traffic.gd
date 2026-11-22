@@ -105,18 +105,18 @@ func _build_lights(car: Node3D, east: bool, rel: String) -> void:
 	head_mat.albedo_color = Color(1.0, 0.9, 0.7)
 	head_mat.emission_enabled = true
 	head_mat.emission = Color(1.0, 0.88, 0.65)
-	head_mat.emission_energy_multiplier = 1.05
+	head_mat.emission_energy_multiplier = 1.45
 	head_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	var tail_mat := StandardMaterial3D.new()
 	tail_mat.albedo_color = Color(0.9, 0.12, 0.08)
 	tail_mat.emission_enabled = true
 	tail_mat.emission = Color(1.0, 0.1, 0.06)
-	tail_mat.emission_energy_multiplier = 0.7
+	tail_mat.emission_energy_multiplier = 1.05
 	tail_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	for hz in [-0.55, 0.55]:
 		var head := MeshInstance3D.new()
 		var hm := BoxMesh.new()
-		hm.size = Vector3(0.06, 0.12, 0.3)
+		hm.size = Vector3(0.07, 0.16, 0.42)
 		hm.material = head_mat
 		head.mesh = hm
 		head.position = Vector3(nose, 0.62, hz)
