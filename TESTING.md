@@ -1,4 +1,23 @@
-# TESTING.md — what is tested, where, and how to run it
+# TESTING
+
+## B21 — the four verification layers (the directive's Phase 15)
+
+- **Layer 1, static**: `godot --headless --import` must exit 0 (all
+  scripts parse, all resources resolve). Every suite boot is itself a
+  parse check - a broken script fails loudly.
+- **Layer 2, logic (headless, 40 suites)**: run_tests + the smoke_*
+  family + stage0_check + final_audit - player, input, camera, combat,
+  NPCs, traffic, weather, audio, economy, missions, save/load, crowd,
+  interiors, city, map, phone, ledger, progression...
+- **Layer 3, rendered integration (software GL)**: render_check,
+  safe_boot_check, kit_probe (full-resolution) + the LIVE-PLAY
+  evidence suites (640x360): live_walk (the apartment walk-out through
+  the real stick pipeline) and live_play (street, peds, traffic, shop,
+  combat staging). Evidence PNGs land in /tmp/lp_shots/.
+- **Layer 4, the iPhone**: DEVICE TEST REQUIRED - only the owner's
+  Xogot run + the pasted DEVICE REPORT can prove the Metal/iOS path.
+  No Linux result is ever reported as device verification.
+.md — what is tested, where, and how to run it
 
 ## The three test layers
 

@@ -4,6 +4,26 @@ Godot 4.7, Mobile renderer, Metal 4 on supported iPhones. This file is
 the exact phone procedure plus the text storyboards of every new
 screen, so you can compare what you SEE with what was built.
 
+## B21 — THE AUDIT BUILD (what changed and what to check)
+
+The B21 build fixes the BUILD IDENTITY LIE: through B19/B20 the in-game
+stamp said "B18 e1dfde3" because scripts/build_info.gd was never
+regenerated (the generator named in its header did not exist in the
+repo). B21 ships scripts/gen_build_info.py; the stamp, the debug menu,
+Stage 0 and the DEVICE REPORT all read ONE identity now, and the
+project imports as "LEVERAGE B21" - a DIFFERENT name from every stale
+entry, on purpose.
+
+Also in B21: the DBG panel shows the live movement chain (input lock,
+stick vector, velocity, position, camera yaw, state, scheme), the
+DEVICE REPORT gained engine/scene/camera/weather/NPC-census fields,
+the npc_rig census group exists, and two LIVE-PLAY suites drive the
+real stick pipeline on a rendered frame (apartment walk-out, street,
+traffic, shop, combat - evidence PNGs in download/live_shots_b21/).
+
+Phone checks (same as Gate A): world visible, audio clean, walk out,
+guide leads, then DBG -> DEVICE REPORT -> copy -> paste back.
+
 ## GATE A (B20) — WHAT TO EXPECT ON THE PHONE
 
 The B20 build (the GATE A zip) exists to answer ONE question: can you

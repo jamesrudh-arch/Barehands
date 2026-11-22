@@ -11,6 +11,7 @@ var _current := ""
 ## pieces: paths to gltf scenes; tint: colour identity; accent: emissive edge.
 func build(pieces: Array, tint: Color, accent: Color, idle_clip := "Idle",
 		idle_speed := 1.0) -> void:
+	add_to_group("npc_rig")  # the spawned-vs-animated census
 	for path in pieces:
 		var ps: PackedScene = load(path)
 		if ps == null:

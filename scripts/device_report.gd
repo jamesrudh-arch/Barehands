@@ -62,6 +62,21 @@ static func _gate_a_block() -> String:
 	if tree == null:
 		return "-- GATE A --\nno scene tree"
 	var out := "-- GATE A SAFE MODE --\n"
+	# Batch 2 / Phase 18: the engine + build identity first
+	var bs := _node("/root/BuildStamp")
+	if bs and bs.has_method("line"):
+		out += "build: %s\n" % str(bs.call("line"))
+	out += "renderer: %s\n" % str(ProjectSettings.get_setting(
+			"rendering/renderer/rendering_method", "?"))
+	out += "scene: %s\n" % str(tree.current_scene.name)
+	var cam := tree.root.get_viewport().get_camera_3d()
+	out += "camera: %s | %s\n" % [
+			str(cam.name) if cam else "NONE",
+			"active" if cam and cam.is_current() else "NOT CURRENT"]
+	var wx := _node("/root/Weather")
+	if wx:
+		out += "weather: %s | wind %s\n" % [
+				str(wx.get("kind")), str(wx.get("wind")).round()]
 	var vis := _node("/root/Visual")
 	if vis:
 		out += "safe profile: %s | brightness %.2f | sun %s | fill %s\n" % [
@@ -75,14 +90,31 @@ static func _gate_a_block() -> String:
 	var enemies := tree.get_nodes_in_group("enemy").size()
 	var cars := tree.get_nodes_in_group("traffic").size()
 	var watchers := tree.get_nodes_in_group("watcher").size()
+	# spawned vs ANIMATED: a rig whose AnimationPlayer is playing
+	var rigs := tree.get_nodes_in_group("npc_rig")
+	var animated := 0
+	for r in rigs:
+		var ap := (r as Node).get_node_or_null("AnimPlayer") \
+				if r is Node else null
+		if ap == null:
+			ap = (r as Node).find_children("*", "AnimationPlayer",
+					true, false)[0] \
+					if not (r as Node).find_children("*", "AnimationPlayer",
+					true, false).is_empty() else null
+		if ap and (ap as AnimationPlayer).is_playing():
+			animated += 1
 	out += "people: %d pedestrians | %d cast | %d shop staff | %d watchers | %d enemies | %d cars\n" \
 			% [peds, cast_n, owners, watchers, enemies, cars]
+	out += "npc rigs: %d spawned | %d animated\n" % [rigs.size(), animated]
 	# movement + lock + door + guide, right now
 	var p := tree.get_first_node_in_group("player") as Node3D
 	var ib := tree.root.get_node_or_null("/root/InputBus")
 	if p:
-		out += "hero: %s | input locked: %s\n" % [
+		var st := str(p.get("state"))
+		out += "hero: %s | vel %s | state %s | input locked: %s\n" % [
 				str(p.global_position.round()),
+				str((p as CharacterBody3D).velocity.round()),
+				st.split(".")[-1] if "." in st else st,
 				str(ib.get("locked")) if ib else "?"]
 	var door_state := "none found"
 	for n in tree.get_nodes_in_group("door_prompt"):

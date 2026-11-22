@@ -1,41 +1,23 @@
-# Bare Hands 3D
+# LEVERAGE (Bare Hands 3D)
 
 ## XOGOT IMPORT STEPS (iPhone) - READ FIRST, DO EXACTLY THIS
 
-This repo root IS the Godot project: **`project.godot` sits at the
-top level**. Import the folder that contains it - the unzipped repo
-root itself, NOT any subfolder.
+This repo root IS the Godot project: **`project.godot` sits at the top
+level**. Import the folder that contains it - the unzipped repo root
+itself, NOT any subfolder.
 
-1. Download the zip (`Leverage_B18_NeverLost_2026-11-21.zip`) and unzip
-   it in the Files app. You get a folder with `project.godot` directly
-   inside it - that folder IS the project.
+1. Download the latest zip (`Leverage_B21_<name>_2026-11-22.zip`) and
+   unzip it in the Files app. You get a folder with `project.godot`
+   directly inside it - that folder IS the project.
 2. **Force-quit Xogot** (swipe it away) so no cached project or old
-   import can linger.
-3. Reopen Xogot, tap Import, and pick **the folder that contains
-   `project.godot`** (the unzipped repo root).
-4. **Wait for the import to finish** (the spinner/progress must fully
-   stop). The project name is unique per batch (`LEVERAGE B18`) - if
-   Xogot shows any other name, you imported a stale copy: force-quit
-   and delete the old project entry in Xogot first.
-5. Run. You land on **STAGE 0** - a dark magenta screen. **This is
-   the launcher, not an error.** It proves which build runs and that
-   every system is alive; the game itself starts from its buttons.
-6. Read the BUILD line: it must say `B18` and the commit hash of the
-   top commit on github.com/jamesrudh-arch/Barehands/commits/main.
-   If the banner under the info lines is **GREEN** ("ALL STAGES
-   GREEN"), everything is healthy: **tap LAUNCH FULL GAME** (first
-   button, bottom row) and play. Nothing is importing; nothing to
-   wait for. A YELLOW banner appears only when a stage actually
-   FAILED - then wait for the import to settle, tap RETRY, and if it
-   stays red tap COPY LOG and paste the log to the agent.
-7. Close the project and **run it a second time** after a fresh
-   import (first run can be mid-import in places; the second run is
-   the truth). LAUNCH SAFEBOOT is there for diagnostics: one toggle
-   per system if something ever looks wrong.
-
-If the screen is grey, nothing is drawing - the STAGE 0 log (or its
-absence) tells the agent exactly which layer died. See XOGOT.md for
-the full VERIFIED / PHONE-ONLY table.
+   import interferes, then reopen Xogot.
+3. Import THAT folder. The project name must read **LEVERAGE B21**
+   (a different name from every older build on purpose - an old
+   LEVERAGE B18 entry in the list is a STALE import, delete it).
+4. WAIT for the import (spinner stopped). Run once, close, run again.
+5. The stamp at the top-right must read **B21 <commit>** - the same
+   commit as the top of github.com/jamesrudh-arch/Barehands/commits/main.
+   If the stamp says B18 or B20, Xogot imported a stale zip.
 
 ## B18.2 — Never Lost + Orientation Lock (2026-11-21)
 

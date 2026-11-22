@@ -1,5 +1,49 @@
 # CHANGELOG.md — batch history (newest first)
 
+## B21 — THE FORENSIC AUDIT BUILD (2026-11-22, the ultimate directive)
+
+Batch 1-4 of the master engineering directive: audit, build identity,
+regression facts, gameplay diagnostics, and the first LIVE-PLAY
+verification.
+
+- **THE BUILD-IDENTITY BUG (root cause of "which build is my phone
+  running?")**: scripts/build_info.gd said "B18 e1dfde3" through B19
+  and B20 - the file's header names scripts/gen_build_info.py, which
+  DID NOT EXIST in the repository, so every stamp after B18 updated
+  only VERSION.txt and the in-game stamp (HUD corner, debug menu,
+  Stage 0, DEVICE REPORT) kept claiming B18. The generator now exists
+  (batch, exact code commit, build time, config, target platform);
+  BuildStamp.block() carries the full identity; project.godot imports
+  as "LEVERAGE B21" (distinct from every stale entry); README import
+  steps rewritten for B21.
+- **THE STALE-AUDIO-IMPORT BUG**: after the Gate A re-master, the four
+  music stems still fell back to runtime synth on every fresh import
+  (stale .import sidecars vs the new WAV hashes - "Music: music_bed
+  synthesized in code (file missing)" in the boot log). A full re-import
+  fixes the cache; the phone re-imports on install, so the mastered
+  stems play there.
+- **LIVE-PLAY VERIFICATION (Phase 16)**: tests/live_walk.gd (4 checks:
+  the apartment renders, the door OPENS ITSELF on walk-in through the
+  real stick pipeline, the hero walks OUT, the street renders) and
+  tests/live_play.gd (11 checks: street render, hero on screen,
+  pedestrians, frame-to-frame movement, the nearest car moves, the
+  noodle shop interior with 13+ rigs, the dummy fight staged, the
+  VULTURE watcher) - both PASS on the software-GL renderer; evidence
+  PNGs in download/live_shots_b21/. HONESTY: Linux + llvmpipe, NOT an
+  iPhone; the harness drives the stick's _target (the variable a
+  finger drag produces); punch-landing needs full-rate physics and is
+  proven headless (smoke_combos 61 checks).
+- **MOVEMENT DIAGNOSTICS (Batch 4)**: the DBG panel shows the live
+  chain - input lock, stick vector, velocity, position, camera yaw,
+  movement state, active scheme. Found and fixed a real QA-harness
+  lesson on the way: the follow camera only re-centres while the hero
+  walks AWAY from it, so a wrong initial yaw walks into a wall.
+- **DEVICE REPORT (Phase 18)**: build line, renderer, scene, camera
+  active state, weather, spawned-vs-animated NPC census (npc_rig group
+  added to every rig), hero velocity + movement state.
+- **Traffic debug fix**: the car engine AudioStreamPlayer played
+  before add_child (boot-log error) - guarded.
+
 ## B20 — GATE A: SEE, HEAR, MOVE (2026-11-22, the final master prompt)
 
 The owner's iPhone shows a black world, harsh crackling audio and a

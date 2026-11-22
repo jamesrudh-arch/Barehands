@@ -144,7 +144,7 @@ func _build_engine(car: Node3D) -> void:
 	p.max_db = -8.0
 	p.max_distance = 55.0
 	car.add_child(p)
-	p.play()
+	p.play.call_deferred()  # the CAR may not be in the tree yet - B21 boot-log fix
 	car.set_meta("engine", p)
 
 

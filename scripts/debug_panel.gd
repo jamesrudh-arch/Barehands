@@ -237,5 +237,30 @@ func _refresh() -> void:
 			Performance.get_monitor(Performance.OBJECT_COUNT),
 			Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)]
 	_label.text += "\nenemies %d%s" % [enemies.size(), states]
+	# Batch 4 (the movement chain, live): input lock -> joystick vector
+	# -> velocity -> position -> camera yaw -> state -> scheme. If the
+	# hero ever freezes again, this block names the stage that stopped.
+	var p := get_tree().get_first_node_in_group("player")
+	if p:
+		var pb := p as CharacterBody3D
+		var cam := get_viewport().get_camera_3d()
+		var st := str(p.get("state"))
+		var st_name: String = st.split(".")[-1] if "." in st else st
+		_label.text += "\ninput lock %s | stick (%.2f, %.2f) | scheme %s" % [
+				str(InputBus.locked), InputBus.move.x, InputBus.move.y,
+				_scheme_name()]
+		_label.text += "\nhero %s | vel %s | %s" % [
+				str(pb.global_position.round()), str(pb.velocity.round()), st_name]
+		if cam:
+			_label.text += "\ncam yaw %.0f deg | %s" % [
+					rad_to_deg(cam.global_rotation.y),
+					"active" if cam.is_current() else "NOT CURRENT"]
+
+
+func _scheme_name() -> String:
+	var hud := get_tree().get_first_node_in_group("hud_buttons")
+	if hud and hud.has_method("_scheme"):
+		return str(hud.call("_scheme"))
+	return "?"
 	_label.text += "\nparticles in flight %d   time_scale %.2f" % [Fx._bursts_alive, Engine.time_scale]
 	_label.text += "\nlog: %s" % ProjectSettings.globalize_path("user://barehands.log")

@@ -84,7 +84,10 @@ func line() -> String:
 	return CLS_BuildInfo.STAMP
 
 
-## Multi-line block for logs and the debug menu.
+## Multi-line block for logs and the debug menu (Batch 2: the full
+## identity - version, batch, exact code commit, build time, config,
+## target platform - from the one authoritative build_info.gd).
 func block() -> String:
-	return "BUILD %s  commit %s  built %s" % [
-			CLS_BuildInfo.BATCH, CLS_BuildInfo.COMMIT, CLS_BuildInfo.BUILT]
+	return "BUILD %s  commit %s  built %s\nconfig: %s\ntarget: %s" % [
+			CLS_BuildInfo.BATCH, CLS_BuildInfo.COMMIT, CLS_BuildInfo.BUILT,
+			CLS_BuildInfo.CONFIG, CLS_BuildInfo.PLATFORM]
