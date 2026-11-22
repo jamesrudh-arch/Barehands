@@ -155,6 +155,17 @@ func _build_panel() -> void:
 	moves.pressed.connect(_open_moves)
 	col.add_child(moves)
 
+	var diag := Button.new()
+	diag.text = "DIAGNOSTICS"
+	diag.focus_mode = Control.FOCUS_NONE
+	diag.custom_minimum_size = Vector2(240, 54)
+	diag.add_theme_font_size_override("font_size", 16)
+	diag.add_theme_stylebox_override("normal", _flat())
+	diag.pressed.connect(func() -> void:
+		get_tree().paused = false
+		get_tree().change_scene_to_file("res://scenes/stage0.tscn"))
+	col.add_child(diag)
+
 	var settings := Button.new()
 	settings.text = "SETTINGS"
 	settings.focus_mode = Control.FOCUS_NONE

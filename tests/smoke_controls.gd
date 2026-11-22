@@ -110,6 +110,16 @@ func _test_first_run_picker() -> void:
 	_check(bool(Settings.value("first_run_done")), "choice is remembered")
 	_check(not InputBus.locked, "input unlocks after the pick")
 	_check(not is_instance_valid(fr), "picker frees itself")
+	# B23: a real pick arms the one-time title sequence; THIS suite
+	# drives the picker as a control surface, not the launch flow.
+	# Disarm the flag AND kill any sequence the pick just woke - its
+	# fullscreen menu would otherwise eat every later touch check
+	Settings.set_value("play_start_sequence", false)
+	for seq in _main.find_children("*", "CanvasLayer", true, false):
+		if seq.has_method("_play"):
+			seq.queue_free()
+	InputBus.locked = false
+	Music.set_menu_mode(false)
 	# a reload of the scene must NOT show it again
 	var fr2 := _main.get_node_or_null("FirstRun")
 	_check(fr2 == null, "picker does not appear once first_run_done")

@@ -57,6 +57,13 @@ func _ready() -> void:
 	var cam := get_viewport().get_camera_3d()
 	var checked := 0
 	for ap in _anim_players(_main):
+		# B23: characters rebuilt on the code-built humanoid drive their
+		# own "Clips" player; a HIDDEN mannequin's player inside the
+		# same character is retired hardware, not a T-pose - skip it
+		var char_root := _char_root(ap)
+		if char_root and not str(ap.get_parent().name) == "Person" \
+				and _has_humanoid(char_root):
+			continue
 		checked += 1
 		var path := String(ap.get_path()).replace("/root/Node/", "")
 		var owner_root := _char_root(ap)
@@ -85,6 +92,14 @@ func _ready() -> void:
 	else:
 		_p("FAIL (%d)" % _fails)
 		get_tree().quit(1)
+
+
+func _has_humanoid(n: Node) -> bool:
+	for c in n.find_children("*", "Node", true, false):
+		var sc = c.get_script()
+		if sc and str(sc.resource_path).contains("humanoid.gd"):
+			return true
+	return false
 
 func _anim_players(root: Node) -> Array:
 	var out: Array = []

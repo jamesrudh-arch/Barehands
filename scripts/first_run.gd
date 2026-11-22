@@ -124,6 +124,9 @@ func _build() -> void:
 func _pick(scheme: String) -> void:
 	Settings.set_value("scheme", scheme)
 	Settings.set_value("first_run_done", true)
+	# B23: fresh installs get the full title sequence ONCE; the flag is
+	# consumed by start_sequence after it plays
+	Settings.set_value("play_start_sequence", true)
 	InputBus.locked = false
 	Sound.play("ui_confirm_0", -8.0)
 	Haptics.fire("ui")

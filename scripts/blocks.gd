@@ -124,6 +124,9 @@ func travel(to: String, enter_from: String) -> void:
 	City.set_current_district(to)
 	# boards and scars arrive with you
 	_decals(to)
+	# B23: autosave on arrival - the phone player never loses more
+	# than one block transition (a save costs one small JSON write)
+	SaveGame.save_all()
 	_planks_if_hostile(to)
 	_wanderers(to)
 	await fade_in()

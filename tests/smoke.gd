@@ -14,9 +14,8 @@ var _main: Node3D
 var _player: CharacterBody3D
 var _camera: Camera3D
 var _anim: AnimationPlayer
-var _skel: Skeleton3D
-var _hand_l := -1
-var _hand_r := -1
+var _hand_l: Node3D
+var _hand_r: Node3D
 var _fails := 0
 var _phase := 0
 var _pf := 0  # frame inside the current phase
@@ -58,13 +57,16 @@ func _ready() -> void:
 	_player = _main.get_node("Player") as CharacterBody3D
 	_camera = _main.get_node("Camera") as Camera3D
 	_anim = (_player.get_node("Body/Hero") as CLS_HeroRig).main_player()
-	_skel = _player.get_node("Body/Hero/Body/Armature/Skeleton3D") as Skeleton3D
-	_hand_l = _skel.find_bone("hand_l")
-	_hand_r = _skel.find_bone("hand_r")
+	# B23: the humanoid's joint nodes replace the gltf skeleton - the
+	# walk-cycle swing check samples the hand joints directly
+	var hum := _player.get_node("Body/Hero/Person")
+	var joints: Dictionary = hum.get("_joints")
+	_hand_l = joints["hand_l"]
+	_hand_r = joints["hand_r"]
 
 
-func _hand_x(idx: int) -> float:
-	return (_skel.global_transform * _skel.get_bone_global_pose(idx)).origin.x
+func _hand_x(j: Node3D) -> float:
+	return j.global_position.x
 
 
 func _sample_hands() -> void:
@@ -119,9 +121,11 @@ func _next() -> void:
 
 func _settle() -> void:
 	if _pf == 40:
-		var head := _skel.get_bone_global_pose(_skel.find_bone("Head")).origin.y
-		var h: float = head + 0.12  # head bone sits just under the crown
-		_check(h > 1.55 and h < 1.85, "hero world height ~1.7 (got %.2f)" % h)
+		# the humanoid's head joint + its offset to the crown
+		var joints: Dictionary = _player.get_node("Body/Hero/Person").get("_joints")
+		var head_y: float = (joints["head"] as Node3D).global_position.y
+		var h: float = head_y + 0.19
+		_check(h > 1.55 and h < 1.95, "hero world height ~1.7 (got %.2f)" % h)
 		_check(_anim.current_animation == "Idle", "idles with the pack's Idle clip (got %s)" % _anim.current_animation)
 		_check(not InputBus.locked, "opening shot skipped, input unlocked")
 		_next()

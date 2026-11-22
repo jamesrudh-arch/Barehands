@@ -4,6 +4,52 @@ Godot 4.7, Mobile renderer, Metal 4 on supported iPhones. This file is
 the exact phone procedure plus the text storyboards of every new
 screen, so you can compare what you SEE with what was built.
 
+## B23 — THE RECONSTRUCTION BUILD (read this first)
+
+Your iPhone screenshots were the ground truth: ghost/translucent
+figures, DUMMY labels, a missing hero, primitive boxes, a flat world.
+The B23 response is a VISUAL RECONSTRUCTION on one principle:
+
+**Every character, car, building and lamp the player must SEE is now
+built from code at runtime - no gltf, no textures, no import step.**
+
+- THE PEOPLE: a full humanoid framework (scripts/humanoid.gd) - real
+  joint hierarchy, body meshes with a FACE (brows, eye whites, nose,
+  mouth), six hair styles, layered clothing, skirts, jackets with
+  collars. The hero, the sixteen named cast, every pedestrian and
+  every enemy wear it. Procedural animation: stride-matched walk and
+  sprint cycles, idle breathing with weight shift, jump/land, punches,
+  kicks, flinches, guard, rolls, phone-hold, dance. The floating
+  DUMMY/MUSCLE/CREW name tags are GONE.
+- THE TRAFFIC: code-built sedans, taxis, police cruisers and SUVs
+  (body, cabin, glass band, wheels that roll, bumpers, taxi roof
+  sign, police beacons) on the existing engine - plus the signalised
+  crossing: red/amber/walk cycle, cars hold on red, pedestrians take
+  the zebra on the walk phase.
+- THE CITY: every street plot now carries a code facade - five-paint
+  palette, full window grids per floor (lit/dark/gaps), parapets,
+  water towers, AC boxes, noir blade signs. Streetlamps are code-built
+  dark poles (the old pale glb arm read as a white bar across your
+  screen). The kit glb buildings no longer take street plots.
+- THE BOOT: the game boots STRAIGHT INTO gameplay (Stage 0 was a
+  diagnostic trap; it is now under PAUSE -> DIAGNOSTICS). Fresh
+  installs get the title sequence once (studio card -> title -> menu).
+- AUTOSAVE on every block gate and interior exit.
+
+What this means for you: import the B23 zip the same way, and the
+people/cars/buildings you saw as ghosts should now be THERE - not
+because a Linux test said so, but because nothing about them depends
+on the asset pipeline anymore. If anything still ghosts on the phone,
+it is NOT the gltf problem class - paste me the DEVICE REPORT and say
+what you see.
+
+Verified HERE (Linux + llvmpipe at 640x360, honestly NOT an iPhone):
+boot-to-gameplay drive 15/15 (picker, title, PLAY, opening skip,
+walk/sprint/jump, camera, save/load roundtrip, layout mirroring,
+gate travel), the full 47-suite battery, and three rounds of VLM
+screenshot inspection ending "PASS - looks like an actual
+third-person open-world game at phone resolution".
+
 ## B21 — THE AUDIT BUILD (what changed and what to check)
 
 The B21 build fixes the BUILD IDENTITY LIE: through B19/B20 the in-game

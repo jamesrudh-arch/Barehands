@@ -41,6 +41,15 @@ var _pool: Array[Node3D] = []
 var _next_spawn := 0.0
 var _light: OmniLight3D = null
 var _engine: AudioStreamWAV = null
+# B23: the signalised pedestrian crossing. One cycle the whole street
+# shares: GREEN (cars flow) -> AMBER (brake) -> WALK (cars hold, the
+# walk sign lights, pedestrians take the zebra).
+const SIG_GREEN := 9.0
+const SIG_AMBER := 2.5
+const SIG_WALK := 6.0
+var _sig_t := 0.0
+var _sig_phase := "green"   # green | amber | walk
+var _sig_lights_dirty := true
 
 
 func _ready() -> void:
@@ -53,6 +62,51 @@ func _ready() -> void:
 	add_child(_light)
 
 
+func walk_phase() -> bool:
+	return _sig_phase == "walk"
+
+
+func _signal_tick(delta: float) -> void:
+	_sig_t += delta
+	var total := SIG_GREEN + SIG_AMBER + SIG_WALK
+	var t := fmod(_sig_t, total)
+	var phase := "green" if t < SIG_GREEN \
+			else ("amber" if t < SIG_GREEN + SIG_AMBER else "walk")
+	if phase != _sig_phase:
+		_sig_phase = phase
+		_sig_lights_dirty = true
+
+
+func _signal_lights() -> void:
+	# drive every crossing-signal lamp on the active street (emissive
+	# on = the lit head; the walk quad only glows during WALK)
+	if not _sig_lights_dirty:
+		return
+	_sig_lights_dirty = false
+	for n in get_tree().get_nodes_in_group("crossing_signal"):
+		var red := n.get_node_or_null("Red") as MeshInstance3D
+		var amber := n.get_node_or_null("Amber") as MeshInstance3D
+		var green := n.get_node_or_null("Green") as MeshInstance3D
+		var walk := n.get_node_or_null("WalkSign") as MeshInstance3D
+		if red:
+			_set_lamp(red, _sig_phase == "walk")
+		if amber:
+			_set_lamp(amber, _sig_phase == "amber")
+		if green:
+			_set_lamp(green, _sig_phase == "green")
+		if walk:
+			_set_lamp(walk, _sig_phase == "walk")
+
+
+func _set_lamp(m: MeshInstance3D, lit: bool) -> void:
+	var mat := m.get_active_material(0) as StandardMaterial3D
+	if mat == null:
+		return
+	mat.emission_enabled = true
+	mat.emission_energy_multiplier = 1.8 if lit else 0.0
+	mat.albedo_color = Color(1, 1, 1, 1) if lit else Color(0.25, 0.25, 0.25)
+
+
 func _process(delta: float) -> void:
 	var block := Blocks.current()
 	if block == "" or not LANE_Z.has(block):
@@ -62,6 +116,8 @@ func _process(delta: float) -> void:
 	for v in _pool:
 		if is_instance_valid(v):
 			active += 1
+	_signal_tick(delta)
+	_signal_lights()
 	_now_tick()
 	if active < max_active and _clock() > _next_spawn:
 		_next_spawn = _clock() + randf_range(3.5, 8.0)
@@ -78,10 +134,11 @@ func _spawn(block: String) -> void:
 	var car := Node3D.new()
 	car.name = "TrafficCar"
 	car.add_to_group("traffic")
-	# the kit models' long axis is Z, nose at +z: yaw PI/2 points the
-	# nose up the street (+x, eastbound), -PI/2 down it (westbound)
-	var model := CLS_Kit.place(car, rel, Vector3.ZERO,
-			PI / 2.0 if east else -PI / 2.0, 1.35)
+	# B23 MILESTONE A: the traffic body is CODE-BUILT (the same
+	# renderer-proof decision the characters got - gltf assets cannot
+	# be trusted on the physical iPhone). Long axis Z, nose at +z;
+	# the spawn yaw turns it into the lane
+	var model := _code_car(car, rel)
 	if model == null:
 		car.queue_free()
 		return
@@ -94,6 +151,142 @@ func _spawn(block: String) -> void:
 	_build_engine(car)
 	get_tree().current_scene.add_child(car)
 	_pool.append(car)
+
+
+## The code-built car: body, cabin, glass band, four rolling wheels
+## with hubs, bumpers, and the type's feature (taxi roof sign, police
+## light bar, the SUV's taller stance). Nose at +z, ~4.4 m long.
+const CAR_STYLES := {
+	"sedan": {"body": Color(0.3, 0.31, 0.34), "roof": Color(0.26, 0.27, 0.3),
+			"tall": 0.0, "sign": false, "bar": false},
+	"taxi": {"body": Color(0.85, 0.68, 0.12), "roof": Color(0.8, 0.62, 0.1),
+			"tall": 0.0, "sign": true, "bar": false},
+	"police": {"body": Color(0.12, 0.13, 0.17), "roof": Color(0.1, 0.11, 0.14),
+			"tall": 0.0, "sign": false, "bar": true},
+	"suv": {"body": Color(0.22, 0.24, 0.2), "roof": Color(0.19, 0.21, 0.17),
+			"tall": 0.22, "sign": false, "bar": false},
+}
+
+
+func _code_car(car: Node3D, rel: String) -> Node3D:
+	var key := "sedan"
+	for k in CAR_STYLES:
+		if rel.contains(k):
+			key = k
+			break
+	var st: Dictionary = CAR_STYLES[key]
+	var body := Node3D.new()
+	body.name = "CarModel"
+	car.add_child(body)
+	var paint := StandardMaterial3D.new()
+	paint.albedo_color = st.body
+	paint.roughness = 0.35
+	paint.metallic = 0.25
+	var roof_m := StandardMaterial3D.new()
+	roof_m.albedo_color = st.roof
+	roof_m.roughness = 0.4
+	var glass := StandardMaterial3D.new()
+	glass.albedo_color = Color(0.06, 0.08, 0.11)
+	glass.roughness = 0.15
+	glass.metallic = 0.6
+	var rubber := StandardMaterial3D.new()
+	rubber.albedo_color = Color(0.045, 0.045, 0.05)
+	rubber.roughness = 0.95
+	var chrome := StandardMaterial3D.new()
+	chrome.albedo_color = Color(0.55, 0.56, 0.6)
+	chrome.roughness = 0.25
+	chrome.metallic = 0.85
+	var tall: float = st.tall
+	# lower body + cabin (the belt line reads through the night)
+	_boxm(body, Vector3(1.76, 0.56 + tall, 4.35), paint,
+			Vector3(0, 0.52 + tall * 0.5, 0))
+	_boxm(body, Vector3(1.64, 0.5, 2.3), roof_m,
+			Vector3(0, 1.06 + tall, -0.28))
+	# the glass band: a dark inset box wider than the cabin, split by
+	# pillars - one glass box + roof overhang reads as windows all round
+	_boxm(body, Vector3(1.67, 0.34, 2.02), glass,
+			Vector3(0, 1.08 + tall, -0.26))
+	# windshield + rear window slants
+	var ws := _boxm(body, Vector3(1.58, 0.1, 0.72), glass,
+			Vector3(0, 1.02 + tall, 0.78))
+	ws.rotation.x = -0.5
+	var rw := _boxm(body, Vector3(1.58, 0.1, 0.6), glass,
+			Vector3(0, 1.02 + tall, -1.32))
+	rw.rotation.x = 0.45
+	# bumpers, grille
+	_boxm(body, Vector3(1.8, 0.2, 0.22), chrome, Vector3(0, 0.42, 2.16))
+	_boxm(body, Vector3(1.8, 0.2, 0.22), chrome, Vector3(0, 0.42, -2.16))
+	_boxm(body, Vector3(1.2, 0.16, 0.06), rubber, Vector3(0, 0.62, 2.19))
+	# wheels: named so _spin_wheels finds them; hub caps face out
+	for wx in [-0.86, 0.86]:
+		for wz in [-1.38, 1.42]:
+			var wheel := MeshInstance3D.new()
+			wheel.name = "Wheel_%s%s" % ["L" if wx < 0 else "R",
+					"F" if wz > 0 else "R"]
+			var wm := CylinderMesh.new()
+			wm.top_radius = 0.33
+			wm.bottom_radius = 0.33
+			wm.height = 0.24
+			wm.material = rubber
+			wheel.mesh = wm
+			wheel.rotation.z = PI / 2.0
+			wheel.position = Vector3(wx, 0.33, wz)
+			body.add_child(wheel)
+			var hub := MeshInstance3D.new()
+			var hm := CylinderMesh.new()
+			hm.top_radius = 0.14
+			hm.bottom_radius = 0.14
+			hm.height = 0.26
+			hm.material = chrome
+			hub.mesh = hm
+			hub.rotation.z = PI / 2.0
+			hub.position = Vector3(0, 0, 0)
+			wheel.add_child(hub)
+	# the type's signature
+	if st.sign:
+		var sign := _boxm(body, Vector3(0.62, 0.2, 0.3),
+				mat_taxi_sign(), Vector3(0, 1.42, -0.2))
+		sign.name = "TaxiSign"
+	if st.bar:
+		var bar_m := StandardMaterial3D.new()
+		bar_m.albedo_color = Color(0.1, 0.1, 0.12)
+		_boxm(body, Vector3(1.1, 0.1, 0.3), bar_m, Vector3(0, 1.38, -0.2))
+		for bx2 in [-0.35, 0.35]:
+			var lamp := _boxm(body, Vector3(0.3, 0.12, 0.26),
+					mat_police_lamp(bx2), Vector3(bx2, 1.46, -0.2))
+			lamp.name = "BeaconL" if bx2 < 0 else "BeaconR"
+	return body
+
+
+func mat_taxi_sign() -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	m.albedo_color = Color(0.9, 0.75, 0.2)
+	m.emission_enabled = true
+	m.emission = Color(0.9, 0.7, 0.2)
+	m.emission_energy_multiplier = 0.5
+	return m
+
+
+func mat_police_lamp(side: float) -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	var red := side < 0
+	m.albedo_color = Color(0.7, 0.1, 0.1) if red else Color(0.1, 0.2, 0.75)
+	m.emission_enabled = true
+	m.emission = Color(0.85, 0.12, 0.1) if red else Color(0.15, 0.3, 0.95)
+	m.emission_energy_multiplier = 0.55
+	return m
+
+
+func _boxm(parent: Node3D, size: Vector3, m: Material,
+		pos: Vector3) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	var bm := BoxMesh.new()
+	bm.size = size
+	bm.material = m
+	mi.mesh = bm
+	mi.position = pos
+	parent.add_child(mi)
+	return mi
 
 
 ## Emissive light boxes at nose and tail (the noir treatment the
@@ -163,8 +356,11 @@ func _drive_all(delta: float, block: String) -> void:
 		var speed: float = car.get_meta("speed")
 		var east: bool = car.get_meta("east")
 		var bx: float = Blocks.BLOCK_X.get(block, 0.0)
-		# the road ahead: hero, pedestrians on the road, the car in front
-		var hazard := _hazard_ahead(car, east, bx, player)
+		# the road ahead: hero, pedestrians on the road, the car in
+		# front, and the crossing signal (B23: a red light is a hazard
+		# the same way a person is)
+		var hazard := _hazard_ahead(car, east, bx, player) \
+				or _signal_stops(car, east, bx)
 		var front := _car_ahead(car, east)
 		var cruise := CRUISE if Weather == null or Weather.intensity < 0.75 \
 				else WET_CRUISE
@@ -196,6 +392,23 @@ func _drive_all(delta: float, block: String) -> void:
 				+ Vector3(1.4 if nearest.get_meta("east") else -1.4, 1.0, 0)
 	else:
 		_light.light_energy = lerpf(_light.light_energy, 0.0, delta * 2.0)
+
+
+## The crossing signal, from the driver's seat: WALK (red) stops
+## everyone before the zebra; AMBER stops the ones close enough to
+## brake in time. Far cars ride the amber through - as they do.
+func _signal_stops(car: Node3D, east: bool, bx: float) -> bool:
+	if _sig_phase == "green":
+		return false
+	var dir := 1.0 if east else -1.0
+	var cross_x := bx  # the crossing sits at the block's x centre
+	var ahead := (cross_x - car.position.x) * dir
+	if ahead < 0.5 or ahead > LOOKAHEAD + 4.0:
+		return false  # past it, or nowhere near it yet
+	if _sig_phase == "walk":
+		return true
+	# amber: braking distance only
+	return ahead < 2.0 + float(car.get_meta("speed")) * 0.8
 
 
 ## Anything breathing on the road in front of the car: the hero, a

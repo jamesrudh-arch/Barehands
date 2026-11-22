@@ -16,12 +16,12 @@ const CLS_UalBind := preload("res://scripts/ual_bind.gd")
 ## A clip fails if the joints barely leave the rest pose. Numbers printed.
 
 const CLIPS := ["Idle", "Walk", "Sprint", "Jump", "Punch_Jab"]
-const JOINTS := {  # label -> bone-name patterns (first match wins)
-	"shoulder": ["upperarm_l", "upperarm_r"],
-	"elbow": ["lowerarm_l", "lowerarm_r"],
-	"hip": ["pelvis", "hips"],
-	"knee": ["calf_l", "thigh_l", "lowerleg_l", "upperleg_l"],
-}
+# B23: the humanoid's joint NODES replace bone sampling - same intent:
+# a clip that does not move the limbs is the T-pose regression. Watch
+# the TRANSLATING nodes (limb tips ride their parents' rotations; the
+# pivot joints themselves only rotate in place)
+const JOINTS := ["hand_l", "hand_r", "elbow_l", "elbow_r", "knee_l", "knee_r",
+	"foot_l", "foot_r"]
 const PASS_MOVE := 0.004  # metres: below this across all joints = frozen
 
 var _main: Node3D
@@ -70,10 +70,6 @@ func _ready() -> void:
 		for clip in CLIPS:
 			await _direct_clip(n.name, n.node, clip, rig)
 
-	var lib := CLS_UalBind.library()
-	for clip in CLIPS:
-		var a := lib.get_animation(clip)
-		print("POSE   clip %-10s length=%.2fs loop_mode=%d" % [clip, a.length, a.loop_mode])
 	if _fails == 0:
 		print("POSE PASS (%d checks)" % _checks)
 		get_tree().quit(0)
@@ -115,18 +111,11 @@ func _hero_clip(clip: String) -> void:
 	await _sample("hero", _player, rig)
 
 
-## NPCs and the enemy: play the clip directly on the rig / player.
-## B19: a dressed enemy drives SEVERAL players in lockstep (the
-## hidden mannequin's own + one Clips player per character piece) -
-## a single first-player play would leave the piece skeletons stopped.
+## NPCs and the enemy: play the clip directly on the rig.
 func _direct_clip(char_name: String, root: Node3D, clip: String, rig: Node) -> void:
 	_current_clip = clip
 	if rig:
 		rig.play(clip)
-	else:
-		for ap in root.find_children("*", "AnimationPlayer", true, false):
-			ap.stop()
-			ap.play(clip, 0.0)
 	await _sample(char_name, root, rig)
 
 
@@ -135,58 +124,49 @@ func _rig_current(rig: CLS_HeroRig) -> String:
 	return p.current_animation if p else "?"
 
 
-## Sample every skeleton in the character over 60 frames.
+## Sample the humanoid's joints over 60 frames: a clip that leaves
+## them at rest is the frozen-figure regression, whatever drives it.
 func _sample(char_name: String, root: Node3D, rig: Node) -> void:
-	var skels: Array = root.find_children("*", "Skeleton3D", true, false)
-	if skels.is_empty():
-		_check(false, "%s: no skeletons" % char_name)
+	var hums: Array = []
+	for n in root.find_children("*", "Node", true, false):
+		var sc = n.get_script()
+		if sc and str(sc.resource_path).contains("humanoid.gd"):
+			hums.append(n)
+	if hums.is_empty():
+		_check(false, "%s: no humanoid body" % char_name)
 		return
-	for skel in skels:
-		var piece_name := (skel as Node3D).get_parent().name
-		var joint_ids := {}
-		for label in JOINTS:
-			for pattern in JOINTS[label]:
-				var id := (skel as Skeleton3D).find_bone(pattern)
-				if id >= 0:
-					joint_ids[label] = id
-					break
-		if joint_ids.size() < 3:
-			continue  # a skeleton without these bones (none expected)
-		# stop the players so a short non-looping clip restarts for THIS
-		# skeleton's window (play() on a finished clip would be a no-op)
-		for ap in root.find_children("Clips", "AnimationPlayer", true, false):
-			ap.stop()
+	for hum in hums:
+		var joints: Dictionary = (hum as Node).get("_joints")
+		var watch: Array = []
+		for jn in JOINTS:
+			if joints.has(jn) and is_instance_valid(joints[jn]):
+				watch.append(joints[jn])
+		if watch.size() < 4:
+			_check(false, "%s: humanoid joints missing" % char_name)
+			continue
 		if rig:
 			rig.play(_current_clip)
 		else:
-			# every player in lockstep (the dressed enemy contract)
-			for ap in root.find_children("*", "AnimationPlayer", true, false):
-				ap.play(_current_clip, 0.0)
-		# rest pose first, so a frozen T-pose measures ~0
-		for label in joint_ids:
-			(skel as Skeleton3D).reset_bone_pose(joint_ids[label])
+			(hum as Node).call("play", _current_clip)
 		var rest := {}
-		for label in joint_ids:
-			rest[label] = (skel as Skeleton3D).get_bone_global_pose(joint_ids[label]).origin
 		var max_move := {}
-		for label in joint_ids:
-			max_move[label] = 0.0
+		for jn in watch:
+			rest[jn] = (jn as Node3D).global_position
+			max_move[jn] = 0.0
 		for f in 60:
 			await get_tree().physics_frame
-			for label in joint_ids:
-				var now := (skel as Skeleton3D).get_bone_global_pose(joint_ids[label]).origin
-				max_move[label] = maxf(max_move[label], rest[label].distance_to(now))
+			for jn in watch:
+				max_move[jn] = maxf(max_move[jn],
+						rest[jn].distance_to((jn as Node3D).global_position))
 		var moved := 0
-		for label in joint_ids:
-			if max_move[label] >= PASS_MOVE:
+		var line := "%-12s %-10s" % [char_name, _current_clip]
+		for jn in watch:
+			if max_move[jn] >= PASS_MOVE:
 				moved += 1
-		var line := "%-12s %-10s %-26s" % [char_name, _current_clip, piece_name]
-		for label in ["shoulder", "elbow", "hip", "knee"]:
-			if max_move.has(label):
-				line += " %s=%.3f" % [label, max_move[label]]
+			line += " %s=%.3f" % [(jn as Node3D).name, max_move[jn]]
 		print("POSE   ", line)
-		_check(moved >= 3, "%s %s [%s] moves at least 3 joints (moved %d)" % [
-				char_name, _current_clip, piece_name, moved])
+		_check(moved >= 4, "%s %s moves at least 4 joints (moved %d)" % [
+				char_name, _current_clip, moved])
 
 
 func _find_ap(n: Node) -> AnimationPlayer:

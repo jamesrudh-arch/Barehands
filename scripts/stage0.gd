@@ -12,7 +12,9 @@ extends Control
 ## repo root) read with FileAccess - no script involved.
 ##
 ## B18: the banner is set AFTER the census and tells the truth: green
-## "all clear, tap LAUNCH FULL GAME" when every stage passed without
+## B23: NOT the boot scene anymore (the game boots straight into
+## main.tscn); this is the diagnostic launcher, reachable from the
+## pause menu. "all clear, tap LAUNCH FULL GAME" when stages pass
 ## the class cache (Xogot never writes it on device - the phone's
 ## PERMANENT state), retry guidance only when something actually
 ## FAILED. B17's banner claimed "FIRST-RUN IMPORT IN PROGRESS - wait,

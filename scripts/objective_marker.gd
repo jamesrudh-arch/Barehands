@@ -66,11 +66,11 @@ func _ready() -> void:
 	_label = Label3D.new()
 	_label.name = "ObjectiveDistance"
 	_label.modulate = Color(1.0, 0.9, 0.55)
-	_label.font_size = 44
+	_label.font_size = 30
 	_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	_label.no_depth_test = true
 	_label.fixed_size = true
-	_label.outline_size = 10
+	_label.outline_size = 6
 	_label.outline_modulate = Color(0.02, 0.02, 0.03)
 	_label.position = Vector3(0, 5.6, 0)
 	add_child(_label)
@@ -119,7 +119,13 @@ func _process(delta: float) -> void:
 	var dist: float = target.distance_to(
 			Vector2(hero.global_position.x, hero.global_position.z))
 	_label.text = "%d m" % int(round(dist))
-	_label.visible = dist > 6.0
+	_label.visible = dist > 12.0
+	# B23 (the VLM catch): with the boot objective right in front of the
+	# hero, the beam + chevron filled the phone screen as a white
+	# obstruction. They yield as you close in - a marker guides from
+	# AFAR; up close the world itself is the guide.
+	_beam.visible = dist > 10.0
+	_chevron.visible = dist > 8.0
 	# the optional ground ribbon, rebuilt at most twice a second
 	if _ribbon.visible or bool(Settings.value("route_line_3d")):
 		_rebuild_ribbon(hero)

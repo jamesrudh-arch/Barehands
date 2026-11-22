@@ -81,8 +81,13 @@ func _the_four() -> void:
 	# each has a rigged body with the shared UAL rig playing an idle
 	for n in _cast.npcs:
 		var rig: CLS_NpcRig = (n.node as Node3D).get_node("Rig")
-		var skel := rig.find_children("*", "Skeleton3D", true, false)
-		_check(skel.size() >= 1, "%s is rigged (%d skeletons)" % [n.name, skel.size()])
+		var body := rig.find_children("Body", "Node", true, false)
+		var rigged := false
+		for b in body:
+			var sc = (b as Node).get_script()
+			if sc and str(sc.resource_path).contains("humanoid.gd"):
+				rigged = true
+		_check(rigged, "%s is rigged (the humanoid body)" % n.name)
 		var anims := rig.find_children("Clips", "AnimationPlayer", true, false)
 		var playing := anims.size() > 0
 		for a in anims:

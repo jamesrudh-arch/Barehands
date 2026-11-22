@@ -33,13 +33,26 @@ var _notice_root: Control
 func _ready() -> void:
 	layer = 60
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	# The sequence plays on the REAL launch path only: Stage 0's LAUNCH
-	# FULL GAME arms the flag. Suites, SafeBoot and re-loads boot the
-	# game directly and must never sit behind a locked menu.
+	# The sequence plays on the REAL launch path only: the flag is armed
+	# by the first-run picker (fresh install) or Stage 0. Suites,
+	# SafeBoot and re-loads boot the game directly and never sit behind
+	# a locked menu. B23: if the flag is not armed YET, stay dormant -
+	# the picker may arm it on THIS boot; wake and play when it does.
 	if not bool(Settings.value("play_start_sequence")):
 		phase = Phase.GONE
-		queue_free()
+		Settings.changed.connect(_on_armed)
 		return
+	_run()
+
+
+func _on_armed(key: String) -> void:
+	if key == "play_start_sequence" and bool(Settings.value(key)) \
+			and phase == Phase.GONE:
+		Settings.changed.disconnect(_on_armed)
+		_run()
+
+
+func _run() -> void:
 	Settings.set_value("play_start_sequence", false)
 	_build_common()
 	if bool(Settings.value("skip_intro")):

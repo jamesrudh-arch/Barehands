@@ -94,16 +94,17 @@ func _ready() -> void:
 	_check(pavements == 2, "both sidewalks wear kit pavement (%d)" % pavements)
 	_check(slabs_hidden == 2, "both sidewalk slab boxes hide (%d)" % slabs_hidden)
 
-	# 5. the lamps: kit posts with warm lights the moths can adopt
+	# 5. the lamps: B23 code-built posts (dark poles, warm sodium
+	# lights the moths can adopt) - the glb lamps retired with the
+	# white-arm obstruction they rendered on device
 	var lamps := 0
-	for c in main.get_children():
-		if c.name.begins_with("Kit_light_curved_double"):
-			lamps += 1
-	_check(lamps == 6, "six kit lamp posts at the curb (%d)" % lamps)
+	for c in main.find_children("StreetLamp*", "Node3D", true, false):
+		lamps += 1
+	_check(lamps == 6, "six lamp posts at the curb (%d)" % lamps)
 	var lamp_lights := 0
 	for l in get_tree().get_nodes_in_group("street_lights"):
 		if l is OmniLight3D and l.get_parent() != null \
-				and (l.get_parent() as Node).name.begins_with("Kit_light"):
+				and (l.get_parent() as Node).name.begins_with("StreetLamp"):
 			lamp_lights += 1
 	_check(lamp_lights == 6, "every lamp post carries a warm light (%d)" % lamp_lights)
 
@@ -172,28 +173,27 @@ func _ready() -> void:
 
 	# 11. B19: the hero wears real textures - natively resolved by the
 	#     import, or rebound per mesh (both count; flat is the failure)
-	var hero_textured := 0
+	# B23: the hero is the code-built humanoid - no gltf textures by
+	# DESIGN; the check is the body is REAL: many meshes, every mesh
+	# dressed with its own material, the joint tree complete
 	var hero: Node3D = main.find_child("Hero", true, false)
+	var hero_meshes := 0
+	var hero_dressed := 0
+	var hero_joints := 0
 	if hero:
 		for mi in hero.find_children("*", "MeshInstance3D", true, false):
 			if (mi as MeshInstance3D).mesh == null:
 				continue
-			var done := false
-			var om: Material = (mi as MeshInstance3D).material_override
-			if om is StandardMaterial3D \
-					and (om as StandardMaterial3D).albedo_texture != null:
-				done = true
-			else:
-				for s in (mi as MeshInstance3D).mesh.get_surface_count():
-					var m: Material = (mi as MeshInstance3D).mesh.surface_get_material(s)
-					if m is StandardMaterial3D \
-							and (m as StandardMaterial3D).albedo_texture != null:
-						done = true
-						break
-			if done:
-				hero_textured += 1
-	_check(hero != null and hero_textured >= 6,
-			"the hero's meshes carry real textures (%d)" % hero_textured)
+			hero_meshes += 1
+			if (mi as MeshInstance3D).material_override is StandardMaterial3D:
+				hero_dressed += 1
+		for jn in ["shoulder_l", "elbow_l", "hip_l", "knee_l", "head"]:
+			if hero.find_child(jn, true, false):
+				hero_joints += 1
+	_check(hero != null and hero_meshes >= 20 and hero_dressed >= 18
+			and hero_joints == 5,
+			"the hero is a full code-built body (%d meshes, %d dressed, %d/5 joints)" % [
+					hero_meshes, hero_dressed, hero_joints])
 
 	# 12. B19: the trainer is a real character, the fx sprites load
 	var trainer := get_tree().get_first_node_in_group("trainer")
@@ -222,13 +222,13 @@ func _check_enemy_kinds() -> void:
 		e.set("kind", kind)
 		add_child(e)
 		await get_tree().process_frame
-		var pieces: Array = e.get("_char_pieces")
+		var person: Node = e.get("_humanoid")
 		var mats: Array = e.get("_mats")
 		var mi: MeshInstance3D = e.get_node_or_null("Body/Mannequin/Armature/Skeleton3D/Mannequin")
-		_check(pieces.size() > 0, "kind %d wears its CC0 character (%d pieces)"
-				% [kind, pieces.size()])
+		_check(person != null and is_instance_valid(person),
+				"kind %d wears its humanoid body" % kind)
 		_check(mats.size() > 0, "kind %d owns tinted materials (%d)" % [kind, mats.size()])
-		_check(mi != null and not mi.visible, "kind %d hides the plain mannequin" % kind)
+		_check(mi == null or not mi.visible, "kind %d hides the plain mannequin" % kind)
 		e.queue_free()
 	var dummy: CharacterBody3D = (load("res://scenes/enemy.tscn") as PackedScene).instantiate()
 	dummy.set("kind", 0)
@@ -271,15 +271,22 @@ func _check_blocks() -> void:
 			if c.name.begins_with("KitRow_"):
 				kits += 1
 				road_rows += 1
-		var want_buildings := 5 if block_id == "market" else 2
 		var want_construction := 4
-		var want_kits := 18 if block_id == "market" else 22
-		_check(buildings == want_buildings,
-				"%s: kit buildings on the plots (%d)" % [block_id, buildings])
+		# B23: the kit glb buildings retired from street plots (device
+		# ghosts); the code facades carry them - window panes + roofs
+		var windows := 0
+		for w in get_tree().get_nodes_in_group("facade_window"):
+			windows += 1
+		var want_panes := 12 if block_id == "foundry" else 30
+		_check(windows >= want_panes,
+				"%s: code facades with window grids (%d panes)" % [block_id, windows])
 		_check(road_rows == 1, "%s: the marked road lane tiles (%d rows)" % [block_id, road_rows])
 		_check(construction == want_construction,
 				"%s: the roadworks patch stands (%d props)" % [block_id, construction])
-		_check(kits >= want_kits, "%s: the street dresses from the kits (%d models)" % [block_id, kits])
+		var want_kits2 := 10 if block_id == "market" else (
+				20 if block_id == "foundry" else 22)
+		_check(kits >= want_kits2,
+				"%s: the street dresses from the kits (%d models)" % [block_id, kits])
 		if block_id == "market":
 			var awnings := 0
 			for c in b.get_children():

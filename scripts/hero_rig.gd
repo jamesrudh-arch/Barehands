@@ -1,156 +1,87 @@
 extends Node3D
-const CLS_UalBind := preload("res://scripts/ual_bind.gd")
-## The noir hero: Quaternius' Universal Base Character body dressed in the
-## Modular Outfits ranger set, with hair, beard and a code-built fedora and
-## swing coat. Every piece shares the UAL 65-bone rig, so the pack's clips
-## play on all of them in lockstep - this node fans the play() calls out.
+const CLS_Humanoid := preload("res://scripts/humanoid.gd")
+## B23 MILESTONE A: the noir hero rebuilt on the code-built humanoid.
+## The Quaternius gltf pieces rendered as ghost geometry on the
+## physical iPhone (the B18-B22 "grey figure" fight); this body is
+## constructed from primitives at runtime and renders identically on
+## every renderer. Fedora + swing coat + pipe stay code-built, now
+## attached to the humanoid's joints. The rig contract is unchanged:
+## play(clip, blend, speed) / set_speed / current / main_player, so
+## the hero's state machine, suites and tools keep working.
 
-var _players: Array[AnimationPlayer] = []
+var _h: Node = null
 var _current := ""
 var _hat: Node3D
 var _coat: Array[Node3D] = []
 var _pipe: MeshInstance3D = null
 var _coat_swing := 0.0
-var _velocity_fn: Callable  # set by the hero: reads current velocity for coat sway
+var _velocity_fn: Callable  # set by the hero: reads current velocity
 
 
 func _ready() -> void:
-	# The pieces ship animation-less, so the rig owns one AnimationPlayer per
-	# piece; UalBind grafts the shared, plain-path library on each of them so
-	# the clips drive every skeleton in lockstep (see scripts/ual_bind.gd -
-	# the T-pose fix).
+	# the gltf pieces the scene still carries are released: the humanoid
+	# replaces them outright (a half-loaded piece stack is the ghost
+	# the iPhone showed). Deferred: freeing SYNCHRONOUSLY mid-cascade
+	# marks main "busy setting up children" and every later _ready
+	# add_child (street_dress, trainer, the lamps) then fails - the B23
+	# probe catch. The humanoid is named Person so the dying pieces
+	# cannot shadow it.
 	for piece in get_children():
-		if piece is not Node3D:
-			continue
-		var p := AnimationPlayer.new()
-		p.name = "Clips"
-		piece.add_child(p)
-		CLS_UalBind.attach(p)
-		_players.append(p)
-	# B18: the grey-figure fix. The hero's gltf pieces point at texture
-	# files that never shipped (T_Hair_1_*, T_Regular_Male_* - the
-	# import log says so every boot), so the hero rendered as a stack of
-	# pale untextured boxes - on the phone that read as a "blurry grey
-	# figure" while the real character seemed missing. Any piece whose
-	# surfaces carry no albedo texture gets a flat noir dress instead;
-	# pieces with working textures keep their authored look.
-	_dress_fallback()
+		if piece is Node3D:
+			piece.queue_free()
+	_h = CLS_Humanoid.new()
+	_h.name = "Person"
+	add_child(_h)
+	_h.call("build", {
+		"height": 1.82, "build": 1, "hair_style": 1,
+		"skin": Color(0.68, 0.52, 0.4),
+		"hair": Color(0.16, 0.13, 0.09),
+		"top": Color(0.2, 0.19, 0.23),
+		"bottom": Color(0.16, 0.16, 0.19),
+		"jacket": Color(0.17, 0.16, 0.2), "jacket_on": true,
+	})
 	_build_hat()
 	_build_coat()
 
 
-## The flat noir dress per piece (the same treatment the training dummy
-## gets): readable at phone distance, on every renderer, with zero
-## dependence on the asset pipeline.
-const PIECE_DRESS := {
-	"Body": Color(0.155, 0.145, 0.185),   # charcoal suit + skin read
-	"Torso": Color(0.13, 0.12, 0.15),     # coat blue-grey
-	"Arms": Color(0.13, 0.12, 0.15),
-	"Legs": Color(0.11, 0.11, 0.13),      # trousers
-	"Boots": Color(0.08, 0.06, 0.05),     # dark leather
-	"Beard": Color(0.13, 0.09, 0.06),     # dark brown
-}
-
-## B19: the shipped texture set per piece. The gltf pieces point at
-## files that never shipped (T_Regular_Male_*), which is why the hero
-## rendered flat - these ARE in the repo, so the untextured fallback
-## binds them before falling back to flat colour.
-const PIECE_TEXTURES := {
-	"Body": "res://assets/hero/T_Superhero_Male_Dark.png",
-	"Torso": "res://assets/hero/T_Ranger_BaseColor.png",
-	"Arms": "res://assets/hero/T_Ranger_BaseColor.png",
-	"Legs": "res://assets/hero/T_Ranger_BaseColor.png",
-	"Boots": "res://assets/hero/T_Ranger_BaseColor.png",
-	"Beard": "res://assets/hero/T_Hair_1_BaseColor.png",
-}
-
-
-func _dress_fallback() -> void:
-	# B19: per MESH, not per piece - a fresh import resolves most of the
-	# shipped textures natively; whatever still has none gets the rebind
-	# (the shipped set for that piece) or, as the last resort, the flat
-	# noir colour. No mesh ships untextured on purpose.
-	for piece in get_children():
-		if not (piece is Node3D):
-			continue
-		var tex_path: String = PIECE_TEXTURES.get(piece.name, "")
-		var tex: Texture2D = null
-		if tex_path != "" and ResourceLoader.exists(tex_path):
-			tex = load(tex_path)
-		var flat := StandardMaterial3D.new()
-		flat.albedo_color = PIECE_DRESS.get(piece.name,
-				Color(0.14, 0.13, 0.16))
-		flat.roughness = 0.85
-		var meshes: Array[MeshInstance3D] = []
-		_collect_meshes(piece, meshes)
-		for mi in meshes:
-			if mi.mesh == null:
-				continue
-			var textured := false
-			for s in mi.mesh.get_surface_count():
-				var m: Material = mi.mesh.surface_get_material(s)
-				if m is StandardMaterial3D \
-						and (m as StandardMaterial3D).albedo_texture != null:
-					textured = true
-					break
-			if textured:
-				continue  # the authored look stays
-			if tex != null:
-				var tmat := StandardMaterial3D.new()
-				tmat.albedo_texture = tex
-				# a cool noir grade over the authored colours (albedo
-				# multiplies the texture - the night lights do the rest)
-				tmat.albedo_color = Color(0.85, 0.83, 0.88)
-				tmat.roughness = 0.85
-				mi.material_override = tmat
-			else:
-				mi.material_override = flat
-
-
-func _collect_meshes(n: Node, out: Array[MeshInstance3D]) -> void:
-	if n is MeshInstance3D:
-		out.append(n)
-	for c in n.get_children():
-		_collect_meshes(c, out)
-
-
-## Play a clip on every piece in lockstep. Returns true if the clip changed.
+## Play a clip (poses + procedural locomotion). Returns true on change.
 func play(clip: String, blend: float = 0.25, speed := 1.0) -> bool:
-	var changed := false
-	for p in _players:
-		if p.current_animation != clip:
-			p.play(clip, blend)
-			changed = true
-	set_speed(speed)
-	_current = clip
+	var changed := clip != _current
+	if changed:
+		_current = clip
+	if _h:
+		_h.call("play", clip, blend, speed)
 	return changed
 
 
-## Locomotion retunes the speed every frame without restarting the clip.
+## Locomotion retunes the stride every frame without restarting.
 func set_speed(speed: float) -> void:
-	for p in _players:
-		p.speed_scale = speed
+	if _h:
+		_h.call("set_speed", speed)
 
 
 func current() -> String:
 	return _current
 
 
-## The first piece's player - tests and tools read animation state from it.
 func main_player() -> AnimationPlayer:
-	return _players[0] if _players.size() > 0 else null
+	return _h.call("main_player") if _h else null
 
 
 func is_playing() -> bool:
-	return _players.size() > 0 and _players[0].is_playing()
+	return _h != null
 
 
 func _physics_process(delta: float) -> void:
-	# Coat swing: a damped pendulum driven by the hero's speed.
-	if _velocity_fn.is_valid() and not _coat.is_empty():
+	# Coat swing: a damped pendulum driven by the hero's speed; the
+	# same signal feeds the humanoid's stride so cloth and legs agree.
+	if _velocity_fn.is_valid():
 		var v: Vector3 = _velocity_fn.call()
 		var speed := Vector2(v.x, v.z).length()
-		_coat_swing = lerpf(_coat_swing, clampf(speed / 6.0, 0.0, 1.0), 6.0 * delta)
+		if _h:
+			_h.call("observe_speed", speed)
+		_coat_swing = lerpf(_coat_swing, clampf(speed / 6.0, 0.0, 1.0),
+				6.0 * delta)
 		var t := Time.get_ticks_msec() / 1000.0
 		var sway := sin(t * 9.0) * 0.06 * _coat_swing
 		for i in _coat.size():
@@ -181,13 +112,11 @@ func _find_hat_meshes() -> Array:
 
 ## The steel pipe rides the right hand when equipped.
 func equip_pipe(on: bool) -> void:
-	if on and _pipe == null:
-		var skel := _find_skel()
-		if skel == null:
+	if on and _pipe == null and _h:
+		var hr: Node3D = _h.call("hand", "r") if _h else null
+		var anchor := hr
+		if anchor == null:
 			return
-		var attach := BoneAttachment3D.new()
-		attach.bone_name = "hand_r"
-		skel.add_child(attach)
 		_pipe = MeshInstance3D.new()
 		var cyl := CylinderMesh.new()
 		cyl.top_radius = 0.028
@@ -199,32 +128,33 @@ func equip_pipe(on: bool) -> void:
 		m.metallic = 0.8
 		cyl.material = m
 		_pipe.mesh = cyl
-		attach.add_child(_pipe)
+		anchor.add_child(_pipe)
 		_pipe.rotation = Vector3(1.2, 0.0, 0.35)
 		_pipe.position = Vector3(0.0, 0.08, 0.05)
 	elif not on and _pipe != null:
-		_pipe.get_parent().queue_free()  # frees the attachment + pipe
+		_pipe.get_parent().queue_free()
 		_pipe = null
 
 
-## Fedora: crown + brim, tilted, riding the Head bone.
+## Fedora: crown + brim, tilted, riding the humanoid's head joint.
 func _build_hat() -> void:
-	var skel := _find_skel()
-	if skel == null:
+	var head: Node3D = _h.call("head") if _h else null
+	if head == null:
 		return
+	# the fedora reads at phone distance: 20% oversized with a bright
+	# band (the VLM catch - the hat vanished into the head at 360p)
 	_hat = Node3D.new()
-	var attach := BoneAttachment3D.new()
-	attach.bone_name = "Head"
-	skel.add_child(attach)  # must be a DIRECT child of the skeleton
-	attach.add_child(_hat)
+	head.add_child(_hat)
 	_hat.add_child(_make_hat_meshes())
+	_hat.scale = Vector3.ONE * 1.2
 	_hat.rotation = Vector3(0.06, 0.10, -0.05)
+	_hat.position = Vector3(0, 0.05, 0)
 
 
 func _make_hat_meshes() -> Node3D:
 	var holder := Node3D.new()
 	var felt := StandardMaterial3D.new()
-	felt.albedo_color = Color(0.10, 0.09, 0.11)
+	felt.albedo_color = Color(0.16, 0.15, 0.18)
 	felt.roughness = 0.85
 	var crown := MeshInstance3D.new()
 	var cm := CylinderMesh.new()
@@ -242,8 +172,11 @@ func _make_hat_meshes() -> Node3D:
 	bm.height = 0.035
 	band.mesh = bm
 	var band_mat := StandardMaterial3D.new()
-	band_mat.albedo_color = Color(0.55, 0.12, 0.10)
+	band_mat.albedo_color = Color(0.75, 0.2, 0.14)
 	band_mat.roughness = 0.6
+	band_mat.emission_enabled = true
+	band_mat.emission = Color(0.6, 0.12, 0.08)
+	band_mat.emission_energy_multiplier = 0.3
 	band.material_override = band_mat
 	band.position = Vector3(0, 0.09, 0)
 	holder.add_child(band)
@@ -259,19 +192,15 @@ func _make_hat_meshes() -> Node3D:
 	return holder
 
 
-## Long coat skirt: five panels fanned around the pelvis that swing with
-## speed. (Two flat slabs read as placeholder cards from behind; a fanned
-## skirt reads as cloth at phone distance.)
+## Long coat skirt: five panels fanned around the pelvis that swing
+## with speed, riding the humanoid's hips joint.
 func _build_coat() -> void:
-	var skel := _find_skel()
-	if skel == null:
+	var hips: Node3D = _h.call("hips") if _h else null
+	if hips == null:
 		return
 	var cloth := StandardMaterial3D.new()
-	cloth.albedo_color = Color(0.13, 0.12, 0.145)
+	cloth.albedo_color = Color(0.19, 0.18, 0.21)
 	cloth.roughness = 0.9
-	var attach := BoneAttachment3D.new()
-	attach.bone_name = "pelvis"
-	skel.add_child(attach)
 	for deg in [-72.0, -36.0, 0.0, 36.0, 72.0]:
 		var panel := MeshInstance3D.new()
 		var bm := BoxMesh.new()
@@ -282,23 +211,5 @@ func _build_coat() -> void:
 		panel.position = Vector3(sin(ang) * 0.17, -0.30, cos(ang) * 0.15)
 		panel.rotation.y = ang
 		panel.rotation.x = -0.08  # flares out a touch
-		attach.add_child(panel)
+		hips.add_child(panel)
 		_coat.append(panel)
-
-
-func _find_skel() -> Skeleton3D:
-	for piece in get_children():
-		var s := _find_class(piece, "Skeleton3D")
-		if s:
-			return s
-	return null
-
-
-func _find_class(n: Node, what: String) -> Node:
-	if n.get_class() == what:
-		return n
-	for c in n.get_children():
-		var r := _find_class(c, what)
-		if r:
-			return r
-	return null

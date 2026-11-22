@@ -66,6 +66,8 @@ func _ready() -> void:
 			"the street moves (%d of %d walked)" % [moved, peds.size()])
 
 	# 4. variety: bodies and tints differ - no cloned crowd
+	# B23: bodies are code-built humanoids - variety reads from the
+	# rig's spec (build, height bucket, hair, skirt), not gltf names
 	var bodies := {}
 	for w in peds:
 		var rig: Node = null
@@ -73,10 +75,11 @@ func _ready() -> void:
 			if c.get_script() != null and "npc_rig" in str(c.get_script().resource_path):
 				rig = c
 		var look := "nobody"
-		if rig:
-			var piece := rig.get_child(0) if rig.get_child_count() > 0 else null
-			if piece:
-				look = piece.name
+		if rig and not (rig.get("spec") as Dictionary).is_empty():
+			var sp: Dictionary = rig.get("spec")
+			look = "%d-%.2f-%d-%s" % [sp.get("build", 1),
+					sp.get("height", 1.7), sp.get("hair_style", 0),
+					str(sp.get("skirt", false))]
 		bodies[look] = true
 	_check(bodies.size() >= 2, "at least two body models on the street (%d)" % bodies.size())
 

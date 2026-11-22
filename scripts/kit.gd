@@ -230,15 +230,72 @@ static func tile_row(parent: Node, rel: String, positions: Array,
 ## when placed.
 static func lamp(parent: Node, pos: Vector3, side: float, s := 5.2,
 		energy := 1.5, rng := 11.0) -> bool:
-	var n := place(parent, "kenney_roads/light-curved-double.glb", pos,
-			PI if side > 0 else 0.0, s)
-	if n == null:
-		return false
+	# B23 MILESTONE A: the lamp is CODE-BUILT (the kenney glb's pale
+	# arm read as a white obstruction arcing across the frame, and gltf
+	# cannot be trusted on the physical iPhone). Dark pole, angled arm,
+	# head over the road, the same warm sodium pool underneath.
+	var n := Node3D.new()
+	# unique name: siblings collide and Godot silently renames to
+	# @Node3D@N (the B18.4 rule _spawn() follows for its kits)
+	_next_id += 1
+	n.name = "StreetLamp_%d" % _next_id
+	# deferred: street dressing runs inside _ready while the scene is
+	# still setting up children - the B18.4 rule _spawn() follows
+	parent.add_child.call_deferred(n)
+	n.position = pos
+	n.rotation.y = PI if side > 0 else 0.0
+	var dark := StandardMaterial3D.new()
+	dark.albedo_color = Color(0.075, 0.08, 0.09)
+	dark.roughness = 0.6
+	dark.metallic = 0.35
+	var pole := MeshInstance3D.new()
+	var pm := CylinderMesh.new()
+	pm.top_radius = 0.055
+	pm.bottom_radius = 0.085
+	pm.height = 4.6
+	pm.material = dark
+	pole.mesh = pm
+	pole.position = Vector3(0, 2.3, 0)
+	n.add_child(pole)
+	var arm := MeshInstance3D.new()
+	var am := CylinderMesh.new()
+	am.top_radius = 0.045
+	am.bottom_radius = 0.045
+	am.height = 1.5
+	am.material = dark
+	arm.mesh = am
+	# the arm reaches over the road and droops: rotate to horizontal
+	# then a touch down
+	arm.rotation = Vector3(PI / 2.0 + 0.18, 0, 0)
+	arm.position = Vector3(0, 4.55, -side * 0.75)
+	n.add_child(arm)
+	var head := MeshInstance3D.new()
+	var hm := BoxMesh.new()
+	hm.size = Vector3(0.3, 0.12, 0.62)
+	var hmat := StandardMaterial3D.new()
+	hmat.albedo_color = Color(0.1, 0.1, 0.11)
+	hm.material = hmat
+	head.mesh = hm
+	head.position = Vector3(0, 4.42, -side * 1.5)
+	n.add_child(head)
+	# the lit lens under the head
+	var lens := MeshInstance3D.new()
+	var lm := BoxMesh.new()
+	lm.size = Vector3(0.22, 0.05, 0.5)
+	var lmat := StandardMaterial3D.new()
+	lmat.albedo_color = Color(1.0, 0.75, 0.4)
+	lmat.emission_enabled = true
+	lmat.emission = Color(1.0, 0.72, 0.38)
+	lmat.emission_energy_multiplier = 1.1
+	lm.material = lmat
+	lens.mesh = lm
+	lens.position = Vector3(0, 4.35, -side * 1.5)
+	n.add_child(lens)
 	var light := OmniLight3D.new()
 	light.light_color = Color(1.0, 0.7, 0.35)  # warm sodium (ART_BIBLE)
 	light.light_energy = energy
 	light.omni_range = rng
-	light.position = Vector3(0, 3.3, -side * 1.1)  # head over the road
+	light.position = Vector3(0, 4.1, -side * 1.5)  # head over the road
 	light.add_to_group("street_lights")
 	n.add_child(light)
 	return true

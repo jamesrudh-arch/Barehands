@@ -89,6 +89,8 @@ func exit_to_street() -> void:
 		p.rotation.y = 0.0
 		Blocks.snap_camera_to(p)
 	await Blocks.fade_in()
+	# B23: autosave on the way out the door
+	SaveGame.save_all()
 	_busy = false
 
 

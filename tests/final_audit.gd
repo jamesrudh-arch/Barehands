@@ -80,27 +80,21 @@ func _ready() -> void:
 	print("AUDIT note: %d bright flat kit surfaces (Kenney authored look)" % blank)
 	_check(true, "kit surface audit ran")
 
-	# 4. the hero is dressed (textured meshes, not the flat fallback)
-	var hero := main.find_child("Hero", true, false)
-	var textured := 0
+	# 4. the hero is dressed: B23 - the code-built humanoid by design;
+	# the check is the body is real (jointed, dressed), not gltf textures
+	var hero: Node3D = main.find_child("Hero", true, false)
+	var hero_meshes := 0
+	var hero_dressed := 0
 	if hero:
 		for mi in hero.find_children("*", "MeshInstance3D", true, false):
 			if (mi as MeshInstance3D).mesh == null:
 				continue
-			var done := false
-			var om: Material = (mi as MeshInstance3D).material_override
-			if om is StandardMaterial3D and (om as StandardMaterial3D).albedo_texture != null:
-				done = true
-			else:
-				for s in (mi as MeshInstance3D).mesh.get_surface_count():
-					var nm: Material = (mi as MeshInstance3D).mesh.surface_get_material(s)
-					if nm is StandardMaterial3D and (nm as StandardMaterial3D).albedo_texture != null:
-						done = true
-						break
-			if done:
-				textured += 1
-	_check(hero != null and textured >= 4,
-			"the hero wears real textures (%d meshes)" % textured)
+			hero_meshes += 1
+			if (mi as MeshInstance3D).material_override is StandardMaterial3D:
+				hero_dressed += 1
+	_check(hero != null and hero_meshes >= 20 and hero_dressed >= 18,
+			"the hero is a full code-built body (%d meshes, %d dressed)" % [
+					hero_meshes, hero_dressed])
 
 	# --- the systems must be ALIVE -------------------------------------------
 	# 5. the living city: pedestrians with variety + the club queue later

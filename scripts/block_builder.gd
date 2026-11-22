@@ -117,6 +117,77 @@ func _common() -> void:
 		for side in [-1.0, 1.0]:
 			CLS_Kit.lamp(self, Vector3(lx, 0, side * 9.0), side, 5.2,
 					2.1 if full else 1.6, 12.0 if full else 9.0)
+	# B23: the signalised pedestrian crossing at the block centre - a
+	# pole per approach (south pole faces the eastbound lane, north
+	# pole the westbound), red/amber/green heads + a walk sign for the
+	# pavement. Traffic drives the lamps through the crossing_signal
+	# group; the materials are per-pole so only THIS pole's head glows.
+	for side in [-1.0, 1.0]:
+		var pole := MeshInstance3D.new()
+		var pm := CylinderMesh.new()
+		pm.top_radius = 0.06
+		pm.bottom_radius = 0.09
+		pm.height = 3.4
+		var pmat := StandardMaterial3D.new()
+		pmat.albedo_color = Color(0.12, 0.13, 0.15)
+		pm.material = pmat
+		pole.mesh = pm
+		pole.position = Vector3(2.2 * side, 1.7, 9.3 * side)
+		var sig := Node3D.new()
+		sig.name = "CrossingSignal"
+		sig.add_to_group("crossing_signal")
+		sig.position = Vector3(2.2 * side, 0, 9.3 * side)
+		add_child(sig)
+		sig.add_child(pole)
+		pole.reparent(sig)
+		pole.position = Vector3.ZERO
+		var head := MeshInstance3D.new()
+		var hm := BoxMesh.new()
+		hm.size = Vector3(0.3, 0.95, 0.3)
+		var hmat := StandardMaterial3D.new()
+		hmat.albedo_color = Color(0.08, 0.09, 0.1)
+		hm.material = hmat
+		head.mesh = hm
+		head.position = Vector3(0, 3.4, 0)
+		sig.add_child(head)
+		for li in 3:
+			var lamp := MeshInstance3D.new()
+			var lm := SphereMesh.new()
+			lm.radius = 0.09
+			lm.height = 0.18
+			var lmat := StandardMaterial3D.new()
+			lmat.albedo_color = Color(0.25, 0.25, 0.25)
+			lmat.emission_enabled = true
+			lmat.emission_energy_multiplier = 0.0
+			match li:
+				0:
+					lamp.name = "Red"
+					lmat.emission = Color(1.0, 0.12, 0.08)
+				1:
+					lamp.name = "Amber"
+					lmat.emission = Color(1.0, 0.7, 0.15)
+				2:
+					lamp.name = "Green"
+					lmat.emission = Color(0.2, 1.0, 0.4)
+			lm.material = lmat
+			lamp.mesh = lm
+			lamp.position = Vector3(0, 3.72 - li * 0.3, 0.18)
+			sig.add_child(lamp)
+		# the walk sign faces the pavement it serves
+		var walk := MeshInstance3D.new()
+		walk.name = "WalkSign"
+		var wm := QuadMesh.new()
+		wm.size = Vector2(0.34, 0.34)
+		var wmat := StandardMaterial3D.new()
+		wmat.albedo_color = Color(0.25, 0.25, 0.25)
+		wmat.emission_enabled = true
+		wmat.emission = Color(0.5, 1.0, 0.7)
+		wmat.emission_energy_multiplier = 0.0
+		wm.material = wmat
+		walk.mesh = wm
+		walk.position = Vector3(0, 2.85, 0.18 * -side)
+		walk.rotation.y = PI if side > 0 else 0.0
+		sig.add_child(walk)
 	# the gates back out (world coords: this node already sits at its
 	# block's offset on the axis)
 	var west_to := "riverside" if block_id == "market" else "market"
@@ -143,7 +214,8 @@ func _building(cx: float, cz: float, w: float, d: float, h: float,
 	var bm := BoxMesh.new()
 	bm.size = Vector3(w, h, d)
 	var mat := StandardMaterial3D.new()
-	mat.albedo_color = FACE
+	mat.albedo_color = _facade_paint(cx, cz)
+	mat.roughness = 0.9
 	bm.material = mat
 	mesh.mesh = bm
 	body.add_child(mesh)
@@ -155,41 +227,156 @@ func _building(cx: float, cz: float, w: float, d: float, h: float,
 	if kit != null:
 		mesh.visible = false
 		face_w = kit
+	else:
+		_roofline(cx, cz, w, d, h)
 	if windows:
-		for i in int(h / 3.2):
-			var win := MeshInstance3D.new()
-			var wm := QuadMesh.new()
-			wm.size = Vector2(0.9, 1.2)
-			var wmat := StandardMaterial3D.new()
-			var lit := randf() < 0.45
-			if lit:
-				wmat.albedo_color = Color(1.0, 0.82, 0.45)
-				wmat.emission_enabled = true
-				wmat.emission = Color(1.0, 0.7, 0.3)
-				# 0.85 stays under the 1.45 glow threshold: warm
-				# windows, not orange halos (the Xogot lesson)
-				wmat.emission_energy_multiplier = 0.85
-			else:
-				wmat.albedo_color = Color(0.04, 0.05, 0.08)
-			wmat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-			wm.material = wmat
-			win.mesh = wm
-			var toward := 1.0 if cz < 0 else -1.0  # which way the street is
-			var front := cz + toward * (d / 2.0 + 0.02)
-			var fx := cx - face_w / 2.0 + 1.2 + (i % 3) * 2.0
-			fx = clampf(fx, cx - face_w / 2.0 + 1.0, cx + face_w / 2.0 - 1.0)
-			win.position = Vector3(fx, 1.6 + i * 3.0, front)
-			win.rotation = Vector3(0, PI, 0) if cz < 0 else Vector3.ZERO
-			if lit:
-				win.add_to_group("emissive_window")
-				win.set_meta("base_energy", 0.85)
-			add_child(win)
+		# B23 MILESTONE A: a real facade - a full window grid per floor
+		# across the street face (some lit, some dark, some skipped:
+		# cities have gaps), plus the side face near the corner
+		var toward := 1.0 if cz < 0 else -1.0  # which way the street is
+		var front := cz + toward * (d / 2.0 + 0.02)
+		var floors := int((h - 1.6) / 3.0)
+		var cols := maxi(2, int((face_w - 1.6) / 2.3))
+		var rng := RandomNumberGenerator.new()
+		rng.seed = int(absf(cx * 13.0 + cz * 7.0))
+		for fl in floors:
+			for c in cols:
+				if rng.randf() < 0.18:
+					continue  # the gap
+				var fx := cx - face_w / 2.0 + 1.1 + c * ((face_w - 2.0) / maxf(cols - 1.0, 1.0))
+				var lit := rng.randf() < 0.55
+				_window(Vector3(fx, 2.3 + fl * 3.0, front),
+						Vector3(0, PI, 0) if cz < 0 else Vector3.ZERO, lit)
+				# the near side face gets the corner column read
+				if c < 2:
+					var side_x := cx + (w / 2.0 + 0.02) * (1.0 if fx > cx else -1.0)
+					_window(Vector3(side_x, 2.3 + fl * 3.0,
+							cz + toward * (d / 2.0 - 1.0)),
+							Vector3(0, PI / 2.0 if fx > cx else -PI / 2.0, 0),
+							rng.randf() < 0.3)
+
+
+## One facade window: a warm lit pane or a dark one. Lit panes join the
+## flicker group under the 1.45 glow threshold (the Xogot lesson).
+func _window(pos: Vector3, rot: Vector3, lit: bool) -> void:
+	var win := MeshInstance3D.new()
+	var wm := QuadMesh.new()
+	wm.size = Vector2(1.1, 1.4)
+	var wmat := StandardMaterial3D.new()
+	if lit:
+		wmat.albedo_color = Color(1.0, 0.82, 0.45)
+		wmat.emission_enabled = true
+		wmat.emission = Color(1.0, 0.7, 0.3)
+		wmat.emission_energy_multiplier = 0.85
+	else:
+		# dark glass reads as glass, not void (the VLM black-slab catch)
+		wmat.albedo_color = Color(0.055, 0.075, 0.115)
+	wmat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	wm.material = wmat
+	win.mesh = wm
+	win.position = pos
+	win.rotation = rot
+	win.add_to_group("facade_window")
+	if lit:
+		win.add_to_group("emissive_window")
+		win.set_meta("base_energy", 0.85)
+	add_child(win)
+
+
+## A per-plot paint from the district palette - deterministic by plot
+## position so a block composes the same way every visit.
+const FACADE_PALETTE := [
+	Color(0.125, 0.108, 0.1),     # old brick, soot-dark
+	Color(0.14, 0.14, 0.15),      # poured concrete
+	Color(0.165, 0.145, 0.12),    # painted tan, aged
+	Color(0.12, 0.13, 0.15),      # slate blue
+	Color(0.15, 0.125, 0.115),    # brownstone
+]
+
+
+func _facade_paint(cx: float, cz: float) -> Color:
+	var i := int(absf(cx * 3.0 + cz * 5.0)) % FACADE_PALETTE.size()
+	return FACADE_PALETTE[i]
+
+
+## The roof the sky sees: a parapet lip on every building, a water
+## tower on some, AC boxes on most - silhouettes, not slabs.
+func _roofline(cx: float, cz: float, w: float, d: float, h: float) -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = int(absf(cx * 31.0 + cz * 17.0)) + 7
+	var lip := MeshInstance3D.new()
+	var lm := BoxMesh.new()
+	lm.size = Vector3(w + 0.3, 0.45, d + 0.3)
+	var lmat := StandardMaterial3D.new()
+	lmat.albedo_color = _facade_paint(cx, cz).darkened(0.25)
+	lm.material = lmat
+	lip.mesh = lm
+	lip.position = Vector3(cx, h + 0.2, cz)
+	add_child(lip)
+	if rng.randf() < 0.4:
+		# the water tower: tank + conical cap + legs, off-centre
+		var tx := cx + rng.randf_range(-w / 4.0, w / 4.0)
+		var tz := cz + rng.randf_range(-d / 4.0, d / 4.0)
+		var tank := MeshInstance3D.new()
+		var tm := CylinderMesh.new()
+		tm.top_radius = 0.9
+		tm.bottom_radius = 0.9
+		tm.height = 1.6
+		var tmat := StandardMaterial3D.new()
+		tmat.albedo_color = Color(0.09, 0.07, 0.06)
+		tm.material = tmat
+		tank.mesh = tm
+		tank.position = Vector3(tx, h + 1.5, tz)
+		add_child(tank)
+		var cap := MeshInstance3D.new()
+		var cm := CylinderMesh.new()
+		cm.top_radius = 0.0
+		cm.bottom_radius = 0.95
+		cm.height = 0.55
+		cm.material = tmat
+		cap.mesh = cm
+		cap.position = Vector3(tx, h + 2.55, tz)
+		add_child(cap)
+	if rng.randf() < 0.75:
+		for i in rng.randi_range(1, 3):
+			var ac := MeshInstance3D.new()
+			var am := BoxMesh.new()
+			am.size = Vector3(1.1, 0.6, 1.1)
+			var amat := StandardMaterial3D.new()
+			amat.albedo_color = Color(0.12, 0.12, 0.13)
+			am.material = amat
+			ac.mesh = am
+			ac.position = Vector3(cx + rng.randf_range(-w / 3.0, w / 3.0),
+					h + 0.55, cz + rng.randf_range(-d / 3.0, d / 3.0))
+			add_child(ac)
+	if rng.randf() < 0.3:
+		# the noir blade sign on the street edge: a vertical marquee
+		var toward := 1.0 if cz < 0 else -1.0
+		var blade := MeshInstance3D.new()
+		var bm2 := BoxMesh.new()
+		bm2.size = Vector3(0.18, 2.6, 0.7)
+		var bmat := StandardMaterial3D.new()
+		bmat.albedo_color = Color(0.7, 0.2, 0.16)
+		bmat.emission_enabled = true
+		bmat.emission = Color(0.9, 0.25, 0.18)
+		bmat.emission_energy_multiplier = 0.6
+		bm2.material = bmat
+		blade.mesh = bm2
+		blade.position = Vector3(cx + w / 2.0 - 0.3, h - 1.6,
+				cz + toward * (d / 2.0 + 0.35))
+		add_child(blade)
 
 
 ## Try the next kit building on this plot. Returns the kit's face width
 ## when it took over (the caller hides its box and narrows the windows),
 ## or -1.0 when the fallback box stays.
 func _kit_building(cx: float, cz: float, w: float, d: float, h: float) -> float:
+	# B23 MILESTONE A: kit glb buildings no longer take street plots -
+	# the physical iPhone rendered gltf assets as ghosts while every
+	# Linux check passed. The code facade (palette, window grids,
+	# rooflines) owns every plot now; the kit list stays for the day
+	# on-device verification proves the glbs render.
+	return -1.0
 	var rel: String = KIT_BUILDINGS[_kit_i % KIT_BUILDINGS.size()]
 	_kit_i += 1
 	if not CLS_Kit.available(rel):
@@ -376,6 +563,18 @@ func _foundry() -> void:
 	mesh.mesh = bm
 	wh.add_child(mesh)
 	add_child(wh)
+	# B23: the warehouse's street face carries high industrial windows
+	# (dim, cool - the night shift inside), so the volume is not a
+	# black slab against the sky
+	var wrng := RandomNumberGenerator.new()
+	wrng.seed = 99
+	for i in 9:
+		var lit := wrng.randf() < 0.4
+		_window(Vector3(-9.0 + i * 2.8, 7.2, -6.98),
+				Vector3.ZERO, lit)
+	for i in 5:
+		_window(Vector3(-9.0 + i * 2.8, 3.4, -6.98),
+				Vector3.ZERO, wrng.randf() < 0.25)
 	var sheds := 0
 	for seg in [-4.5, 8.5]:
 		if CLS_Kit.place_stretch(self, "kenney_industrial/building-l.glb",

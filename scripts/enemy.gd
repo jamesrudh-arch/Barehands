@@ -73,6 +73,8 @@ const KIND_BODY := {
 		"res://assets/cast/Female_Ranger_Legs.gltf"],
 	4: ["res://assets/cast/Superhero_Female_FullBody.gltf"],  # BOSS
 }
+const CLS_Humanoid := preload("res://scripts/humanoid.gd")
+var _humanoid: Node = null
 var _char_pieces: Array[Node3D] = []
 var _players: Array[AnimationPlayer] = []
 
@@ -84,19 +86,10 @@ func _ready() -> void:
 	_spawn = global_position
 	_dress_character()
 	_own_materials()
-	# B18.3 (BUG 10): a name marker above the head - who you are
-	# fighting reads at a distance
-	var tag := Label3D.new()
-	tag.text = ["DUMMY", "MUSCLE", "COLLECTOR", "CREW", "BOSS"][kind] \
-			if kind in [0, 1, 2, 3, 4] else "THUG"
-	tag.modulate = Color(1.0, 0.62, 0.5, 0.9)
-	tag.font_size = 44
-	tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	tag.outline_size = 10
-	tag.outline_modulate = Color(0.02, 0.02, 0.03)
-	tag.no_depth_test = true
-	tag.position = Vector3(0, 2.35, 0)
-	add_child(tag)
+	# B23: the floating DUMMY/MUSCLE/... name tags are GONE (the
+	# iPhone evidence read as dev labels over ghost figures). Who you
+	# fight is told by the body: silhouette, scale, colour, the edge
+	# glow - and the posture bar above their head.
 	# P0.1 T-pose fix: an enemy that spawns beyond the 10 m think radius
 	# never entered WALK, so _think's idle branch skipped it and NOTHING
 	# ever called play() - the mannequin stood in the glb rest pose
@@ -139,43 +132,52 @@ func _apply_look() -> void:
 			m.emission_energy_multiplier = edge
 
 
-## B18.4: dress the kind's real character. On success the mannequin mesh
-## hides (its player stays as the pose clock and the fallback), every
-## piece gets a "Clips" player with the UAL library grafted on - the
-## hero_rig pattern - and _play drives them all in lockstep.
+## B23 MILESTONE A: every kind dresses on the code-built humanoid -
+## the gltf/UAL path ghosted on the physical iPhone while passing
+## every Linux check. Silhouette + colour + edge tell you who you
+## fight; the posture bar carries the state.
 func _dress_character() -> void:
-	var files: Array = KIND_BODY.get(kind, [])
-	if files.is_empty():
-		return  # the dummy keeps its mannequin
-	for f in files:
-		var ps: PackedScene = load(f)
-		if ps == null:
-			Log.warn("Enemy: %s not importable yet - the mannequin stays" % f)
-			_char_pieces.clear()
-			return
-	for f in files:
-		var piece: Node3D = (load(f) as PackedScene).instantiate()
-		# same stage transform the mannequin wears (enemy.tscn)
-		piece.rotation.y = PI
-		piece.scale = Vector3(0.93, 0.93, 0.93)
-		_body.add_child(piece)
-		var p := AnimationPlayer.new()
-		p.name = "Clips"
-		piece.add_child(p)
-		CLS_UalBind.attach(p)
-		_players.append(p)
-		_char_pieces.append(piece)
+	var specs := {
+		0: {"height": 1.86, "build": 2, "hair_style": 4,  # training dummy: worn wood
+			"skin": Color(0.62, 0.5, 0.36), "hair": Color(0.4, 0.32, 0.2),
+			"top": Color(0.55, 0.44, 0.3), "bottom": Color(0.48, 0.38, 0.26),
+			"shoes": Color(0.3, 0.24, 0.16)},
+		1: {"height": 1.88, "build": 2, "hair_style": 0,  # MUSCLE: broad, brown coat
+			"skin": Color(0.5, 0.36, 0.27), "hair": Color(0.1, 0.08, 0.06),
+			"top": Color(0.3, 0.2, 0.14), "bottom": Color(0.18, 0.15, 0.13),
+			"jacket": Color(0.24, 0.16, 0.11), "jacket_on": true},
+		2: {"height": 1.8, "build": 1, "hair_style": 1,  # COLLECTOR: gunmetal suit
+			"skin": Color(0.6, 0.44, 0.33), "hair": Color(0.08, 0.08, 0.09),
+			"top": Color(0.16, 0.17, 0.2), "bottom": Color(0.12, 0.13, 0.15),
+			"jacket": Color(0.13, 0.14, 0.17), "jacket_on": true},
+		3: {"height": 1.72, "build": 0, "hair_style": 2, "female": true,  # CREW: wiry
+			"skin": Color(0.56, 0.4, 0.3), "hair": Color(0.06, 0.05, 0.04),
+			"top": Color(0.2, 0.16, 0.12), "bottom": Color(0.14, 0.12, 0.1)},
+		4: {"height": 1.9, "build": 2, "hair_style": 4,  # BOSS: blood accent
+			"skin": Color(0.48, 0.34, 0.26), "hair": Color(0.05, 0.03, 0.03),
+			"top": Color(0.22, 0.07, 0.08), "bottom": Color(0.1, 0.07, 0.08),
+			"jacket": Color(0.14, 0.05, 0.06), "jacket_on": true},
+	}
+	_humanoid = CLS_Humanoid.new()
+	_humanoid.name = "Person"
+	_body.add_child(_humanoid)
+	_humanoid.call("build", specs.get(kind, specs[1]))
 	if _mi != null and is_instance_valid(_mi):
-		_mi.visible = false  # the mannequin mesh yields; its player stays
-	# the mannequin's own player joins the lockstep group: its mesh is
-	# hidden but every rig in the tree keeps playing (the T-pose guard)
+		_mi.visible = false  # the mannequin mesh yields for good
 	if _anim != null and is_instance_valid(_anim):
-		_players.append(_anim)
-	Log.info("Enemy: kind %d wears the CC0 character (%d pieces)"
-			% [kind, _char_pieces.size()])
+		_anim.stop()
 
 
 func _own_materials() -> void:
+	if _humanoid != null and is_instance_valid(_humanoid):
+		# the humanoid's own materials, flash-ready (emission armed at
+		# zero energy - the telegraph pulse drives them like the rest)
+		for m in _humanoid.get("all_mats"):
+			(m as StandardMaterial3D).emission_enabled = true
+			(m as StandardMaterial3D).emission = Color(1, 1, 1)
+			(m as StandardMaterial3D).emission_energy_multiplier = 0.0
+			_mats.append(m)
+		return
 	if not _char_pieces.is_empty():
 		# real character pieces: duplicate their meshes so each enemy owns
 		# its materials (the tint + flash treatment the mannequin got)
@@ -753,6 +755,9 @@ func _apply_flash(delta: float) -> void:
 
 
 func _play(anim_name: String, blend: float = 0.25, speed := 1.0) -> void:
+	if _humanoid != null and is_instance_valid(_humanoid):
+		_humanoid.call("play", anim_name, blend, speed)
+		return
 	if not _players.is_empty():
 		# B18.4: the character pieces play in lockstep - UalBind owns the
 		# clip fallbacks and the warn-once, so a bad name never T-poses

@@ -40,7 +40,8 @@ const BODIES_M := [
 	["res://assets/cast/Male_Knight_Body_Armor.gltf"],
 ]
 
-enum State { WALK, CROSS_WAIT, CROSSING, BROWSE, PHONE, QUEUE, WATCH, FLEE }
+enum State { WALK, CROSS_WAIT, CROSSING, BROWSE, PHONE, QUEUE, WATCH,
+	FLEE, CHAT }
 
 var block := "riverside"
 var home := Vector3.ZERO
@@ -49,6 +50,24 @@ var partner: Node3D = null  # pairs walk together (blocks assigns)
 
 var _state: State = State.WALK
 var _target := Vector3.ZERO
+# B23: pairs sometimes stop and TALK - two citizens, two bubbles, then
+# they walk on. _chat_lead decides who speaks first.
+var _chat_until := 0.0
+var _chat_cooldown := 0.0
+var _chat_started := 0.0
+var _chat_lead := false
+var _chat_line := ""
+
+const CHAT_LINES := [
+	"You see the club queue last night? Round the block.",
+	"Kessler's collecting twice a month now. Twice.",
+	"Three jobs on the board and none of them clean.",
+	"Mama Sun raised the price of the big bowl. Scandal.",
+	"The Mechanic says the grey sedan's been parked a week.",
+	"Somebody put the Vulture's name in the ledger. Bold.",
+	"I'm not paying the Duchess interest on interest. I'm not.",
+	"Rain again. My shoes have opinions about rain.",
+]
 var _target_side := 1.0
 var _side := 1.0
 var _pause_until := 0.0
@@ -151,7 +170,10 @@ func _physics_process(delta: float) -> void:
 			_walk_step(step)
 		State.CROSS_WAIT:
 			_face(Vector3(_bx() + CROSSING_X, 0.0, -_side * _walk_z()), step)
-			if _crossing_clear():
+			# B23: the walk sign decides - cars hold on WALK, so the
+			# zebra is genuinely safe (a clear road with a red man is a
+			# red man; this city has manners AND lights)
+			if Traffic.walk_phase() and _crossing_clear():
 				_target = Vector3(_bx() + CROSSING_X, 0.0, -_side * _walk_z())
 				_state = State.CROSSING
 		State.FLEE:
@@ -161,6 +183,20 @@ func _physics_process(delta: float) -> void:
 			_clamp_to_block()
 			if _flat(_target - global_position).length() < 0.5:
 				_after_flee()
+		State.CHAT:
+			# face the buddy; the lead speaker holds the first half of
+			# the exchange, the answer lands after - readable as you pass
+			if partner != null and is_instance_valid(partner):
+				_face(partner.global_position, step)
+				var lead_talking := _now() < _chat_started \
+						+ (_chat_until - _chat_started) * 0.5
+				var show := (_chat_lead and lead_talking) \
+						or (not _chat_lead and not lead_talking)
+				if d < TALK_RANGE + 4.0 and show and not _chat_line.is_empty():
+					_bubble.text = _chat_line
+					_said = _chat_line  # keep the player-pass fade logic
+				if _now() > _chat_until:
+					_pick_target()
 		State.BROWSE, State.PHONE, State.QUEUE, State.WATCH:
 			if _state == State.QUEUE:
 				_face(Vector3(queue_slot.x, 0.0, queue_slot.z - 2.0), step)
@@ -209,6 +245,27 @@ func _arrive() -> void:
 
 
 func _pick_target() -> void:
+	# B23: some walks end in a conversation - a pair that is together
+	# and off cooldown may stop and talk instead of walking on
+	if partner != null and is_instance_valid(partner) \
+			and global_position.distance_to(partner.global_position) < 3.2 \
+			and _now() > _chat_cooldown \
+			and partner.get("_state") in [State.WALK, State.CROSS_WAIT] \
+			and randf() < 0.22:
+		var dur := randf_range(4.5, 7.0)
+		_chat_lead = true
+		_chat_started = _now()
+		_chat_until = _now() + dur
+		_chat_cooldown = _chat_until + randf_range(18.0, 40.0)
+		_chat_line = CHAT_LINES[randi() % CHAT_LINES.size()]
+		_state = State.CHAT
+		partner.set("_chat_lead", false)
+		partner.set("_chat_started", _now())
+		partner.set("_chat_until", _now() + dur)
+		partner.set("_chat_cooldown", _chat_until + randf_range(18.0, 40.0))
+		partner.set("_chat_line", CHAT_LINES[randi() % CHAT_LINES.size()])
+		partner.set("_state", State.CHAT)
+		return
 	_state = State.WALK
 	_target_side = -_side if randf() < 0.3 else _side
 	# pairs keep each other's company most of the time
@@ -298,7 +355,8 @@ func _settle_animations() -> void:
 			_rig.play("Walk", 0.1, 2.0)
 	elif _rig.current() != "Idle":
 		_rig.play("Idle", 0.25)
-	# the phone in the hand while phoning or recording
+	# the phone in the hand while phoning or recording - a real prop
+	# riding the humanoid's hand joint, with the phone-hold pose
 	var phone_up := _state == State.PHONE
 	if phone_up and _phone == null:
 		_phone = MeshInstance3D.new()
@@ -312,8 +370,15 @@ func _settle_animations() -> void:
 		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 		q.material = m
 		_phone.mesh = q
-		_phone.position = Vector3(0.22, 1.15, 0.32)
-		add_child(_phone)
+		var hand: Node3D = _rig.call("hand", "r") if _rig and _rig.has_method("hand") else null
+		if hand:
+			hand.add_child(_phone)
+			_phone.position = Vector3(0, -0.06, 0.06)
+			_phone.rotation = Vector3(-1.3, 0, 0)
+		else:
+			add_child(_phone)
+			_phone.position = Vector3(0.22, 1.15, 0.32)
+		_rig.play("Phone", 0.2)
 	elif not phone_up and _phone != null:
 		_phone.queue_free()
 		_phone = null

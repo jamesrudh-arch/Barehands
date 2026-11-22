@@ -678,7 +678,7 @@ static func _suspects_block() -> String:
 			break
 	var hero := tree.get_first_node_in_group("player")
 	if hero:
-		var body := hero.get_node_or_null("Body/Hero/Body")
+		var body := hero.get_node_or_null("Body/Hero/Person")
 		if body:
 			out += "hero body (UBC gltf): %s | %s" % [
 					str(body.get_path()), _glb_facts(body as Node3D)]
