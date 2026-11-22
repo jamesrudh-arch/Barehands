@@ -106,9 +106,11 @@ func _ready() -> void:
 				letters[b.label] = b.sub
 	_check(scheme == "fight",
 			"A7 the FIGHT scheme is the default (got %s)" % scheme)
+	# B24 (master directive 5.2/5.3): B is DODGE, A is KICK - never the
+	# inverse
 	_check(letters.get("X") == "PUNCH" and letters.get("Y") == "HEAVY"
-			and letters.get("B") == "KICK" and letters.get("A") == "DODGE",
-			"A7 X PUNCH / Y HEAVY / B KICK / A DODGE read (%s)" % str(letters))
+			and letters.get("B") == "DODGE" and letters.get("A") == "KICK",
+			"A7 X PUNCH / Y HEAVY / B DODGE / A KICK read (%s)" % str(letters))
 	# the input strip must not sit on the button cluster
 	var strip := get_tree().get_first_node_in_group("input_strip") as Control
 	var overlap := false

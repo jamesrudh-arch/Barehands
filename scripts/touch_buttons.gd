@@ -62,7 +62,7 @@ const FACE_SPECS := [
 ]
 
 ## B18.3 Part 2 (BUG 8): the FIGHTING scheme - the console diamond
-## (X punch, Y heavy, B kick, A dodge), the GUARD/GRAB/SPRINT pills in
+## (X punch, Y heavy, B dodge, A kick), the GUARD/GRAB/SPRINT pills in
 ## a row above it, JUMP to the left, SUPER in the diamond's centre,
 ## STYLE (hold: the wheel), LOCK, PHONE. B becomes the context action
 ## near doors and pickups (combat keeps it KICK). Default scheme.
@@ -70,8 +70,10 @@ const FIGHT_SPECS := [
 	# the diamond: Y top, X left, B right, A bottom
 	["FightX", "X", "PUNCH", Color(0.55, 0.85, 1.0, 0.95), Vector2(1, 1), 108.0],
 	["FightY", "Y", "HEAVY", Color(1.0, 0.82, 0.35, 0.95), Vector2(2, 2), 108.0],
-	["FightB", "B", "KICK", Color(1.0, 0.45, 0.35, 0.95), Vector2(3, 1), 108.0],
-	["FightA", "A", "DODGE", Color(0.6, 1.0, 0.75, 0.95), Vector2(2, 0), 96.0],
+	# B24 (the B-button rule): B is DODGE in combat - outside combat it
+	# wears the context verb; A is KICK. B is never kick.
+	["FightB", "B", "DODGE", Color(0.6, 1.0, 0.75, 0.95), Vector2(3, 1), 108.0],
+	["FightA", "A", "KICK", Color(1.0, 0.45, 0.35, 0.95), Vector2(2, 0), 96.0],
 	["SuperBtn", "SUPER", "", Color(1.0, 0.62, 0.2, 1.0), Vector2(2, 1), 64.0],
 	["JumpBtn", "JUMP", "vault", Color(1.0, 0.78, 0.45, 0.95), Vector2(0, 1), 76.0],
 	["GuardBtn", "GUARD", "hold", Color(0.8, 0.85, 1.0, 0.9), Vector2(1, 3), 68.0],
@@ -119,7 +121,7 @@ func _ready() -> void:
 
 func _scheme() -> String:
 	var s := str(Settings.value("button_scheme"))
-	# Gate A: the FIGHTING scheme (X PUNCH / Y HEAVY / B KICK / A DODGE)
+	# B24: the FIGHTING scheme (X PUNCH / Y HEAVY / B DODGE / A KICK)
 	# is the default - the phone showed the CLASSIC word buttons because
 	# an unset setting fell through to "classic"
 	return s if s in ["face", "fight", "classic"] else "fight"
@@ -235,16 +237,17 @@ func _on_down(name: String) -> void:
 			InputBus.punch_press()
 			InputBus.press_face("B")   # Y = the heavy (combo token B)
 		"FightB":
-			# B is KICK - but near a door/pickup (and out of combat) it
-			# becomes the context action instead (Part 6D priority rule)
+			# B24: B is DODGE - outside combat, near a door/pickup, it
+			# becomes the context action instead (the priority rule:
+			# context only when the street is calm)
+			InputBus.stamp_action("dodge_down")
 			if _b_context() != "":
 				InputBus.queue_grab()
 			else:
-				InputBus.queue_kick()
-				InputBus.press_face("X")   # B = the kick (combo token X)
+				InputBus.dodge_press()
 		"FightA":
-			InputBus.stamp_action("dodge_down")
-			InputBus.dodge_press()
+			InputBus.queue_kick()
+			InputBus.press_face("X")   # A = the kick (combo token X)
 		"GuardBtn":
 			# hold to block (a block's first moments parry); never rolls
 			InputBus.dodge_press()
@@ -273,7 +276,7 @@ func _on_up(name: String) -> void:
 			if quick:
 				InputBus.clear_punch_queue()
 				InputBus.queue_heavy()
-		"FightA":
+		"FightB":
 			InputBus.dodge_release()
 		"GuardBtn":
 			# a quick guard tap never rolls - drop the queued dodge
@@ -324,8 +327,8 @@ func _process(delta: float) -> void:
 		_set_ring("FaceX", p.punch_cooldown_01())
 		_set_ring("FightX", p.punch_cooldown_01())
 		_set_ring("FightY", p.punch_cooldown_01())
-		_set_ring("FightB", p.punch_cooldown_01())
-		_set_ring("FightA", p.dodge_cooldown_01())
+		_set_ring("FightB", p.dodge_cooldown_01())
+		_set_ring("FightA", p.punch_cooldown_01())
 	if _hint_fade > 0.0:
 		_hint_fade -= delta
 		if _hint_fade <= 0.0:
@@ -354,8 +357,8 @@ func _apply_context() -> void:
 	var player := get_tree().get_first_node_in_group("player")
 	if player and player.has_method("context_action"):
 		want = str(player.call("context_action"))
-	# B18.3 Part 6D: B keeps KICK while a fight is close (no door opens
-	# by accident); the context wins only when the street is calm
+	# B24: B stays DODGE while a fight is close (no door opens by
+	# accident); the context verb wins only when the street is calm
 	if want != "" and _combat_near(6.0):
 		want = ""
 	_b_ctx = want
@@ -369,7 +372,7 @@ func _apply_context() -> void:
 	# the FIGHT scheme's B button wears the context verb when it has one
 	var fb := _buttons.get("FightB") as CLS_ActionButton
 	if fb:
-		fb.sub = want if want != "" else "KICK"
+		fb.sub = want if want != "" else "DODGE"
 
 
 ## The context verb for B right now ("" = none / combat priority).

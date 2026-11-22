@@ -104,7 +104,7 @@ func _build() -> void:
 	for id in ["fight", "face", "classic"]:
 		var b := Button.new()
 		b.name = "Btns_" + id
-		b.text = {"fight": "FIGHT (default)\nX punch - Y heavy\nB kick - A dodge",
+		b.text = {"fight": "FIGHT (default)\nX punch - Y heavy\nB dodge - A kick",
 				"face": "Face buttons\nA light - B heavy\nX kick - Y grab",
 				"classic": "Classic\nPUNCH - DODGE - JUMP\nSPRINT - GRAB"}[id]
 		b.focus_mode = Control.FOCUS_NONE

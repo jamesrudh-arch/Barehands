@@ -1,5 +1,34 @@
 # CHANGELOG.md — batch history (newest first)
 
+## B24 — THE B-BUTTON RULE + GATE-A COMPLIANCE (2026-11-22, the master production directive)
+
+The master directive's Gate-A pass against the B23 reconstruction:
+
+- **THE B-BUTTON RULE (Section 5.2/5.3)**: the FIGHT scheme's diamond
+  now follows the Xbox rule exactly - **B is DODGE** (and the context
+  action outside combat: the button relabels OPEN DOOR / PICK UP /
+  TALK when the street is calm), **A is KICK**. B was KICK and A was
+  DODGE through B23 - the exact inversion the directive prohibits.
+  Spec labels/colours, down/up routing, cooldown rings, the picker
+  card, the device-report text and the live context verb all follow.
+- **MOVES.md** (new): the implemented control contract - the one B
+  rule, the diamond, the Brawler chains (X X X, X X Y, X A, A Y,
+  B-then-X), grab/super/parry, the styles and unlock path. Written
+  from the live combo table, not from plans.
+- **DESIGN_SYSTEM.md** (new): the colour tokens (#05060F/#0E1226/
+  #E8E8F4/#8A90B0/#FF007F/#00F0FF/#3DDC84/#FFB020/#FF4D6D/#C9A24B),
+  type scale (11 px floor), 8-point grid, safe-area rules, the action
+  cluster layout, and the implemented accessibility list.
+- **Gate-A spec verification**: studio card (D'YOUNGS GAMES), MATURE
+  THEMES 16+ notice, title card (tagline + production line + 3D key
+  art), menu PLAY/CONTINUE(disabled without save)/SETTINGS/CREDITS,
+  skip-intro setting, hero locator ring setting, and the 2-3 attacker
+  token budget were all checked against the directive - already in
+  place from B21-B23; no dead entries invented.
+
+Verified: sandbox suites (the battery) + live_boot 15/15 on Linux +
+llvmpipe. iPhone physical verification remains PHONE-ONLY.
+
 ## B21 — THE FORENSIC AUDIT BUILD (2026-11-22, the ultimate directive)
 
 Batch 1-4 of the master engineering directive: audit, build identity,

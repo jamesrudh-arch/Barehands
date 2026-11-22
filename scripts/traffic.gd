@@ -434,13 +434,12 @@ func _hazard_ahead(car: Node3D, east: bool, bx: float,
 			var ahead := (wn.global_position.x - car.position.x) * dir
 			if ahead > 0.5 and ahead < LOOKAHEAD:
 				return true
-		# the yield at the crossing: a waiter at the kerb stops the car
-		var st = wn.get("_state")
-		if st != null and int(st) == 1 \
-				and absf(wn.global_position.x - cross_x) < 3.0:
-			var to_cross := (cross_x - car.position.x) * dir
-			if to_cross > -2.0 and to_cross < LOOKAHEAD + 4.0:
-				return true
+	# B24 (the deadlock fix): the kerb-WAITER courtesy rule is GONE.
+	# Since the B23 walk-gate, waiters gather at the kerb through the
+	# whole green phase (they only cross on WALK) - the old rule then
+	# held both lanes forever. The signalised crossing owns the
+	# crossing now: _signal_stops holds cars on WALK, and anyone
+	# actually ON the road still stops traffic via the check above.
 	return false
 
 

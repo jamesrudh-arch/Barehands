@@ -83,24 +83,53 @@ func _ready() -> void:
 	await _shot("03_peds_a")
 	await _wait(1.2)
 	await _shot("04_peds_b")
+	# a second pair 1.2 s later: a single still-pair can catch a calm
+	# beat (peds idling out of frame, light rain) - any movement in
+	# either window counts
+	await _wait(1.2)
+	await _shot("04_peds_c")
 	var peds := get_tree().get_nodes_in_group("wanderer").size()
 	_check(peds >= 4, "pedestrians are spawned near the street (%d)" % peds)
-	_check(_frames_differ("/tmp/lp_shots/03_peds_a.png", "/tmp/lp_shots/04_peds_b.png"),
+	_check(_frames_differ("/tmp/lp_shots/03_peds_a.png", "/tmp/lp_shots/04_peds_b.png")
+			or _frames_differ("/tmp/lp_shots/04_peds_b.png", "/tmp/lp_shots/04_peds_c.png"),
 			"the street MOVES between frames (peds/cars/rain animate)")
 
 	# --- PHASE 4: traffic, watched ------------------------------------------
 	await _walk_plain(Vector3(-2.0, 0.02, 8.6), 16.0)  # the kerb
 	await _wait(0.8)
 	await _shot("05_traffic_a")
-	var car_a := _nearest_car_pos()
-	await _wait(1.4)
+	# B23's signalised crossing legitimately HOLDS cars on red: sample
+	# until a green window (or the car ahead clears the crossing) so
+	# the movement gate measures traffic, not the light. Traffic
+	# correctness is VERIFIED headless (smoke_traffic, 9 checks); the
+	# live gate is existence + any movement across a green phase.
+	# B24: track EVERY car by instance id - the nearest car to a
+	# kerb-standing hero is the one LEGITIMATELY holding at the
+	# crossing during the walk phase. Sampled on PHYSICS frames (the
+	# suite's own heartbeat - its walks run on it): on the software
+	# renderer the idle loop can starve for whole seconds under the
+	# full city + rain, which froze idle timers mid-window while the
+	# sim itself never stopped. Correctness is smoke_traffic's job.
+	var moved := 0.0
+	var prev := {}
+	for c in get_tree().get_nodes_in_group("traffic"):
+		prev[c.get_instance_id()] = (c as Node3D).global_position
+	for i2 in 12:
+		for f in 48:
+			await get_tree().physics_frame
+		var now := {}
+		for c in get_tree().get_nodes_in_group("traffic"):
+			var n := c as Node3D
+			now[n.get_instance_id()] = n.global_position
+			if prev.has(n.get_instance_id()):
+				moved = maxf(moved,
+						(prev[n.get_instance_id()] as Vector3).distance_to(n.global_position))
+		prev = now
+		if moved > 0.3:
+			break
 	await _shot("06_traffic_b")
-	var car_b := _nearest_car_pos()
-	# traffic correctness is VERIFIED headless (smoke_traffic, 9 checks);
-	# at ~5 render fps fewer cars spawn inside a short window, so the
-	# live gate is existence + any movement
-	_check((car_a - car_b).length() > 0.3,
-			"the nearest car MOVED between frames (%.1f m)" % (car_a - car_b).length())
+	_check(moved > 0.3,
+			"traffic MOVES past the signal (%.1f m)" % moved)
 	var cars := get_tree().get_nodes_in_group("traffic").size()
 	_check(cars >= 1, "cars are spawned (%d)" % cars)
 

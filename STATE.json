@@ -3,7 +3,7 @@
   "repo": "github.com/jamesrudh-arch/Barehands, main branch",
   "godot": "4.7.2, MOBILE renderer, test harness at /tmp/godot-dl (Xvfb :99 manual start - xauth is missing for xvfb-run)",
   "continuation_protocol": "read PROJECT_BIBLE.md + this file; resume at next_step",
-  "current_batch": "Batch 21 (forensic audit, build identity, live play): the build-identity bug fixed (build_info.gd was stale since B18 - its generator never existed; gen_build_info.py now the one authority), the stale-audio-import issue diagnosed, LIVE-PLAY suites (live_walk 4/4, live_play 11/11) drive the real stick pipeline on a rendered frame with evidence PNGs, DBG movement-chain diagnostics, DEVICE REPORT engine/census fields, traffic engine play-before-add_child guarded.",
+  "current_batch": "Batch 24 (the B-button rule + Gate-A compliance): FIGHT diamond corrected to the Xbox rule (B=DODGE/context, A=KICK; was inverted), MOVES.md and DESIGN_SYSTEM.md created from the implemented game, Gate-A spec items verified against the master directive. B23 delivered the code-built reconstruction (humanoid framework for hero/cast/crowd/enemies, code traffic + signalised crossing, code facades + lamps, boot straight into gameplay, autosave).",
   "completed": [
     "Series 1 (look and feel): stability, hero + cinematic camera, wet neon night, punches that hit, pose/stress suites",
     "Series 2 Phase 1 audio (layered hits, puddle footsteps, volume sliders, mute)",
@@ -89,6 +89,6 @@
     "blocks are one loaded neighborhood at a time, not literal streamed scene files (one axis, offset 240 apart, built lazily) - same effect, cheaper; the bible's 'one streamed scene per block' reads satisfied in spirit",
     "the morning report's numbers are first-pass copy (interest/cooling lines state facts the systems computed; no art pass yet)"
   ],
-  "next_step": "After the owner's B21 DEVICE REPORT: confirm the world is visible/audible on the iPhone, then continue the directive's batches - NPC population toward the bible's 16 named + 25 crowd (currently 4 named cast + staff + crowds), the remaining full-game systems (five styles, story arcs, economy depth), performance on device.",
+  "next_step": "Deliver B24 (battery + ZIP), then the mandatory Gate-A stop: the user imports B24 into Xogot on iPhone and pastes back the DEVICE REPORT text (DBG -> DEVICE REPORT -> COPY LOG). After the report: Gate B (doors/interactions/pickups polish, first missions, tutorial beats, five interiors) per the master directive Section 20.",
   "battery_last_full_run": "2026-11-21 B18.4: 36 suites (33 headless + 3 render). In-run green: 33 incl. stress_combat (final enemy code) and smoke_kits 44/44; smoke_depth + smoke_tpose failed in-run, fixed in-batch, re-run green standalone; render_check 53/56 (2 llvmpipe histogram thresholds improved not crossed - phone judges; 1 pre-existing HUD bar crossing). Pattern: HOME=<fresh dir> per suite, timeout 420/600, never killed; tools/b18_battery.sh."
 }

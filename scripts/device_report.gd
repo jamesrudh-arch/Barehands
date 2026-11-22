@@ -139,7 +139,7 @@ static func _gate_a_block() -> String:
 	var scheme := "fight"
 	if settings and settings.has_method("value"):
 		scheme = str(settings.call("value", "button_scheme"))
-	out += "button scheme: %s (fight = X PUNCH / Y HEAVY / B KICK / A DODGE)\n" \
+	out += "button scheme: %s (fight = X PUNCH / Y HEAVY / B DODGE / A KICK)\n" \
 			% scheme
 	return out
 

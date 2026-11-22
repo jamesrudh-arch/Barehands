@@ -364,6 +364,22 @@ func _show_menu() -> void:
 func _play() -> void:
 	_leave_menu()
 	Narrator.stop()
+	# B24 (the fresh-boot bug): a NEW GAME wakes the hero in the
+	# APARTMENT - through B23 the scene's street start (0, 0.1, 3)
+	# was used, which put the hero ON THE ROAD at the crossing (the
+	# westbound lane yielded to him forever) and the guide's
+	# wake-in-the-apartment intro never ran. Suites that boot main
+	# directly keep the street start; this is the menu's contract.
+	var hero := get_tree().get_first_node_in_group("player") as Node3D
+	if hero:
+		hero.global_position = Vector3(780.0, 0.02, 1.8)
+		hero.rotation.y = 0.0  # facing the door (-z)
+		var follow := get_tree().get_first_node_in_group("camera") as Node3D
+		if follow and follow.has_method("snap"):
+			follow.call("snap")
+		elif get_tree().root.has_node("Blocks"):
+			(get_tree().root.get_node("Blocks") as Node).call("snap_camera_to", hero)
+		Log.info("StartSequence: new game - the hero wakes in the apartment")
 
 
 func _continue() -> void:
