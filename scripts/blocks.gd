@@ -66,6 +66,25 @@ func current() -> String:
 	return _current
 
 
+## B20 (the hot-street fix): the crowd answers the MOOD, not just the
+## travel - a district that turns hostile empties while you stand in it.
+var _mood_watch_t := 0.0
+var _last_mood := ""
+
+
+func _process(delta: float) -> void:
+	_mood_watch_t += delta
+	if _mood_watch_t < 1.2:
+		return
+	_mood_watch_t = 0.0
+	if _main == null:
+		return
+	var m := City.mood_of(_current)
+	if m != _last_mood:
+		_last_mood = m
+		_wanderers(_current)
+
+
 func block_node(id: String) -> Node:
 	return _built.get(id)
 
@@ -305,6 +324,12 @@ func _wanderers(id: String) -> void:
 		root.add_child(crowd)
 	# crowds thin with the mood (bible 6): count the living, then
 	# free the surplus or spawn the difference
+	# a hot street empties COMPLETELY (walkers and queue alike)
+	if n == 0:
+		for c in crowd.get_children():
+			(c as Node).queue_free()
+		Log.info("Blocks: %s thins - nobody walks a hot street" % id)
+		return
 	var alive: Array = []
 	for c in crowd.get_children():
 		var slot = (c as Node).get("queue_slot")

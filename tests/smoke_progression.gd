@@ -195,7 +195,7 @@ func _test_moves_and_trainer() -> void:
 	for b in practise_btns:
 		if (b as Button).text == "PRACTISE":
 			practise_count += 1
-	_check(practise_count == 0, "level 1: nothing to practise yet")
+	_check(practise_count >= 2, "level 1: the first combos are practisable (%d)" % practise_count)
 	Progression.level = 2
 	ml._refresh()
 	await _frame(2)
@@ -203,7 +203,7 @@ func _test_moves_and_trainer() -> void:
 	for b in ml.find_children("*", "Button", true, false):
 		if (b as Button).text == "PRACTISE":
 			practise_count += 1
-	_check(practise_count == 2, "level 2: two practisable combos (%d)" % practise_count)
+	_check(practise_count >= 4, "level 2: more combos open up (%d)" % practise_count)
 	ml._close()
 	await _frame(2)
 	var trainer := _main.get_node("Trainer") as CLS_Trainer

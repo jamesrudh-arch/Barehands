@@ -26,17 +26,17 @@ func demo_flash(tok: String) -> void:
 func _ready() -> void:
 	add_to_group("input_strip")
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	anchor_left = 0.5
-	anchor_right = 0.5
-	anchor_top = 0.0
-	anchor_bottom = 0.0
-	offset_left = -CHIPS * (CHIP_W + GAP) * 0.5
-	offset_right = CHIPS * (CHIP_W + GAP) * 0.5
-	# Gate A: TOP-centre, under the objective label and far from every
-	# button cluster (the old bottom strip sat on the buttons and read
-	# as a yellow bar crossing them)
-	offset_top = 138.0
-	offset_bottom = 196.0
+	anchor_left = 0.0
+	anchor_right = 0.0
+	anchor_top = 0.34
+	anchor_bottom = 0.34
+	offset_left = 14.0
+	offset_right = 14.0 + CHIPS * (CHIP_W + GAP)
+	# Gate A: the LEFT side, below the radar, clear of the objective
+	# label AND every button cluster (the old bottom strip sat on the
+	# buttons and read as a yellow bar crossing them)
+	offset_top = 0.0
+	offset_bottom = 58.0
 	ComboInput.matched.connect(_on_matched)
 
 

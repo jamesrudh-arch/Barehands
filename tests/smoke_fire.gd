@@ -106,6 +106,8 @@ func _ready() -> void:
 			"the scorch pool stays within the Mobile budget (%d visible)" % decals)
 
 	# 7. no node growth: repeated scorches recycle the same decals
+	# (settle first: the flicker lights are created lazily)
+	await get_tree().create_timer(0.6).timeout
 	var nodes_before := get_tree().get_node_count()
 	for i in 10:
 		Fire.scorch_at(Vector3(2.0, 0.03, 6.0), 2.0)

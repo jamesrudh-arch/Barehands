@@ -90,11 +90,17 @@ func _ready() -> void:
 				stopped += 1
 		_check(stopped >= 1, "the hero on the road stops the traffic (%d stopped)" % stopped)
 		player.global_position = Vector3(0.0, 0.02, 8.0)  # back on the kerb
-		await get_tree().create_timer(4.0).timeout
+		# B20: the street is busier now (pedestrians yield-cycle at the
+		# crossing) - poll up to 12 s for a car to roll again
 		var rolling := 0
-		for c in _cars():
-			if float(c.get_meta("speed")) > 3.0:
-				rolling += 1
+		for i in 24:
+			await get_tree().create_timer(0.5).timeout
+			rolling = 0
+			for c in _cars():
+				if float(c.get_meta("speed")) > 3.0:
+					rolling += 1
+			if rolling >= 1:
+				break
 		_check(rolling >= 1, "traffic resumes once the road clears (%d rolling)" % rolling)
 	else:
 		_check(false, "a car could be staged for the brake test")

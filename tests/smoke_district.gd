@@ -111,8 +111,9 @@ func _test_walk_the_blocks() -> void:
 	_check(not get_tree().get_nodes_in_group("underpass").is_empty(),
 			"the underpass dresses the 2-3 ends")
 	var crowd := market.get_node_or_null("Crowd") as Node
-	_check(crowd != null and crowd.get_child_count() == 2,
-			"an indifferent block keeps 2 walkers (%d)" % (crowd.get_child_count() if crowd else -1))
+	_check(crowd != null and crowd.get_child_count() >= 8
+			and crowd.get_child_count() <= 16,
+			"an indifferent market keeps its crowd, B19 densities (%d children)" % (crowd.get_child_count() if crowd else -1))
 	# east again: the docks
 	await _walk_to(258.6, 0.0, "foundry")
 	_check(Blocks.current() == "foundry", "the underpass end walks into the docks")
