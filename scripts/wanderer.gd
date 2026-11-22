@@ -74,6 +74,7 @@ var _pause_until := 0.0
 var _alarm_until := 0.0
 var _panic_from := Vector3.ZERO
 var _react_kind := 0  # 0-3 watch, 4 record, 5+ flee
+var _fear_face := false  # B25: the panic is on the face, not in a var
 var _speed := 1.1
 var _bubble: Label3D = null
 var _said := ""
@@ -165,6 +166,18 @@ func _physics_process(delta: float) -> void:
 	if far and (Engine.get_physics_frames() + _lod_phase) % 4 != 0:
 		return
 	var step := delta * (4.0 if far else 1.0)
+	# B25 the emotion law: while the alarm holds, the reacting states
+	# WEAR fear (brows up, mouth open); when the street settles, the
+	# face comes back down. The recorder filming it stays afraid - a
+	# witness holds the look longer than the runner.
+	if _alarm_until > _now() and _state in [State.WATCH, State.FLEE,
+			State.PHONE, State.BROWSE]:
+		if not _fear_face:
+			_fear_face = true
+			_rig.face("fear")
+	elif _fear_face:
+		_fear_face = false
+		_rig.face("")
 	match _state:
 		State.WALK, State.CROSSING:
 			_walk_step(step)

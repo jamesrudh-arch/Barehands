@@ -1,4 +1,5 @@
 extends Node
+const CLS_Wanderer := preload("res://scripts/wanderer.gd")
 const CLS_Enemy := preload("res://scripts/enemy.gd")
 const CLS_OpeningShot := preload("res://scripts/opening_shot.gd")
 ## Batch 12 suite: the reactive city (bible 4I). Named heat tiers, the
@@ -123,6 +124,39 @@ func _test_witnesses() -> void:
 	Heat.add(1.0)
 	_check(absf(Heat.heat - float(Tuning.v("witness_mult"))) < 0.01,
 			"two witnesses make it cost (%.2f)" % Heat.heat)
+	# B25 THE EMOTION LAW: a witness WEARS the panic - brows up, mouth
+	# open on the rig's face while the alarm holds, calm face after.
+	# (the heat dummies above are plain nodes - this needs a real rig)
+	var fw := CLS_Wanderer.new()
+	fw.set("home", _player.global_position + Vector3(3, 0, 0))
+	fw.set("block", "riverside")
+	_main.add_child(fw)
+	fw.call("spawn")
+	await _wait_s(0.4)
+	fw._on_hit_landed("punch", _player.global_position)
+	await _wait_s(0.35)
+	var ms := fw.find_children("Mouth", "MeshInstance3D", true, false)
+	var bs := fw.find_children("BrowL", "MeshInstance3D", true, false)
+	var face_m := ms[0] if ms.size() > 0 else null
+	var face_b := bs[0] if bs.size() > 0 else null
+	_check(face_m != null and face_m.scale.y > 2.0,
+			"a witness's mouth opens in fear (scale.y %.1f)"
+			% (face_m.scale.y if face_m else -1.0))
+	_check(fw.get("_state") != null
+			and int(fw.get("_state")) in [CLS_Wanderer.State.WATCH,
+				CLS_Wanderer.State.PHONE, CLS_Wanderer.State.FLEE],
+			"the witness is in a reacting state")
+	_check(face_b != null and face_b.position.y > 0.11,
+			"the brows lift while afraid (%.3f)"
+			% (face_b.position.y if face_b else -1.0))
+	fw.set("_alarm_until", 0.0)
+	await _wait_s(0.35)
+	var ms2 := fw.find_children("Mouth", "MeshInstance3D", true, false)
+	face_m = ms2[0] if ms2.size() > 0 else null
+	_check(face_m != null and absf(face_m.scale.y - 1.0) < 0.01,
+			"the face calms when the street settles (scale.y %.1f)"
+			% (face_m.scale.y if face_m else -1.0))
+	fw.queue_free()
 	a.queue_free()
 	b.queue_free()
 	Heat.heat = 0.0

@@ -95,6 +95,7 @@ signal hit_landed(kind: String, damage: int)  # the combo counter listens
 
 var _punch_stage := 0  # 1 jab, 2 cross, 3 hook, 4 SUPER
 var _punch_variant := "neutral"  # stick direction at punch start (Stage A4)
+var driving := false  # B25: true while the hero holds the wheel
 # a sequence combo (combo pass PART 2): stage 6 plays its own timeline
 var _combo_def: Dictionary = {}
 var _combo_t := 0.0
@@ -1178,6 +1179,16 @@ func _try_grab_action() -> void:
 	for door in get_tree().get_nodes_in_group("safehouse"):
 		if door.has_method("try_use") and door.try_use(self):
 			return
+	# B25: the car - a drivable vehicle is the last grab target so a
+	# door or a person standing between always wins - and only within
+	# arm's reach (2.8 m, the context verb's own range): pressing the
+	# grab button across the street must never teleport the hero into
+	# the driver's seat (caught by smoke_face's Y-grab + sprint tests)
+	for v in get_tree().get_nodes_in_group("vehicle"):
+		if v is Node3D and global_position.distance_to(
+				(v as Node3D).global_position) < 2.8 \
+				and v.has_method("try_enter") and v.try_enter(self):
+			return
 	# seize an enemy in reach
 	var target := _punch_target(-0.6, 0.35)
 	if target and target.state not in [CLS_Enemy.State.DOWN, CLS_Enemy.State.GRABBED,
@@ -1253,9 +1264,21 @@ func _grab_step(delta: float) -> void:
 ## right now ("" = hide it). Mirrors _try_grab_action's consumer order
 ## by PROXIMITY ONLY - it never fires anything, so polling it at 10 Hz
 ## is free.
+func set_driving(on: bool) -> void:
+	driving = on
+	# the hero's own controller stands down while the car drives
+
+
 func context_action() -> String:
 	if state == State.GRAB:
 		return "THROW"
+	if driving:
+		return ""
+	if not driving:
+		for v in get_tree().get_nodes_in_group("vehicle"):
+			if v is Node3D and not bool(v.get("occupied")) \
+					and global_position.distance_to((v as Node3D).global_position) < 2.8:
+				return "ENTER"
 	if state != State.GROUND:
 		return ""
 	for trainer in get_tree().get_nodes_in_group("trainer"):

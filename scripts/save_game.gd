@@ -24,6 +24,7 @@ func save_all() -> bool:
 		"phone": Phone.to_dict(),
 		"trust": Trust.to_dict(),
 		"ledger": Ledger.to_dict(),
+		"vehicle": _vehicle_dict(),
 	}
 	var f := FileAccess.open(PATH + ".tmp", FileAccess.WRITE)
 	if f == null:
@@ -68,6 +69,7 @@ func load_all() -> bool:
 		p.apply_look(parsed.get("look", "shadow"))
 		p.set("gear", parsed.get("gear", {}))
 		p.reapply_gear()
+	_load_vehicle(parsed.get("vehicle", []))
 	var style := get_tree().get_first_node_in_group("style") as Control
 	if style:
 		style.set("value", float(parsed.get("style_value", 0.0)))
@@ -90,3 +92,22 @@ func describe() -> String:
 		return "save: $%s   heat %s   %s" % [str(w.get("cash", "?")),
 				str(d.get("heat", {}).get("heat", "?")), Time.get_date_string_from_system()]
 	return "save unreadable"
+
+
+## B25: the hero's car persists where it was left - a real vehicle is
+## part of the world state, not a scene prop that resets on load.
+func _vehicle_dict() -> Array:
+	var v := get_tree().get_first_node_in_group("vehicle") as Node3D
+	if v == null:
+		return []
+	return [v.global_position.x, v.global_position.y, v.global_position.z,
+			v.rotation.y]
+
+
+func _load_vehicle(arr: Array) -> void:
+	var v := get_tree().get_first_node_in_group("vehicle") as Node3D
+	if v == null or arr.size() < 4:
+		return
+	v.global_position = Vector3(arr[0], arr[1], arr[2])
+	v.rotation.y = arr[3]
+	Log.info("SaveGame: the car is where you left it")

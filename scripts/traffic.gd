@@ -426,6 +426,16 @@ func _hazard_ahead(car: Node3D, east: bool, bx: float,
 		var ahead := (player.global_position.x - car.position.x) * dir
 		if ahead > 0.5 and ahead < LOOKAHEAD:
 			return true
+	# B25: an OCCUPIED vehicle is a moving road user - traffic brakes
+	# behind it (a kerb-parked, unoccupied car must NOT freeze a lane)
+	for v in get_tree().get_nodes_in_group("vehicle"):
+		if not bool(v.get("occupied")):
+			continue
+		var vn := v as Node3D
+		if absf(vn.global_position.z - lane_z) < 2.4:
+			var v_ahead := (vn.global_position.x - car.position.x) * dir
+			if v_ahead > 0.5 and v_ahead < LOOKAHEAD + 2.0:
+				return true
 	for w in get_tree().get_nodes_in_group("wanderer"):
 		var wn := w as Node3D
 		if wn == null or not is_instance_valid(wn):

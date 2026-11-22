@@ -95,6 +95,7 @@ var _hint_fade := 0.0
 var _buttons: Dictionary = {}  # name -> ActionButton
 var _default_rects: Dictionary = {}  # name -> Rect2 before any override
 var _b_ctx := ""  # B18.3: the FIGHT scheme's live context verb for B
+var _drive_mode := false  # B25: the cluster wears driving controls
 var _editing := false
 var _edit_sel := ""
 var _edit_drag := false
@@ -188,6 +189,20 @@ func _on_down(name: String) -> void:
 		return
 	Sound.play("ui_click_0", -12.0, 1.0, 0.03)
 	Haptics.fire("ui")
+	# B25: behind the wheel the FIGHT diamond becomes the drive
+	# cluster - X EXIT, A HORN, B HANDBRAKE (hold)
+	if _drive_mode and name.begins_with("Fight"):
+		var v := get_tree().get_first_node_in_group("vehicle") as Node3D
+		if v == null:
+			return
+		match name:
+			"FightX":
+				v.call("request_exit")
+			"FightA":
+				v.call("honk")
+			"FightB":
+				v.call("handbrake", true)
+		return
 	match name:
 		"JumpBtn":
 			InputBus.queue_jump()
@@ -277,7 +292,12 @@ func _on_up(name: String) -> void:
 				InputBus.clear_punch_queue()
 				InputBus.queue_heavy()
 		"FightB":
-			InputBus.dodge_release()
+			if _drive_mode:
+				var v := get_tree().get_first_node_in_group("vehicle") as Node3D
+				if v:
+					v.call("handbrake", false)
+			else:
+				InputBus.dodge_release()
 		"GuardBtn":
 			# a quick guard tap never rolls - drop the queued dodge
 			var g_quick := InputBus.dodge_age() >= 0.0 \
@@ -320,6 +340,7 @@ func _process(delta: float) -> void:
 	var player := get_tree().get_first_node_in_group("player")
 	if player:
 		var p := player as CharacterBody3D
+		_drive_watch(p)
 		_set_ring("PunchBtn", p.punch_cooldown_01())
 		_set_ring("DodgeBtn", p.dodge_cooldown_01())
 		_set_ring("FaceA", p.punch_cooldown_01())
@@ -371,7 +392,7 @@ func _apply_context() -> void:
 			b.label = want
 	# the FIGHT scheme's B button wears the context verb when it has one
 	var fb := _buttons.get("FightB") as CLS_ActionButton
-	if fb:
+	if fb and not _drive_mode:
 		fb.sub = want if want != "" else "DODGE"
 
 
@@ -716,3 +737,33 @@ func _build_hint() -> void:
 	_hint.add_theme_font_size_override("font_size", 15)
 	_hint.add_theme_color_override("font_color", Color(1, 0.9, 0.7, 0.9))
 	add_child(_hint)
+
+
+## B25 THE DRIVER: while the hero holds the wheel the diamond becomes
+## the drive cluster (X EXIT / A HORN / B HANDBRAKE) and the foot
+## pills (guard, grab, jump, sprint, style, lock) stand down - the
+## phone, help and objective stay usable from the driver's seat.
+func _drive_watch(p: CharacterBody3D) -> void:
+	var want := false
+	if "driving" in p and bool(p.get("driving")):
+		want = true
+	if want == _drive_mode:
+		return
+	_drive_mode = want
+	var labels := {
+		"FightX": "EXIT" if want else "PUNCH",
+		"FightY": "-" if want else "HEAVY",
+		"FightB": "HANDBRAKE" if want else "DODGE",
+		"FightA": "HORN" if want else "KICK",
+	}
+	for k in labels:
+		var b := _buttons.get(k) as CLS_ActionButton
+		if b:
+			b.sub = labels[k]
+	for k in ["GuardBtn", "GrabBtn", "JumpBtn", "SprintBtn", "StyleBtn",
+			"LockBtn"]:
+		var b := _buttons.get(k) as CLS_ActionButton
+		if b:
+			b.visible = not want
+	Log.info("TouchButtons: %s" %
+			("drive cluster on" if want else "drive cluster off - fight restored"))

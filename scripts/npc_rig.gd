@@ -45,6 +45,12 @@ func build(pieces: Array, tint: Color, accent: Color, idle_clip := "Idle",
 	play(idle_clip, 0.25, idle_speed)
 
 
+## The emotional face passes straight through (B25): wanderers wear
+## fear while they panic, calm when the street settles.
+func face(mood: String) -> void:
+	_h.face(mood)
+
+
 ## Play a clip on the humanoid (poses + procedural locomotion).
 func play(clip: String, _blend := 0.25, speed := 1.0) -> void:
 	_current = clip

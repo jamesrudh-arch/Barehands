@@ -11,7 +11,7 @@ FAIL=0
 # step 0 (B22): the build-identity staleness gate - the battery must
 # not certify a build whose identity surfaces disagree
 bash tools/check_build_identity.sh || FAIL=1
-HEADLESS="run_tests smoke smoke_safe smoke_a4 smoke_audio smoke_backroom smoke_cast smoke_city smoke_combat smoke_crowd smoke_combos smoke_controls smoke_debt smoke_depth smoke_difficulty smoke_district smoke_economy smoke_face smoke_friends smoke_jobs smoke_kidnap smoke_kits smoke_interiors smoke_ledger smoke_map smoke_music smoke_null_watch smoke_phone smoke_pose smoke_progression smoke_reactive smoke_stick smoke_tpose smoke_worldsim stage0_check stress_combat smoke_traffic smoke_weather smoke_fire final_audit"
+HEADLESS="run_tests smoke smoke_safe smoke_a4 smoke_audio smoke_backroom smoke_cast smoke_city smoke_combat smoke_crowd smoke_combos smoke_controls smoke_debt smoke_depth smoke_difficulty smoke_district smoke_economy smoke_face smoke_friends smoke_jobs smoke_kidnap smoke_kits smoke_interiors smoke_ledger smoke_map smoke_music smoke_null_watch smoke_phone smoke_pose smoke_progression smoke_reactive smoke_stick smoke_tpose smoke_worldsim stage0_check stress_combat smoke_traffic smoke_drive smoke_weather smoke_fire final_audit"
 RENDER="render_check safe_boot_check kit_probe"
 LIVE="live_walk live_play live_boot"
 for t in $HEADLESS; do

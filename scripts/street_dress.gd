@@ -376,10 +376,17 @@ func _car() -> void:
 	var tire := StandardMaterial3D.new()
 	tire.albedo_color = Color(0.02, 0.02, 0.025)
 	tire.roughness = 0.95
-	var car := StaticBody3D.new()
+	# B25 THE DRIVER: the noir sedan is drivable (the master directive
+	# Section 5 - no decorative vehicles). Body type + script only;
+	# shape, kit body, wheels and lights stay exactly as built.
+	var car := CharacterBody3D.new()
+	car.set_script(preload("res://scripts/vehicle.gd"))
 	car.name = "ParkedCar"
-	car.position = Vector3(12.5, 0.0, -2.6)
-	car.rotation.y = -0.12
+	# B25: parked WEST-facing on the south kerb, in line with the
+	# westbound lane - a real kerbside parking pose with a clear
+	# runway down the street (the south-side buildings wall the east)
+	car.position = Vector3(9.0, 0.0, -2.4)
+	car.rotation.y = PI - 0.12
 	add_child(car)
 	var shape := CollisionShape3D.new()
 	var cs := BoxShape3D.new()
@@ -411,7 +418,7 @@ func _car() -> void:
 	# parked on the kit body's own nose/tail/edges. The kit's long axis
 	# is Z with the nose at +z: yaw PI/2 parks it nose-up-the-street.
 	var kit := CLS_Kit.place_stretch(car, "kenney_cars/sedan.glb",
-			Vector3(0, 0.02, 0), PI / 2.0, 1.35, 1.0, 1.5)
+			Vector3(0, 0.02, 0), PI * 1.5, 1.35, 1.0, 1.5)
 	if kit:
 		lower.visible = false
 		cabin.visible = false
@@ -446,6 +453,7 @@ func _car() -> void:
 		head.position = Vector3(nose, 0.62, hz)
 		car.add_child(head)
 		var t2 := _box(Vector3(0.06, 0.1, 0.24), tail)
+		t2.name = "tail_light"
 		t2.position = Vector3(tail_x, 0.68, hz)
 		car.add_child(t2)
 	for sz in [-half_w, half_w]:

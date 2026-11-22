@@ -191,8 +191,9 @@ func build(spec: Dictionary) -> void:
 				Vector3(sx * 0.04, 0.076, 0.092))
 		_m(_sph(0.012), eye_d, _head_pivot,
 				Vector3(sx * 0.042, 0.076, 0.102))
-		_m(_box(0.066, 0.012, 0.018), brow_mat, _head_pivot,
-				Vector3(sx * 0.04, 0.106, 0.088))  # brows
+		var brow := _m(_box(0.066, 0.012, 0.018), brow_mat, _head_pivot,
+				Vector3(sx * 0.04, 0.106, 0.088))
+		brow.name = "BrowL" if sx < 0 else "BrowR"
 		# ears
 		_m(_sph(0.024), _skin_mat, _head_pivot,
 				Vector3(sx * 0.1, 0.07, -0.004))
@@ -427,18 +428,45 @@ func set_edge_glow(on: bool) -> void:
 		m.emission_energy_multiplier = 0.16 if on else 0.0
 
 
-## Diegetic face control: grin, frown, talk flaps.
+## Diegetic face control: grin, talk flaps, and fear - the B25
+## emotion law: a witnessed panic shows on the face (brows up, mouth
+## open), and calm restores it. An emotion a player cannot see is a
+## variable, not a feeling.
 func face(mood: String) -> void:
 	var mouth := _head_pivot.get_node_or_null("Mouth") as MeshInstance3D
+	var brow_l := _head_pivot.get_node_or_null("BrowL") as MeshInstance3D
+	var brow_r := _head_pivot.get_node_or_null("BrowR") as MeshInstance3D
 	if mouth == null:
 		return
 	match mood:
 		"grin":
 			mouth.scale = Vector3(1.5, 2.2, 1)
+			for b in [brow_l, brow_r]:
+				if b:
+					b.position.y = 0.106
+					b.scale = Vector3.ONE
 		"talk":
 			mouth.scale = Vector3(1.1, 1.0 + 0.8 * absf(sin(_clock * 14.0)), 1)
+			for b in [brow_l, brow_r]:
+				if b:
+					b.position.y = 0.106
+					b.scale = Vector3.ONE
+		"fear":
+			# the visible alarm: brows lift and pinch, the mouth drops
+			# open - fear you can read at gameplay distance
+			mouth.scale = Vector3(1.15, 3.4, 1)
+			mouth.position.y = 0.004
+			for b in [brow_l, brow_r]:
+				if b:
+					b.position.y = 0.115
+					b.scale = Vector3(1.05, 1.6, 1)
 		_:
 			mouth.scale = Vector3.ONE
+			mouth.position.y = 0.012
+			for b in [brow_l, brow_r]:
+				if b:
+					b.position.y = 0.106
+					b.scale = Vector3.ONE
 
 
 ## Head attachment point (hats, glasses, phones ride here).

@@ -51,6 +51,16 @@ func _ready() -> void:
 
 
 ## The VISUAL DEBUG panel sets height/distance and wants it NOW.
+## B25: the drive camera - while the hero holds the wheel the camera
+## follows the car instead (and back, with a snap both ways).
+func retarget(n: CharacterBody3D) -> void:
+	if n == null:
+		return
+	_target = n
+	_lock_target = null
+	snap_framing()
+
+
 func snap_framing() -> void:
 	_height_now = height
 	_dist_now = distance

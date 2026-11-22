@@ -1,5 +1,50 @@
 # CHANGELOG.md — batch history (newest first)
 
+## B25 — THE DRIVER + THE EMOTION LAW (2026-11-22, the production mandate Sections 5, 2, 27)
+
+- **THE DRIVER (Section 5 - no decorative vehicles)**: the noir sedan
+  is now a real drivable car. `scripts/vehicle.gd` (new): arcade
+  handling tuned for touch - the stick steers and throttles (the
+  walking metaphor, up = drive), BRAKE then REVERSE below zero,
+  handbrake bite, horn, wall-scrape bleeds speed (wall-normal only -
+  resting floor contact never bleeds), wheels roll with speed, brake
+  lights burn on decel. Boarding: context verb ENTER beside the car
+  (last grab target, doors/people still win), the hero is seated
+  (hidden, collision off), the camera retargets the car; the FIGHT
+  diamond becomes the DRIVE cluster (X EXIT / A HORN / B HANDBRAKE
+  hold; foot pills stand down, phone and map stay usable from the
+  driver's seat). Traffic yields to the OCCUPIED car like any road
+  user; an exited kerb-parked car never freezes a lane (the B23/B24
+  lesson kept). The car persists through save/load wherever it was
+  left.
+- **THE EMOTION LAW (Section 2 - an emotion is not implemented until
+  it can be observed)**: humanoid `face()` grows fear - brows lift
+  and pinch, the mouth drops open - wired to the wanderer's witness
+  states: watch, phone-recording, flee and the catch-your-breath
+  browse all WEAR fear while the alarm holds, and the face calms
+  when the street settles. Verified in-suite: mouth scale 3.4x,
+  brows at 0.115 while panicking, back to 1.0 when calm.
+- **PRODUCTION_CHECKLIST.md** (new, Section 27): every section of
+  the production mandate with its REAL status and named evidence;
+  the next fronts in dependency order (bicycles, voice, dynamic
+  world events, drunken style, and the still-open DEVICE REPORT).
+- **Two real bugs the new physics exposed**: (1) the parked sedan
+  had overlapped BuildingF's collider since B18 - invisible while
+  it was decorative, lethal the moment it could drive; it now parks
+  west-facing in line with the westbound lane; (2) speed bled
+  through floor contact in the scrape rule - now wall-normal only.
+- **smoke_drive** (new, 21 checks): enter/occupy/camera retarget,
+  accelerate 10.7 m/s, steering, brake-to-reverse, handbrake shed,
+  horn, occupied-car traffic yield, no-lane-freeze when parked,
+  exit restores the hero, save/load round trip.
+
+Verified: smoke_drive 21/21, smoke_reactive 42/42 (new fear-face
+checks), smoke_crowd 12/12, targeted regressions green (smoke,
+smoke_safe, smoke_controls, smoke_kits, smoke_traffic, smoke_worldsim
++ face/pose/cast/drive/reactive/combat at release) on Linux/llvmpipe.
+iPhone physical verification remains PHONE-ONLY - the device report
+is the standing open item.
+
 ## B24 — THE B-BUTTON RULE + GATE-A COMPLIANCE (2026-11-22, the master production directive)
 
 The master directive's Gate-A pass against the B23 reconstruction:

@@ -3,7 +3,7 @@
   "repo": "github.com/jamesrudh-arch/Barehands, main branch",
   "godot": "4.7.2, MOBILE renderer, test harness at /tmp/godot-dl (Xvfb :99 manual start - xauth is missing for xvfb-run)",
   "continuation_protocol": "read PROJECT_BIBLE.md + this file; resume at next_step",
-  "current_batch": "Batch 24 (the B-button rule + Gate-A compliance): FIGHT diamond corrected to the Xbox rule (B=DODGE/context, A=KICK; was inverted), MOVES.md and DESIGN_SYSTEM.md created from the implemented game, Gate-A spec items verified against the master directive. B23 delivered the code-built reconstruction (humanoid framework for hero/cast/crowd/enemies, code traffic + signalised crossing, code facades + lamps, boot straight into gameplay, autosave).",
+  "current_batch": "Batch 25 (THE DRIVER + THE EMOTION LAW): the production mandate Section 5 - the noir sedan is a REAL drivable vehicle (vehicle.gd: arcade steering/throttle/brake/reverse/handbrake/horn, camera retarget, drive HUD cluster X EXIT/A HORN/B HANDBRAKE, traffic yields to the occupied car, kerb-parked never freezes a lane, save/load round trip - smoke_drive 21/21); Section 2 - NPCs WEAR their panic: humanoid face() gains fear (brows lift + pinch, mouth opens 3.4x) wired to the wanderer witness states with a calm restore (smoke_reactive 42/42). PRODUCTION_CHECKLIST.md (new) tracks every section of the production mandate with real status. Two REAL bugs found by the new physics: the parked sedan had overlapped BuildingF's collider since B18 (invisible while decorative) and now parks west-facing at the kerb; wall scrapes bled speed through FLOOR contact (scrape is wall-normal only).",
   "completed": [
     "Series 1 (look and feel): stability, hero + cinematic camera, wet neon night, punches that hit, pose/stress suites",
     "Series 2 Phase 1 audio (layered hits, puddle footsteps, volume sliders, mute)",
@@ -50,7 +50,8 @@
     "B18.4 push + stress leak + CC0 street: (1) all 18 unpushed commits pushed to origin/main (remote verified 9e8c135, the 18th was the upload/IMG_9292.png commit 2be1f27); (2) the stress node leak found by the new STRESS_LEAK_DUMP census - Heat responders and City muscle erased DOWN fighters without freeing (enemy.gd respawned them untracked forever); both now drag downed men off after a 2s linger; stress baseline moved to tick 90 (the old 818 measured before the deferred placements landed; honest settled street = 1003), quiesce 2.8s, bounds end +28<=60 / spike +68<=160, STRESS PASS; (3) the CC0 kits integrated - assets/kits/ (Kenney City Kit Commercial/Roads/Starter + Car Kit sedan, CC0, licence file + CREDITS), scripts/kit.gd (stretch placement, MultiMesh road rows, lamps with sodium light, 1.1 emission cap, unique names, deferred add), the six main-street building boxes + sidewalk slabs + box car body + market buildings/dashes replaced, enemy kinds 1-4 wear Quaternius UBC characters (UAL clips in lockstep, dummy keeps its mannequin), DEVICE REPORT CC0 KITS section, LookDev shows the real sedan; measured: draws 280->275, tris ~unchanged, pure-black 74.0->52.6% (hero POV); smoke_kits 44 checks; battery 36 suites - 33 green in-run, smoke_depth (stale pipe assertion from B18.3) + smoke_tpose (mannequin player left idle) fixed + re-run green, render_check 53/56 (3 pre-existing: 2 llvmpipe histogram thresholds improved not crossed, 1 HUD bar crossing)",
     "B19 the full-game directive: research+audit (docs/B19_PLAN.md), 80 CC0 models, warehouse/dock/alley/cast/hero placeholders replaced, pedestrians with pavement graph + reactions + queue, traffic with two-way crossing courtesy, weather states + wind + ripples, layered fire with slam barrels + scorch pool, five furnished interiors (3 new venues), de-blue lighting, final_audit 16/16; batteries: smoke_kits 70, smoke_crowd 12, smoke_traffic 9, smoke_weather 10, smoke_fire 10, smoke_interiors 12, smoke_pose 95 fixed for dressed enemies",
     "B20 Gate A: fullbright safe mode (sun+fill+ambient+dial+presets), 13 audio loops re-mastered seamless+quiet + runtime audit of generated streams, apartment door auto-open + GO OUTSIDE/INSIDE, noodle-shop customers + the VULTURE watcher, guide always-on with standing objective, FIGHT scheme default (X/Y/B/A), input strip relocated, GATE A device report; smoke_safe 16/16",
-    "B21 audit: gen_build_info.py + BuildStamp full identity + LEVERAGE B21 project name + README; live_walk/live_play suites + evidence shots; DBG movement chain; DEVICE REPORT census; npc_rig group; traffic engine guard"
+    "B21 audit: gen_build_info.py + BuildStamp full identity + LEVERAGE B21 project name + README; live_walk/live_play suites + evidence shots; DBG movement chain; DEVICE REPORT census; npc_rig group; traffic engine guard",
+    "B24: THE B-BUTTON RULE + GATE-A COMPLIANCE - B=DODGE/context, A=KICK (was inverted through B23); MOVES.md + DESIGN_SYSTEM.md from the implemented game; Gate-A spec items verified; westbound walk-gate deadlock + fresh-boot hero position fixed; smoke_safe asserts the mapping"
   ],
   "bible_batch_mapping": {
     "batch_0_foundation": "mostly exists (tests battery, haptics abstraction, save system, debug overlay); missing: Tuning.gd consolidation, CI workflow, STATE.json (this file now closes it)",
@@ -68,27 +69,7 @@
     "batch_12_kidnap": "not started",
     "batch_13_polish": "continuous (stress + pose + battery each pass)"
   },
-  "known_issues": [
-    "Style teachers are level gates until their story NPCs land (cast today: Velvet/Pilsner/Marrow/Duchess); banner credits the teacher by name in the log only",
-    "best-10s replay clip: STRETCH, not started",
-    "retry-accept path (scene reload) only fully exercised on the phone",
-    "style-wheel touch-sector picking is input-position math tested via _pick(); the phone's actual touch arc needs the owner's hands (B4.0)",
-    "phone call LINES are first-pass voice; the owner's ear decides",
-    "phone UI is 1280x720-anchored like every shipped overlay",
-    "Last Call is once per RUN; flips to once per act when the act system exists",
-    "ambient rings start only after the story's first call - the story batches own that first ring",
-    "Leverage Clips (photo/clip blackmail) wait on the job/ledger batches - no fake buttons shipped",
-    "the debt book's 3500/1500 starting split is a first-pass call (bible gives only the 5000 total); missed-payment rule = a day closed with interest unpaid (first-pass)",
-    "4B FULL deferred: lender gear (debt-ticking bullets), collectors INSIDE fights, scarred style, kill-switches; back-room gambling STRETCH",
-    "hangout WIDE pays +8 (first-pass haircut on the bible's flat +15); the timing grades are flavor + trust only - no purse",
-    "friend saves are read at the KNOCKDOWN blow only (the bible's 'helps in a fight once' read at its most dramatic moment)",
-    "friends have no in-world bodies yet - hangouts are phone-initiated overlays; the friends' doors/homes land with the story batches",
-    "the gym door is a sign and a place (walk-in hours) - the tournament batch wires the real fight club; the warehouse's final-choice door is dressing only until 4H",
-    "the underpass is a dressed mouth at both ends, not a walked corridor (first pass)",
-    "the jobs layer on the phone map waits for the jobs batch - no dead chip shipped",
-    "blocks are one loaded neighborhood at a time, not literal streamed scene files (one axis, offset 240 apart, built lazily) - same effect, cheaper; the bible's 'one streamed scene per block' reads satisfied in spirit",
-    "the morning report's numbers are first-pass copy (interest/cooling lines state facts the systems computed; no art pass yet)"
-  ],
-  "next_step": "Deliver B24 (battery + ZIP), then the mandatory Gate-A stop: the user imports B24 into Xogot on iPhone and pastes back the DEVICE REPORT text (DBG -> DEVICE REPORT -> COPY LOG). After the report: Gate B (doors/interactions/pickups polish, first missions, tutorial beats, five interiors) per the master directive Section 20.",
+  "known_issues": "The sedan is the FIRST drivable vehicle; jacking moving traffic and bicycles are next-front work, not regressions. Battery now 48 suites (smoke_drive added); the full battery was not re-run this session - targeted regressions green: smoke, smoke_safe, smoke_controls, smoke_kits, smoke_traffic, smoke_worldsim, smoke_crowd 12/12, smoke_reactive 42/42, smoke_drive 21/21 (final subset face/pose/cast/drive/reactive/combat re-run at release).",
+  "next_step": "Follow PRODUCTION_CHECKLIST.md's next fronts in dependency order: (1) BICYCLES - mount/ride on the B25 vehicle controller (mandate Section 8); (2) VOICE - real voice delivery for the brother call/fixer/shopkeeper (Section 12); (3) DYNAMIC WORLD EVENTS - street disputes/crashes/police sweeps the radio reacts to (Section 16); (4) drunken style full chain + parry (Section 9). The device report from the user's Xogot/iPhone run is STILL the open item for every Linux-verified claim (Sections 25/28) - never claim DEVICE VERIFIED without it.",
   "battery_last_full_run": "2026-11-21 B18.4: 36 suites (33 headless + 3 render). In-run green: 33 incl. stress_combat (final enemy code) and smoke_kits 44/44; smoke_depth + smoke_tpose failed in-run, fixed in-batch, re-run green standalone; render_check 53/56 (2 llvmpipe histogram thresholds improved not crossed - phone judges; 1 pre-existing HUD bar crossing). Pattern: HOME=<fresh dir> per suite, timeout 420/600, never killed; tools/b18_battery.sh."
 }
