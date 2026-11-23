@@ -353,11 +353,11 @@ hot block) and expectations must compound honestly.
 
 ## NEXT ACTION (exact)
 
-1. The FULL final battery: story/jobs/hero/combat_r/pistol/
-police/areas/life have NOT been re-run since S5.12-S5.14 (world/
-econ/phone2/skills/leverage/surface/city all green at the final
-state; skills 18/18 after the heat-tax expectation fix). Run the
-remaining eight, expect green, fix what isn't.
+1. The FULL final battery: world 15, econ 34, phone2 17, skills
+18, leverage 17, surface 11, city 15 AND smoke_story 29/29 are
+GREEN at the final state (867aa92). Still to re-run after the
+S5.12-S5.14 patches: jobs (27/27 at S5.11), hero, combat_r,
+pistol, police, areas, life. Expect green; fix what isn't.
 2. VLM gates outstanding: the rain in motion, the MAP app, the
 BOARD app, THE CHOICE screen. Patterns proven in earlier gates.
 3. Open nits: no music (the second city "its own music" is
