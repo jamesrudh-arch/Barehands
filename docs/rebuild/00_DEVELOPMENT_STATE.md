@@ -242,19 +242,62 @@ beat, the hi-lo back-room minigame (palm/sleight/suspicion keys
 wait in the tuning table), no clothing stall, no price
 variation by district.
 
+## S5.6 — THE STORY SPINE: M2-M6 + PHONE 2.0 CALLS
+
+The spine runs m0 through m6 on the real world. THE ENGINE grew
+four conditions (at_area, reach, defeat counting enemy_down
+events, area_clear, any_flag for choices), stage SPAWNS (in-area
+stages spawn on enter; cross-area stages wait for the travel to
+land - the landed-only path never fired M3's bottle or M5's
+waves), GRAB choice spots behind police + market in the hero's
+chain, the punch-at-the-door break (M4's grille: +2 heat, the
+door_broken flag), and reward_clean (M5's Old Dee pays from the
+till - the first clean reward). THE MISSIONS: M2 FIRST BLOOD
+(Tony's gym, two muscle men), M3 THE OLD DRUNK (Marla's ask,
+Dee's bottle, the delivery), M4 SHAKEDOWN (THE PAWN DESK: talk
+the owner down or put a fist through the grille - both answers
+verified), M5 TURF (stand with Dee, two waves of three, the
+street must clear - the alley watcher counts), M6 THE CALL (the
+Corporation rings: TAKE THE OFFER = their ammo line at half +
+$1000 debt, REFUSE = harder men at x1.25 hp - both wired into
+market + the spawner). PHONE 2.0: the CALLS app - the ring
+banner counts down over the living street (the world keeps
+moving), answer/decline, the offer's choice buttons, and a
+MISSED ring pays what a decline pays. smoke_story 29/29;
+regressions all green (econ 27, combat 28, hero 30, pistol 10,
+police 14, areas 32, life 21). VLM: the ring banner + the call
+screen read clean (tabs, lines, both buttons, no overlap). FOUR
+LAWS: (1) a lambda's `var x := i` over a Variant loop var cannot
+infer - the parse error KILLED THE WHOLE PHONE SCRIPT LOAD and
+Game._phone went null with every phone behavior silently dead
+(--check-only missed it; the runtime load caught it); (2) a
+PanelContainer stretches EVERY child to its rect - tabs and body
+as siblings drew on top of each other since the phone was born
+(the call screen's third line made it loud; fix = one wrapper
+VBox); (3) an every-frame _fill with queue_free ghosts a frame
+of dying labels - refill only on change (dirty flag); (4) a
+downed man's KO lands after his stun beat - defeat counts crawl
+in over seconds; suites must wait for the cascade, not the
+frame. WORKFLOW LAW: .gitignore had `download/` - every previous
+session's evidence JPGs were never committed and the workspace
+recycle destroyed them (the old commit messages name files that
+no longer exist). The audit subtree is now un-ignored; evidence
+lives in git from S5.6 on. Also this session: /tmp (Godot
+binary, Xvfb) was recycled mid-project - re-download Godot
+4.7.2 and restart Xvfb :99 when that happens.
+Open nits: M2 teaches no Kickboxing yet (the skills pass), M4's
+third way (pay his debt) unwired, call lines are instant (no
+typewriter), no voicemail replay, CONTACTS still static, phone
+MAP app unbuilt.
+
 ## NEXT ACTION (exact)
 
-1. Phone 2.0 + missions M2-M6: the venues and the whole cast
-   exist (Marla, Vesper, Tony, Sal, Old Dee) and the economy
-   gives the story prices; one active mission at a time on the
-   existing spine.
-2. The world sim: day/night cycle + rain (the signature), then
-   the beat system the economy's stand-ins are waiting for
+1. The world sim: day/night cycle + rain (the signature), then
+   the beat system the economy's stand-ins are waiting on
    (laundering windows, overnight interest, dirty burn).
-3. Open nits: Soldier's jab twist, walk counter-arm swing,
-   swing-to-hero contact frame, doorway interior depth, traffic
-   headlight sweep, pistol reticle, localized muzzle burst,
-   copy style-mirroring, witness LOS.
+2. The map/GPS app + area travel polish (the phone's MAP tab).
+3. Open nits above; the hi-lo back-room minigame keys wait in
+   the tuning table.
 
 ## Known blockers / watch items
 

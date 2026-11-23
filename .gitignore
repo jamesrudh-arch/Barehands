@@ -15,4 +15,6 @@ export_credentials.cfg
 upload/*.import
 upload/
 download/
+!download/overhaul_audit/
+!download/overhaul_audit/**
 .cache/
