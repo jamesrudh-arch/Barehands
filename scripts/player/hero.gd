@@ -295,6 +295,8 @@ func _actions() -> void:
 							paid = true
 							break
 				if not paid:
+					paid = Game.try_board(self)
+				if not paid:
 					face_action.emit(action)
 			elif action == "punch" and _gun and _gun.drawn:
 				_gun.fire()

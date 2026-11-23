@@ -290,16 +290,87 @@ third way (pay his debt) unwired, call lines are instant (no
 typewriter), no voicemail replay, CONTACTS still static, phone
 MAP app unbuilt.
 
+## S5.7-S5.14 — THE REMAINDER, IN ONE PASS (all six areas live)
+
+**S5.7 THE WORLD SIM**: the beat clock (DUSK/MIDNIGHT/3 AM, a day
+counter, save-carried), phase curves over every area's authored
+air, THE RAIN MACHINE (a streak column riding the hero, the
+ambience bed ducking forward, fog thickening, weather rolls with
+rain frequent), the radio recap. smoke_world 15/15.
+**S5.8**: the economy rides the beat - interest + the noticed
+pocket per beat, laundering windows with a re-rolled drifting cap,
+the midnight premium (+10% after MIDNIGHT). smoke_economy 34/34.
+**S5.9 THE PHONE COMPLETE**: eight apps - CALLS, MAP (the drawn
+six-area city + TAXI fast-travel at a clean fare), LEDGER, BOARD,
+MESSAGES, NOTES (the journal), CONTACTS (the cast the story
+introduced, with trust), SETTINGS (real audio buses + haptics);
+the typewriter call lines + voicemail replay. smoke_phone2 17/17.
+**S5.10 THE SKILLS**: learned from people, never given - set_style
+refuses a locked discipline; M2's Tony teaches KICKBOXING (worn on
+learn), M3's Dee teaches the DRUNKEN hint; M4's third answer
+clears the owner's book ($300 clean) and THE PAWN DESK grille
+opens; THE STALL sells real-material jackets. smoke_skills 18/18.
+**S5.11 THE JOBS + THE KIDNAP ARC**: ten core jobs on the five
+templates (Delivery/Rescue/Coerced/Hit/Turf), then the arc - COLD
+CALL, THE INVESTIGATION (no combat), THE ASSAULT (the unlock_door
+key unseals DOCK WAREHOUSE 9; the Lieutenant at 200 hp), THE
+CHOICE: SAVE THEM (both pools zeroed, corp_enemy escalates the
+spawner forever) or TAKE THE PAYOFF (+$2000 clean). m6 chains into
+j1. smoke_jobs 27/27, smoke_story 29/29.
+**S5.12 THE CITY SURFACE**: schedules move the cast by beat,
+scorch + memorials persist where blood landed, the pawn desk boards
+up (broken, unpaid), crowds thin under heat, the hot block taxes
+sales (+10% over the premium), gossip distorts over beats.
+smoke_surface 11/11.
+**S5.13 THE WEB OF LEVERAGE**: the game's name - Marla's rumour
+ladder (one a beat), interrogations (a mission's man talks when
+he's down), the tail (follow one walker); two fresh pieces on one
+name LINK; the squeeze is a GRAB ($150-200 clean, their trust pays
+- floors at 70); clues go STALE after three beats. The BOARD app.
+smoke_leverage 17/17.
+**S5.14 THE LAST AREAS**: THE AIRPORT (terminal, departures board,
+the parked plane, the pilot, cold floodlights) + THE SECOND CITY
+(terracotta + amber, THE ANCHOR bar, the giver, a running fountain
+- warmer than Cinder City ever allowed); the flight is a $100
+clean GRAB at the plane (broke = the pilot says no), the return
+flight stands at the plaza's east end; the map unlocks the
+airport. smoke_city 15/15. Vehicles were ALREADY drivable
+(vehicle.gd: enter/exit/steer/horn) - verified live, no new work
+needed.
+
+**LAWS this pass**: the inference law took five more scalps (every
+Dictionary read needs an explicit type - a parse error still kills
+the WHOLE SCRIPT LOAD silently); AABB takes Vector3s; the worldsim
+AND the missions track the scene INSTANCE (a same-area travel
+rebuilds under the same path - the re-place branches never fired);
+patch scripts must be idempotent (re-runs half-applied the tuning
+dict into duplicate keys and took the autoload chain down twice);
+patch hunks are written against the REAL file text, never memory;
+pay() returns ok, not invented keys; bump() reads a 0 default
+(trust needed the 70 floor explicitly); the locals' meta is "who";
+heat 10 spawns THE COPY into any wait; prices LAYER (midnight x
+hot block) and expectations must compound honestly.
+
 ## NEXT ACTION (exact)
 
-1. The world sim: day/night cycle + rain (the signature), then
-   the beat system the economy's stand-ins are waiting on
-   (laundering windows, overnight interest, dirty burn).
-2. The map/GPS app + area travel polish (the phone's MAP tab).
-3. Open nits above; the hi-lo back-room minigame keys wait in
-   the tuning table.
+1. The FULL final battery: story/jobs/hero/combat_r/pistol/
+police/areas/life have NOT been re-run since S5.12-S5.14 (world/
+econ/phone2/skills/leverage/surface/city all green at the final
+state; skills 18/18 after the heat-tax expectation fix). Run the
+remaining eight, expect green, fix what isn't.
+2. VLM gates outstanding: the rain in motion, the MAP app, the
+BOARD app, THE CHOICE screen. Patterns proven in earlier gates.
+3. Open nits: no music (the second city "its own music" is
+unbuilt), no hangouts/fishing/darts (trust moves only through the
+story + extortion), Grappling still teacherless (the Collector,
+later), the map's second city shows "by plane only" - the airport
+taxi is the route, NG+ Carried Debt unbuilt, no photo mode /
+tournaments / collectibles (FULL tier per 02 §17).
+4. Then: the FULL tier list in 02_MASTER_DEPMENT §17, or the
+first on-device DEVICE REPORT (none has ever been received).
 
 ## Known blockers / watch items
+
 
 - Google Drive quota blocked the Quaternius character pack (52
   rigged gltf); KayKit covers the pipeline; retry Drive later only

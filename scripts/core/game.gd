@@ -18,6 +18,8 @@ const AREAS := {
 	"neighbourhood": "res://scenes/areas/neighbourhood.tscn",
 	"club_district": "res://scenes/areas/club_district.tscn",
 	"docks": "res://scenes/areas/docks.tscn",
+	"airport": "res://scenes/areas/airport.tscn",
+	"second_city": "res://scenes/areas/second_city.tscn",
 }
 
 const CLS_CameraRig := preload("res://scripts/player/camera_rig.gd")
@@ -73,6 +75,41 @@ func set_state(s: State) -> void:
 func go_menu() -> void:
 	set_state(State.MENU)
 	get_tree().change_scene_to_file("res://scenes/boot/menu.tscn")
+
+
+## THE PLANE (S5.14): GRAB at the stand boards the flight - the
+## fare is clean, the fade is the cutscene, the city changes.
+const PLANE_SPOTS := {
+	"airport": {"to": "second_city",
+			"pos": Vector3(4.6, 0.05, -11.0)},
+	"second_city": {"to": "airport",
+			"pos": Vector3(23.6, 0.05, -8.0)},
+}
+
+func try_board(hero: Node3D) -> bool:
+	if hero == null or not is_instance_valid(hero):
+		return false
+	if not PLANE_SPOTS.has(area_id):
+		return false
+	var s: Dictionary = PLANE_SPOTS[area_id]
+	if hero.global_position.distance_to(s["pos"]) > 4.0:
+		return false
+	var mkt: Node = null
+	for m in get_tree().get_nodes_in_group("market"):
+		mkt = m
+	if mkt == null:
+		return false
+	var res: Dictionary = mkt.pay(float(Tuning.v("flight_fare")))
+	if not bool(res.get("ok", false)):
+		WorldState.push_event("vendor_no", {"who": "THE PILOT",
+				"msg": "Ticket's $%d. The plane waits; your wallet doesn't." % int(
+						Tuning.v("flight_fare"))})
+		return true
+	WorldState.set_flag("visited:" + str(s["to"]))
+	WorldState.push_event("flight", {"to": str(s["to"]),
+			"fare": float(Tuning.v("flight_fare"))})
+	travel(str(s["to"]), "start")
+	return true
 
 
 func start_new_game() -> void:

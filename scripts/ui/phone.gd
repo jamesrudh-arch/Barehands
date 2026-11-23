@@ -20,10 +20,10 @@ const CITY := {
 	"club_district": {"at": Vector2(0.62, 0.48),
 			"label": "THE CLUB DISTRICT"},
 	"docks": {"at": Vector2(0.86, 0.64), "label": "THE DOCKS"},
-	"airport": {"at": Vector2(0.86, 0.22), "label": "THE AIRPORT",
-			"locked": true},
+	"airport": {"at": Vector2(0.86, 0.22), "label": "THE AIRPORT"},
 	"second_city": {"at": Vector2(0.60, 0.12),
-			"label": "THE SECOND CITY", "locked": true},
+			"label": "THE SECOND CITY", "locked": true,
+			"note": "by plane only - board at the airport"},
 }
 const CITY_LINKS := [["warehouse", "neighbourhood"],
 	["neighbourhood", "club_district"], ["club_district", "docks"],
@@ -377,7 +377,7 @@ func _fill() -> void:
 			var row := HBoxContainer.new()
 			_col.add_child(row)
 			for a in ["neighbourhood", "club_district", "docks",
-					"warehouse"]:
+					"warehouse", "airport"]:
 				var dest: String = a
 				var tb := Button.new()
 				tb.text = _short_area(dest)

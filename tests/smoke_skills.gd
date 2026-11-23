@@ -121,7 +121,9 @@ func _ready() -> void:
 			"clean_cash", 0.0)), 100.0), "400 - 300 = 100 clean")
 	_check(str(Doors._doors["THE PAWN DESK"]["state"]) == "open",
 			"THE PAWN DESK grille opens")
-	# --- the stall sells jackets
+	# --- the stall sells jackets (the fight stacked heat - the tax
+	# layers onto the jacket unless the block has cooled)
+	WorldState.set_value("heat", 0.0)
 	WorldState.set_value("clean_cash", 100.0)
 	hero.global_position = Vector3(6.0, 0.05, 5.4)
 	_check(mkt.try_grab(hero), "the stall answers")
