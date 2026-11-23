@@ -1,7 +1,7 @@
 LEVERAGE (Bare Hands 3D) - BUILD VERSION
 =======================================
 batch:  B26
-code commit: 2df5b9e  (the game code this build runs)  (the game code this build runs)
+code commit: 2df5b9e  (the game code this build runs)
 built:  2026-11-23 00:37 UTC
 stamp:  B26 2df5b9e (2026-11-23 00:37 UTC)
 
