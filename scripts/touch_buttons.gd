@@ -190,9 +190,11 @@ func _on_down(name: String) -> void:
 	Sound.play("ui_click_0", -12.0, 1.0, 0.03)
 	Haptics.fire("ui")
 	# B25: behind the wheel the FIGHT diamond becomes the drive
-	# cluster - X EXIT, A HORN, B HANDBRAKE (hold)
+	# cluster - X EXIT, A HORN, B HANDBRAKE (hold). B26: the street
+	# owns several vehicles now - the cluster talks to whichever one
+	# the hero is actually aboard (the bicycle says BELL/BRAKE)
 	if _drive_mode and name.begins_with("Fight"):
-		var v := get_tree().get_first_node_in_group("vehicle") as Node3D
+		var v := _occupied_vehicle()
 		if v == null:
 			return
 		match name:
@@ -293,7 +295,7 @@ func _on_up(name: String) -> void:
 				InputBus.queue_heavy()
 		"FightB":
 			if _drive_mode:
-				var v := get_tree().get_first_node_in_group("vehicle") as Node3D
+				var v := _occupied_vehicle()
 				if v:
 					v.call("handbrake", false)
 			else:
@@ -739,10 +741,21 @@ func _build_hint() -> void:
 	add_child(_hint)
 
 
+## B26 WHEELS EVERYWHERE: whichever vehicle the hero is aboard - the
+## sedan was once the only one; now the street parks several.
+func _occupied_vehicle() -> Node3D:
+	for v in get_tree().get_nodes_in_group("vehicle"):
+		if v is Node3D and bool(v.get("occupied")):
+			return v as Node3D
+	return null
+
+
 ## B25 THE DRIVER: while the hero holds the wheel the diamond becomes
 ## the drive cluster (X EXIT / A HORN / B HANDBRAKE) and the foot
 ## pills (guard, grab, jump, sprint, style, lock) stand down - the
 ## phone, help and objective stay usable from the driver's seat.
+## B26: the A/B labels come from the vehicle itself (the bicycle says
+## BELL / BRAKE) - one cluster, every vehicle's own voice.
 func _drive_watch(p: CharacterBody3D) -> void:
 	var want := false
 	if "driving" in p and bool(p.get("driving")):
@@ -750,12 +763,22 @@ func _drive_watch(p: CharacterBody3D) -> void:
 	if want == _drive_mode:
 		return
 	_drive_mode = want
-	var labels := {
-		"FightX": "EXIT" if want else "PUNCH",
-		"FightY": "-" if want else "HEAVY",
-		"FightB": "HANDBRAKE" if want else "DODGE",
-		"FightA": "HORN" if want else "KICK",
-	}
+	var v := _occupied_vehicle()
+	var labels := {}
+	if want:
+		labels = {
+			"FightX": "EXIT",
+			"FightY": "-",
+			"FightB": str(v.get("hud_b")) if v != null else "BRAKE",
+			"FightA": str(v.get("hud_a")) if v != null else "HORN",
+		}
+	else:
+		labels = {
+			"FightX": "PUNCH",
+			"FightY": "HEAVY",
+			"FightB": "DODGE",
+			"FightA": "KICK",
+		}
 	for k in labels:
 		var b := _buttons.get(k) as CLS_ActionButton
 		if b:

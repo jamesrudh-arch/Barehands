@@ -218,18 +218,26 @@ func _ready() -> void:
 
 func _watch_speed(mag: float, secs: float, hold: Control) -> float:
 	# average ground speed over a window of REAL stick driving, with an
-	# optional held action button (sprint) driven through its real signal
+	# optional held action button (sprint) driven through its real signal.
+	# B26 (the B24 llvmpipe lesson, applied): the window counts PHYSICS
+	# frames, not wall time - under the software renderer the idle loop
+	# stalls for whole seconds and the physics catch-up cap freezes the
+	# sim mid-window, so wall-clock speeds read as fractions of the
+	# truth (walk 0.5, sprint 0.1 m/s on the same legs that walk 5.6 m).
+	# The sim's own frame count cannot lie about the sim.
+	var frames := int(round(secs * 60.0))
 	var stick := get_tree().get_first_node_in_group("stick")
 	var p0 := _player.global_position
-	var t0 := Time.get_ticks_msec()
 	var moved := 0.0
 	if hold:
 		hold.emit_signal("down")
-	while Time.get_ticks_msec() - t0 < secs * 1000.0:
+	var f := 0
+	while f < frames:
 		if stick:
 			stick.set("_target", Vector2(0, -mag))
 			stick.set("_active", true)
-		await get_tree().process_frame
+		await get_tree().physics_frame
+		f += 1
 		moved = _player.global_position.distance_to(p0)
 	if hold:
 		hold.emit_signal("up")

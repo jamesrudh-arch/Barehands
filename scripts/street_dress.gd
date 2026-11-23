@@ -22,6 +22,11 @@ func _ready() -> void:
 	_grates_and_steam()
 	_props()
 	_car()
+	# B26 WHEELS EVERYWHERE: the kerb parks real metal end to end - a
+	# second burgundy sedan west end, and the courier's bicycle
+	_car("ParkedCarB", Vector3(-13.0, 0.0, -2.35), PI + 0.08,
+			Color(0.22, 0.06, 0.07), false)
+	_bike()
 	_gun_prop()
 	_shops()
 	_safehouse()
@@ -362,12 +367,17 @@ func _props() -> void:
 
 
 ## A parked noir sedan at the east curb - the heaviest takedown surface.
-func _car() -> void:
+## B26 WHEELS EVERYWHERE: parameterised - the street parks more than
+## one car now (the second sedan west end, burgundy), each a REAL
+## drivable vehicle with its own name and paint.
+func _car(car_name := "ParkedCar", car_pos := Vector3(9.0, 0.0, -2.4),
+		car_yaw := PI - 0.12, paint_col := Color(0.13, 0.19, 0.16),
+		spill := true) -> void:
 	var paint := StandardMaterial3D.new()
 	# B18.3 (BUG 10): a near-black car on a night street is invisible -
 	# the paint stays dark-noir but readable, and the car carries its
 	# own lights: cyan edge strips, warm headlights, red tails
-	paint.albedo_color = Color(0.13, 0.19, 0.16)
+	paint.albedo_color = paint_col
 	paint.roughness = 0.3
 	paint.metallic = 0.5
 	var glass := StandardMaterial3D.new()
@@ -381,12 +391,12 @@ func _car() -> void:
 	# shape, kit body, wheels and lights stay exactly as built.
 	var car := CharacterBody3D.new()
 	car.set_script(preload("res://scripts/vehicle.gd"))
-	car.name = "ParkedCar"
+	car.name = car_name
 	# B25: parked WEST-facing on the south kerb, in line with the
 	# westbound lane - a real kerbside parking pose with a clear
 	# runway down the street (the south-side buildings wall the east)
-	car.position = Vector3(9.0, 0.0, -2.4)
-	car.rotation.y = PI - 0.12
+	car.position = car_pos
+	car.rotation.y = car_yaw
 	add_child(car)
 	var shape := CollisionShape3D.new()
 	var cs := BoxShape3D.new()
@@ -460,10 +470,145 @@ func _car() -> void:
 		var edge := _box(Vector3(3.4, 0.03, 0.02), strip)
 		edge.position = Vector3(0, 0.86, sz)
 		car.add_child(edge)
-	# the headlight spill on the wet asphalt ahead of the nose
-	_glow_quad(Vector3(15.6, 0.03, -2.6), Color(1.0, 0.85, 0.55),
-			Vector2(2.6, 1.7), -0.12, 0.10)
+	# the headlight spill on the wet asphalt ahead of the nose - the
+	# original sedan's hand-placed pool only; the second car keeps the
+	# street's own light
+	if spill:
+		_glow_quad(Vector3(15.6, 0.03, -2.6), Color(1.0, 0.85, 0.55),
+				Vector2(2.6, 1.7), -0.12, 0.10)
 	car.set_meta("slam_surface", "car")
+
+
+## B26 WHEELS EVERYWHERE: the bicycle - the last vehicle class the
+## mandate names. Code-built frame (the B23 renderer law: what the
+## hero touches is code geometry): two wheels that really spin, the
+## frame tubes, handlebars, a saddle, a headlamp and a red rear
+## reflector - a night courier's bike. The hero rides it IN SIGHT.
+func _bike() -> void:
+	var frame_mat := StandardMaterial3D.new()
+	frame_mat.albedo_color = Color(0.45, 0.42, 0.38)
+	frame_mat.roughness = 0.45
+	frame_mat.metallic = 0.6
+	var tire := StandardMaterial3D.new()
+	tire.albedo_color = Color(0.03, 0.03, 0.035)
+	tire.roughness = 0.95
+	var rim := StandardMaterial3D.new()
+	rim.albedo_color = Color(0.7, 0.7, 0.72)
+	rim.roughness = 0.3
+	rim.metallic = 0.8
+	var leather := StandardMaterial3D.new()
+	leather.albedo_color = Color(0.12, 0.07, 0.05)
+	leather.roughness = 0.8
+	var bike := CharacterBody3D.new()
+	bike.set_script(preload("res://scripts/bike.gd"))
+	bike.name = "Bicycle"
+	# parked west end of the row, west-facing on the south kerb with
+	# the sedans - the courier leaves it by the crossing
+	bike.position = Vector3(-16.5, 0.0, -2.3)
+	bike.rotation.y = PI
+	add_child(bike)
+	var shape := CollisionShape3D.new()
+	var cs := BoxShape3D.new()
+	cs.size = Vector3(1.6, 1.2, 0.4)
+	shape.shape = cs
+	shape.position = Vector3.UP * 0.6
+	bike.add_child(shape)
+	# the model rides on its own pivot so the whole frame can lean
+	var model := Node3D.new()
+	model.name = "Model"
+	bike.add_child(model)
+	# wheels: named so the Vehicle base spins them (long axis X)
+	for w in [["wheel_front", 0.62], ["wheel_rear", -0.62]]:
+		var wheel := MeshInstance3D.new()
+		wheel.name = w[0]
+		var wm := CylinderMesh.new()
+		wm.top_radius = 0.34
+		wm.bottom_radius = 0.34
+		wm.height = 0.05
+		wm.material = tire
+		wheel.mesh = wm
+		wheel.rotation.z = PI / 2.0
+		wheel.position = Vector3(w[1], 0.34, 0)
+		model.add_child(wheel)
+		var ring := MeshInstance3D.new()
+		var rm := CylinderMesh.new()
+		rm.top_radius = 0.28
+		rm.bottom_radius = 0.28
+		rm.height = 0.07
+		rm.material = rim
+		ring.mesh = rm
+		ring.rotation.z = PI / 2.0
+		wheel.add_child(ring)
+	# frame tubes: seat post, down tube, top tube, stays
+	_tube(model, frame_mat, Vector3(-0.52, 0.62, 0), Vector3(-0.16, 0.92, 0), 0.05)
+	_tube(model, frame_mat, Vector3(-0.16, 0.92, 0), Vector3(0.42, 0.78, 0), 0.05)
+	_tube(model, frame_mat, Vector3(-0.52, 0.62, 0), Vector3(0.42, 0.78, 0), 0.05)
+	_tube(model, frame_mat, Vector3(-0.52, 0.62, 0), Vector3(-0.30, 0.88, 0), 0.04)
+	# the fork + handlebars
+	_tube(model, frame_mat, Vector3(0.62, 0.34, 0), Vector3(0.54, 0.80, 0), 0.04)
+	var bars := MeshInstance3D.new()
+	var bm := BoxMesh.new()
+	bm.size = Vector3(0.05, 0.05, 0.62)
+	bm.material = frame_mat
+	bars.mesh = bm
+	bars.position = Vector3(0.54, 0.86, 0)
+	model.add_child(bars)
+	# the saddle
+	var saddle := MeshInstance3D.new()
+	var sm := BoxMesh.new()
+	sm.size = Vector3(0.26, 0.06, 0.14)
+	sm.material = leather
+	saddle.mesh = sm
+	saddle.position = Vector3(-0.30, 0.94, 0)
+	model.add_child(saddle)
+	# a courier's headlamp + red rear reflector (inside the cap)
+	var lamp := StandardMaterial3D.new()
+	lamp.albedo_color = Color(1.0, 0.9, 0.7)
+	lamp.emission_enabled = true
+	lamp.emission = Color(1.0, 0.85, 0.6)
+	lamp.emission_energy_multiplier = 0.9
+	lamp.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	var head := MeshInstance3D.new()
+	var hm := BoxMesh.new()
+	hm.size = Vector3(0.09, 0.07, 0.07)
+	hm.material = lamp
+	head.mesh = hm
+	head.position = Vector3(0.68, 0.72, 0)
+	model.add_child(head)
+	var back := StandardMaterial3D.new()
+	back.albedo_color = Color(0.9, 0.1, 0.08)
+	back.emission_enabled = true
+	back.emission = Color(1.0, 0.08, 0.05)
+	back.emission_energy_multiplier = 0.7
+	back.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	var refl := MeshInstance3D.new()
+	var rm2 := BoxMesh.new()
+	rm2.size = Vector3(0.03, 0.06, 0.09)
+	rm2.material = back
+	refl.mesh = rm2
+	refl.position = Vector3(-0.69, 0.68, 0)
+	model.add_child(refl)
+	bike.set_meta("slam_surface", "car")
+
+
+## A thin frame tube between two local points, laid as a yawed and
+## pitched box (long axis X onto the line) - no look_at, pure math.
+func _tube(parent: Node3D, mat: Material, a: Vector3, b: Vector3,
+		thick: float) -> void:
+	var delta := b - a
+	var length := delta.length()
+	if length < 0.01:
+		return
+	var mi := MeshInstance3D.new()
+	var bm := BoxMesh.new()
+	bm.size = Vector3(length, thick, thick)
+	bm.material = mat
+	mi.mesh = bm
+	mi.position = (a + b) * 0.5
+	var horiz := Vector2(delta.x, delta.z).length()
+	mi.rotation.y = atan2(-delta.z, delta.x)
+	mi.rotation.z = atan2(delta.y, horiz)
+	parent.add_child(mi)
 
 
 ## A roll-down shop shutter under the amber sign (BuildingB's face).

@@ -1,5 +1,6 @@
 extends Node
 const CLS_OpeningShot := preload("res://scripts/opening_shot.gd")
+const CLS_StartSeq := preload("res://scripts/start_sequence.gd")
 
 ## B18.3 PART 0 suite: the START SEQUENCE. Boots the real street with
 ## the Stage-0 flag armed (the only path that plays it), checks every
@@ -38,8 +39,12 @@ func _ready() -> void:
 	add_child(_main)
 	await _wait_s(0.6)
 	_seq = _find_seq()
-	_check(_seq == null or not is_instance_valid(_seq) or int(_seq.get("phase")) == 3,
-			"plain boot never plays the start sequence")
+	# B26: the Phase enum grew (NOTICE, LOADING) and GONE moved past the
+	# old literal 3 - the enum itself is the contract, never a number
+	var gone := int(CLS_StartSeq.Phase.GONE)
+	_check(_seq == null or not is_instance_valid(_seq) or int(_seq.get("phase")) == gone,
+			"plain boot never plays the start sequence (phase %s)"
+			% str(_seq.get("phase") if _seq and is_instance_valid(_seq) else "null"))
 	_main.queue_free()
 	await _wait_s(0.3)
 

@@ -33,8 +33,108 @@ func build_block() -> void:
 	_common()
 	if block_id == "market":
 		_market()
+		# B26 WHEELS EVERYWHERE: one drivable car parked kerbside in
+		# every far block - no decorative metal anywhere on the street
+		_park_car("CarMarket", Vector3(-8.0, 0.0, -5.6), PI,
+				Color(0.25, 0.08, 0.06))
 	elif block_id == "foundry":
 		_foundry()
+		_park_car("CarFoundry", Vector3(8.0, 0.0, -5.6), 0.0,
+				Color(0.07, 0.09, 0.15))
+
+
+## B26 WHEELS EVERYWHERE: a drivable car parked on the block's kerb -
+## the traffic family's own geometry (code-built, the renderer law),
+## wired to the same Vehicle controller as the riverside sedan, with
+## headlights, tails and named wheels the base script drives. The
+## block tears down and rebuilds as the hero walks; the car is a NEW
+## node every time, so it asks the save where it was left.
+func _park_car(car_name: String, pos: Vector3, yaw: float,
+		paint_col: Color) -> void:
+	var paint := StandardMaterial3D.new()
+	paint.albedo_color = paint_col
+	paint.roughness = 0.3
+	paint.metallic = 0.5
+	var glass := StandardMaterial3D.new()
+	glass.albedo_color = Color(0.02, 0.03, 0.05)
+	glass.roughness = 0.1
+	var tire := StandardMaterial3D.new()
+	tire.albedo_color = Color(0.02, 0.02, 0.025)
+	tire.roughness = 0.95
+	var car := CharacterBody3D.new()
+	car.set_script(preload("res://scripts/vehicle.gd"))
+	car.name = car_name
+	car.position = pos
+	car.rotation.y = yaw
+	add_child(car)
+	var shape := CollisionShape3D.new()
+	var cs := BoxShape3D.new()
+	cs.size = Vector3(4.2, 1.0, 1.8)
+	shape.shape = cs
+	shape.position = Vector3.UP * 0.5
+	car.add_child(shape)
+	# the long axis is +x (the nose), the street sedan's convention:
+	# lower body, glass cabin, four wheels the base script rolls
+	var lower := MeshInstance3D.new()
+	var lm := BoxMesh.new()
+	lm.size = Vector3(4.2, 0.52, 1.75)
+	lm.material = paint
+	lower.mesh = lm
+	lower.position = Vector3.UP * 0.52
+	car.add_child(lower)
+	var cabin := MeshInstance3D.new()
+	var cm := BoxMesh.new()
+	cm.size = Vector3(2.1, 0.5, 1.6)
+	cm.material = glass
+	cabin.mesh = cm
+	cabin.position = Vector3(-0.25, 1.02, 0)
+	car.add_child(cabin)
+	for wx in [-1.4, 1.4]:
+		for wz in [-0.85, 0.85]:
+			var wheel := MeshInstance3D.new()
+			wheel.name = "wheel_%s%s" % ["L" if wx < 0 else "R",
+					"F" if wx > 0 else "R"]
+			var wm := CylinderMesh.new()
+			wm.top_radius = 0.32
+			wm.bottom_radius = 0.32
+			wm.height = 0.22
+			wm.material = tire
+			wheel.mesh = wm
+			wheel.rotation.z = PI / 2.0
+			wheel.position = Vector3(wx, 0.32, wz)
+			car.add_child(wheel)
+	# the noir lights (heads, tails) - tails named so the brake
+	# lights the base script drives actually glow
+	var lamp := StandardMaterial3D.new()
+	lamp.albedo_color = Color(1.0, 0.88, 0.65)
+	lamp.emission_enabled = true
+	lamp.emission = Color(1.0, 0.85, 0.6)
+	lamp.emission_energy_multiplier = 1.0
+	lamp.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	var tail := StandardMaterial3D.new()
+	tail.albedo_color = Color(1.0, 0.2, 0.12)
+	tail.emission_enabled = true
+	tail.emission = Color(1.0, 0.16, 0.1)
+	tail.emission_energy_multiplier = 0.8
+	tail.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	for hz in [-0.55, 0.55]:
+		var head := MeshInstance3D.new()
+		var hm := BoxMesh.new()
+		hm.size = Vector3(0.06, 0.12, 0.3)
+		hm.material = lamp
+		head.mesh = hm
+		head.position = Vector3(2.11, 0.62, hz)
+		car.add_child(head)
+		var t2 := MeshInstance3D.new()
+		var tm := BoxMesh.new()
+		tm.size = Vector3(0.06, 0.1, 0.24)
+		tm.material = tail
+		t2.mesh = tm
+		t2.name = "tail_light"
+		t2.position = Vector3(-2.11, 0.68, hz)
+		car.add_child(t2)
+	car.set_meta("slam_surface", "car")
+	SaveGame.apply_saved_state(car)
 
 
 # --- the kit every block wears ------------------------------------------------

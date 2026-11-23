@@ -13,7 +13,7 @@ runs — it waits on a real device report.
 
 | # | Mandate section | Status | Evidence / gap |
 |---|---|---|---|
-| 1 | Fundamental directive (whole game, not demo) | ONGOING | 24 shipped builds, each playable end-to-end |
+| 1 | Fundamental directive (whole game, not demo) | ONGOING | 25 shipped builds, each playable end-to-end |
 | 2 | Studio thinking (all disciplines) | ONGOING | code+art+audio+QA in one loop; battery = QA |
 | 3 | Real game experience (boot→menu→story→play) | VERIFIED | live_boot suite: picker→title→PLAY→apartment→save/load |
 | 4.1 | Characters: models, faces, rigs | VERIFIED | humanoid.gd code-built bodies+faces; smoke_cast/pose/tpose |
@@ -28,7 +28,7 @@ runs — it waits on a real device report.
 | 6.3 | Reactions & memory | VERIFIED | witness watch/record/flee + witness recall; smoke_reactive |
 | 6.4 | Named characters (16) | VERIFIED | cast with names/routines/dialogue; smoke_cast |
 | 7 | Player movement & interaction | VERIFIED | third-person, camera-relative, context verbs; smoke/smoke_controls |
-| 8 | Vehicles & transportation | VERIFIED (B25) | sedan drivable: enter/steer/throttle/handbrake/horn/exit/traffic-yield/persistence; smoke_drive 21/21. BICYCLES: MISSING — first item of B26 |
+| 8 | Vehicles & transportation | VERIFIED (B26) | the whole kerb is real metal: the sedan + a second burgundy sedan + the bicycle (hero rides IN PLAIN SIGHT, A BELL / B BRAKE, frame leans) + one drivable car per far block; traffic bodies true van/sports + noir paint palette; EVERY vehicle persists by name; smoke_bike 31/31, smoke_drive 21/21, render_wheels 11/11 |
 | 9 | Combat (5 styles, crime) | VERIFIED | brawler+chains+stamina+knockdown+weapons; smoke_combat/combos; drunken style PARTIAL (chain subset) |
 | 10 | Police, emergency, consequences | VERIFIED | heat ladder, witnesses, fixer, radio reaction; smoke_reactive |
 | 11 | Story & cinematic presentation | VERIFIED | studio card, title+tagline, 16+ notice, menu, opening, apartment wake; live_boot |
@@ -45,20 +45,22 @@ runs — it waits on a real device report.
 | 22 | Coherent architecture | VERIFIED | single autoload bus (InputBus/Traffic/Fx...), one battery |
 | 23 | Performance & device engineering | PARTIAL | Low/Mid tiers, light budget law, pooling; device FPS UNKNOWN — needs the iPhone report |
 | 24 | Depth & polish | ONGOING | cooldown rings, context verbs, haptics, subtitles; polish never "done" |
-| 25 | QA & real verification | VERIFIED | 48-suite battery incl. live_play (played live end-to-end) |
-| 26 | Prohibitions (no dummies/ghosts/fakes) | VERIFIED | DUMMY tags gone (B23), protagonist visible, cars drive (B25) |
+| 25 | QA & real verification | VERIFIED (B26) | the honest battery, re-proven at final code with isolated per-suite dirs: run_tests 12/12, 42 smoke suites, render_check 56, render_wheels 11, smoke_safe 16, live_boot 15, live_walk 4, live_play 12, final_audit 16 — three suites (guide/ledger/start) were first re-proven BROKEN at B25 code, then repaired (apartment wake, grab order, stale enum) |
+| 26 | Prohibitions (no dummies/ghosts/fakes) | VERIFIED | DUMMY tags gone (B23), protagonist visible, cars drive (B25), the rider rides in the open (B26) |
 | 27 | Execution discipline | ONGOING | this checklist + per-build STATE.json/CHANGELOG |
-| 28 | Final acceptance | NOT YET | device verification outstanding; bicycles, VO, dynamic events above |
+| 28 | Final acceptance | NOT YET | device verification outstanding; VO, dynamic events, NPC depth, visual pass above |
 
 ## The next fronts (in dependency order)
 
-1. BICYCLES — mount/ride (mandate 8): the last non-interactive
-   vehicle class; reuse the B25 vehicle controller.
-2. VOICE + dialogue delivery (mandate 12): real voice lines for the
-   brother call, the fixer, shopkeeper; subtitles already sync.
-3. DYNAMIC WORLD EVENTS (mandate 16): street disputes, crashes,
+1. VOICE + dialogue delivery (mandate 12): real voice lines for the
+   brother call, the fixer, shopkeeper, Roz; subtitles already sync.
+2. DYNAMIC WORLD EVENTS (mandate 16): street disputes, fender-benders,
    police sweeps that NPCs and the radio react to.
+3. NPC DEPTH (mandates 6.2/6.3): gossip/witness sharing between
+   wanderers, multi-line smalltalk, rain umbrellas, richer states.
 4. DRUNKEN STYLE full chain + parry (mandate 9).
-5. THE DEVICE REPORT (mandate 25/28): every Linux claim above is
+5. THE HIGH-GRADE-ASSET PASS (mandates 21/4.4): material sheen, facade
+   detail, tiered glow - on top of the proven code-built renderer law.
+6. THE DEVICE REPORT (mandate 25/28): every Linux claim above is
    honestly INTEGRATED+TESTED level only; DEVICE VERIFIED waits on a
    real Xogot/iPhone run.

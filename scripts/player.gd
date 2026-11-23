@@ -135,6 +135,20 @@ func _ready() -> void:
 	hit_landed.connect(func(_k: String, _d: int) -> void: Progression.add_xp(1.0, "hit"))
 	add_to_group("player")
 	_rig._velocity_fn = func() -> Vector3: return velocity  # drives the coat sway
+	# B26 (the smoke_guide finding, broken since B24): a FRESH install
+	# wakes the hero in the APARTMENT wherever the boot comes from - the
+	# menu's PLAY re-affirms it, the first-run picker leads to it, and a
+	# direct boot with a fresh user dir walks the real new-game path.
+	# Suites that set first_run_done keep the street start (B24's
+	# contract for direct boots) - the setting is the gate.
+	if not bool(Settings.value("first_run_done")) \
+			and not Settings.hint_done("intro_done"):
+		global_position = Vector3(780.0, 0.02, 1.8)
+		rotation.y = 0.0  # facing the door (-z)
+		var follow := get_tree().get_first_node_in_group("camera") as Node3D
+		if follow and follow.has_method("snap"):
+			follow.call("snap")
+		Log.info("Player: fresh boot - the hero wakes in the apartment")
 
 
 func _physics_process(delta: float) -> void:
@@ -160,6 +174,12 @@ func _physics_process(delta: float) -> void:
 
 
 func _move_step(delta: float) -> void:
+	if driving:
+		# B26: the hero's controller really stands down at the wheel -
+		# velocity dies here so nothing walks the seated hero away from
+		# the vehicle that carries him (the bike shows him in the open)
+		velocity = Vector3.ZERO
+		return
 	if InputBus.locked:  # cutscene: stand and breathe
 		InputBus.move = Vector2.ZERO
 		InputBus.clear_queues()
@@ -1179,16 +1199,12 @@ func _try_grab_action() -> void:
 	for door in get_tree().get_nodes_in_group("safehouse"):
 		if door.has_method("try_use") and door.try_use(self):
 			return
-	# B25: the car - a drivable vehicle is the last grab target so a
-	# door or a person standing between always wins - and only within
-	# arm's reach (2.8 m, the context verb's own range): pressing the
-	# grab button across the street must never teleport the hero into
-	# the driver's seat (caught by smoke_face's Y-grab + sprint tests)
-	for v in get_tree().get_nodes_in_group("vehicle"):
-		if v is Node3D and global_position.distance_to(
-				(v as Node3D).global_position) < 2.8 \
-				and v.has_method("try_enter") and v.try_enter(self):
-			return
+	# B26 WHEELS EVERYWHERE: the vehicle grab moved to the END of the
+	# chain (see the last block) - the gun on a car's hood, a pickup at
+	# the feet, a person in reach all outvote boarding. Only within
+	# arm's reach (2.8 m): pressing the grab button across the street
+	# must never teleport the hero into a driver's seat (caught by
+	# smoke_face's Y-grab + sprint tests)
 	# seize an enemy in reach
 	var target := _punch_target(-0.6, 0.35)
 	if target and target.state not in [CLS_Enemy.State.DOWN, CLS_Enemy.State.GRABBED,
@@ -1233,6 +1249,14 @@ func _try_grab_action() -> void:
 					Sound.play("metal_click_0", -8.0)
 					Log.info("player picked up the pipe")
 					return
+		# B26 WHEELS EVERYWHERE: vehicles LAST - the B25 comment made
+		# true: nothing nearer claims the thumb, so a 2.8 m car or bike
+		# finally boards only when it IS the nearest thing
+		for v in get_tree().get_nodes_in_group("vehicle"):
+			if v is Node3D and global_position.distance_to(
+					(v as Node3D).global_position) < 2.8 \
+					and v.has_method("try_enter") and v.try_enter(self):
+				return
 		if has_pipe:  # nothing to seize, pipe in hand: the grab throws it
 			throw_pipe()
 			return
@@ -1266,7 +1290,17 @@ func _grab_step(delta: float) -> void:
 ## is free.
 func set_driving(on: bool) -> void:
 	driving = on
-	# the hero's own controller stands down while the car drives
+	# the hero's own controller stands down while the car drives;
+	# the seated pose is the one visual truth of being aboard
+	if on:
+		_rig.play("Sit", 0.18)
+
+
+## B26: while riding the bicycle the hero's body follows the vehicle's
+## frame - the bike owns his facing every frame (the car keeps him
+## hidden, so only the bike calls this).
+func set_body_yaw(y: float) -> void:
+	_body.rotation.y = y
 
 
 func context_action() -> String:
@@ -1274,11 +1308,6 @@ func context_action() -> String:
 		return "THROW"
 	if driving:
 		return ""
-	if not driving:
-		for v in get_tree().get_nodes_in_group("vehicle"):
-			if v is Node3D and not bool(v.get("occupied")) \
-					and global_position.distance_to((v as Node3D).global_position) < 2.8:
-				return "ENTER"
 	if state != State.GROUND:
 		return ""
 	for trainer in get_tree().get_nodes_in_group("trainer"):
@@ -1311,6 +1340,13 @@ func context_action() -> String:
 			if gun is Node3D and global_position.distance_to(
 					(gun as Node3D).global_position) < 1.7:
 				return "INTERACT"
+	# B26 WHEELS EVERYWHERE: the street parks several vehicles now and
+	# the nearest thing always wins the verb - a vehicle is a 2.8 m
+	# LAST resort (the gun on the car's hood says INTERACT, not ENTER)
+	for v in get_tree().get_nodes_in_group("vehicle"):
+		if v is Node3D and not bool(v.get("occupied")) \
+				and global_position.distance_to((v as Node3D).global_position) < 2.8:
+			return "ENTER"
 	if not has_pipe:
 		for pipe in get_tree().get_nodes_in_group("pipe_prop"):
 			if pipe is Node3D and global_position.distance_to(
@@ -1594,6 +1630,8 @@ func _gravity(delta: float) -> void:
 
 
 func _drive_anim() -> void:
+	if driving:
+		return  # aboard: the seated pose set on boarding stays put
 	if state in [State.CLIMB, State.PUNCH, State.DODGE, State.BLOCK, State.GRAB]:
 		return
 	if _t < _hitstun_until:

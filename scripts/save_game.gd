@@ -77,6 +77,9 @@ func load_all() -> bool:
 	return true
 
 
+var _vehicle_cache := {}  # name -> [x, y, z, yaw], remembered from the save
+
+
 func has_save() -> bool:
 	return FileAccess.file_exists(PATH)
 
@@ -96,18 +99,58 @@ func describe() -> String:
 
 ## B25: the hero's car persists where it was left - a real vehicle is
 ## part of the world state, not a scene prop that resets on load.
+## B26 WHEELS EVERYWHERE: the street parks several vehicles now (the
+## sedan, the second car, the bicycle, one per far block) - every one
+## of them persists, BY NAME, so a rebuilt block can put its own car
+## back where the hero left it.
 func _vehicle_dict() -> Array:
-	var v := get_tree().get_first_node_in_group("vehicle") as Node3D
-	if v == null:
-		return []
-	return [v.global_position.x, v.global_position.y, v.global_position.z,
-			v.rotation.y]
+	var out := []
+	for v in get_tree().get_nodes_in_group("vehicle"):
+		if v is Node3D:
+			out.append({
+				"n": (v as Node).name,
+				"p": [(v as Node3D).global_position.x,
+						(v as Node3D).global_position.y,
+						(v as Node3D).global_position.z],
+				"r": (v as Node3D).rotation.y,
+			})
+	return out
 
 
 func _load_vehicle(arr: Array) -> void:
-	var v := get_tree().get_first_node_in_group("vehicle") as Node3D
-	if v == null or arr.size() < 4:
+	_vehicle_cache.clear()
+	if arr.size() == 4 and arr[0] is float:
+		# a B25 save: one flat [x, y, z, yaw] for the one sedan
+		_vehicle_cache["ParkedCar"] = [arr[0], arr[1], arr[2], arr[3]]
+	else:
+		for e in arr:
+			if e is Dictionary and e.has("n") and e.has("p"):
+				var p: Array = e["p"]
+				_vehicle_cache[str(e["n"])] = [p[0], p[1], p[2],
+						float(e.get("r", 0.0))]
+	# every vehicle present right now (re)takes its saved spot; the
+	# far blocks are not built yet and ask later via apply_saved_state
+	for v in get_tree().get_nodes_in_group("vehicle"):
+		_apply_saved(v)
+	if not _vehicle_cache.is_empty():
+		Log.info("SaveGame: %d vehicle(s) back where you left them"
+				% _vehicle_cache.size())
+
+
+## Applies the remembered state to one vehicle - occupied vehicles are
+## skipped (the hero is aboard; the world must not move his seat).
+func _apply_saved(v: Node) -> void:
+	if not (v is Node3D) or not _vehicle_cache.has(v.name):
 		return
-	v.global_position = Vector3(arr[0], arr[1], arr[2])
-	v.rotation.y = arr[3]
-	Log.info("SaveGame: the car is where you left it")
+	if bool(v.get("occupied")):
+		return
+	var a: Array = _vehicle_cache[v.name]
+	(v as Node3D).global_position = Vector3(a[0], a[1], a[2])
+	(v as Node3D).rotation.y = a[3]
+
+
+## B26: a rebuilt block parks its own car, then asks where the save
+## left it (blocks are torn down and rebuilt as the hero walks the
+## city; their vehicles are new nodes every time).
+func apply_saved_state(v: Node) -> void:
+	_apply_saved(v)

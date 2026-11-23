@@ -21,6 +21,11 @@ const TURN := 1.85       # steering authority, rad/s at full effect
 
 var speed := 0.0
 var occupied := false
+# B26 WHEELS EVERYWHERE: the drive cluster reads its labels from the
+# vehicle itself - the car says HORN/HANDBRAKE, the bicycle says
+# BELL/BRAKE. One cluster, every vehicle's own voice.
+var hud_a := "HORN"
+var hud_b := "HANDBRAKE"
 var _hero: CharacterBody3D = null
 var _hb := false
 var _steer := 0.0
@@ -28,15 +33,42 @@ var _horn_on := false
 var _exit_want := false
 var _wheels: Array[Node3D] = []
 var _brake_lights: Array[MeshInstance3D] = []
+var _horn_player: AudioStreamPlayer3D = null
+var _scanned := false
 
 
 func _ready() -> void:
 	add_to_group("vehicle")
+	# B26 (the B25 wheel-scan gap): the builders add the wheels AFTER
+	# the body enters the tree, so a _ready scan found NOTHING and the
+	# B25 sedan's wheels never turned - the scan runs on the first
+	# physics frame instead, when the whole body exists
+	_horn_player_setup()
+
+
+## The wheels and brake lights, found once the builder has finished
+## adding them (first physics frame, not _ready).
+func _ensure_scan() -> void:
+	if _scanned:
+		return
+	_scanned = true
 	for c in find_children("*", "MeshInstance3D", true, false):
 		if "wheel" in (c as Node).name.to_lower():
 			_wheels.append(c as Node3D)
 		elif "tail" in (c as Node).name.to_lower():
 			_brake_lights.append(c as MeshInstance3D)
+
+
+## B26 (the B25 horn gap): the horn actually SOUNDs now - a short
+## synthesised two-tone burst on a 3D player riding the car (the
+## emitted signal stays for anything that wants to react to it)
+func _horn_player_setup() -> void:
+	_horn_player = AudioStreamPlayer3D.new()
+	_horn_player.stream = _synth_horn()
+	_horn_player.bus = "SFX"
+	_horn_player.unit_size = 7.0
+	_horn_player.volume_db = -7.0
+	add_child(_horn_player)
 	# a stopped car is still a solid body: CharacterBody3D bodies do
 	# not push each other, so the sedan never gets shoved around
 
@@ -94,11 +126,28 @@ func handbrake(down: bool) -> void:
 
 
 func honk() -> void:
-	# a horn is a legal requirement and a warning: two short bursts,
-	# routed through the same audio hook the city sounds use
+	# a horn is a legal requirement and a warning: two short bursts of
+	# the synth tone, plus the signal for anything that listens
+	if _horn_on:
+		return
 	_horn_on = true
 	emit_signal("horn", true)
+	_double_burst()
 	Log.info("Vehicle: HONK")
+
+
+## Two short bursts (0.16 s on, 0.1 s apart) - the legal warning shape.
+## Fire and forget: the timer owns the tail, the player owns the sound.
+func _double_burst() -> void:
+	if _horn_player == null:
+		return
+	_horn_player.play()
+	await get_tree().create_timer(0.16).timeout
+	_horn_player.stop()
+	await get_tree().create_timer(0.1).timeout
+	_horn_player.play()
+	await get_tree().create_timer(0.22).timeout
+	_horn_player.stop()
 
 
 func horn_active() -> bool:
@@ -110,6 +159,7 @@ func request_exit() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	_ensure_scan()
 	if not occupied:
 		speed = 0.0
 		_set_brake_lights(true)
@@ -151,9 +201,14 @@ func _physics_process(delta: float) -> void:
 		if absf(get_slide_collision(i).get_normal().y) < 0.5:
 			speed *= 0.55
 			break
-	# rolling wheels + the engine hum follow the actual speed
+	# rolling wheels + the engine hum follow the actual speed.
+	# B26 (the wheel-axis probe): rotate_x spun the z-flipped wheel
+	# about a MOVING axis - the axle itself wandered, so every wheel on
+	# the street has been flopping since B19, invisible to stills. The
+	# spin is about the PARENT frame's X - the true axle - so the
+	# cylinder axis never leaves the lateral line: a wheel that ROLLS.
 	for w in _wheels:
-		w.rotate_x((speed / 0.32) * delta)
+		w.rotate(Vector3(1, 0, 0), (speed / 0.32) * delta)
 	if _horn_on and speed > 0.5:
 		_horn_on = false
 		emit_signal("horn", false)
@@ -165,3 +220,26 @@ func _set_brake_lights(on: bool) -> void:
 		if mat:
 			mat.emission_enabled = true
 			mat.emission = Color(1.0, 0.08, 0.08) * (1.6 if on else 0.35)
+
+
+## A synthesised two-tone horn (no asset, no licence): the noir car's
+## voice - the 440+554 city horn every sedan had. 0.5 s long, the
+## burst pattern stops it early.
+func _synth_horn() -> AudioStreamWAV:
+	var rate := 11025
+	var n := int(rate * 0.5)
+	var data := PackedByteArray()
+	data.resize(n * 2)
+	for i in n:
+		var t := float(i) / rate
+		var a := sin(TAU * 440.0 * t) * 0.55 + sin(TAU * 554.0 * t) * 0.45
+		var sq := 0.45 * signf(sin(TAU * 220.0 * t))
+		var env := minf(1.0, t * 180.0) * clampf((0.5 - t) * 40.0, 0.0, 1.0)
+		var s := clampf((a * 0.6 + sq * 0.2) * env * 0.6, -1.0, 1.0)
+		data.encode_s16(i * 2, int(s * 16000.0))
+	var wav := AudioStreamWAV.new()
+	wav.format = AudioStreamWAV.FORMAT_16_BITS
+	wav.mix_rate = rate
+	wav.stereo = false
+	wav.data = data
+	return wav

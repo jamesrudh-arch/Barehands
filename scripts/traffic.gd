@@ -155,17 +155,37 @@ func _spawn(block: String) -> void:
 
 ## The code-built car: body, cabin, glass band, four rolling wheels
 ## with hubs, bumpers, and the type's feature (taxi roof sign, police
-## light bar, the SUV's taller stance). Nose at +z, ~4.4 m long.
+## light bar, the SUV's taller stance, the van's full-length box, the
+## sports hatch's low chop). Nose at +z, ~4.4 m long.
+## B26 WHEELS EVERYWHERE: cars everywhere means BODIES everywhere -
+## the van and the hatchback no longer wear sedan steel, and the
+## private cars paint from a palette instead of one grey.
 const CAR_STYLES := {
 	"sedan": {"body": Color(0.3, 0.31, 0.34), "roof": Color(0.26, 0.27, 0.3),
-			"tall": 0.0, "sign": false, "bar": false},
+			"tall": 0.0, "sign": false, "bar": false, "palette": true},
 	"taxi": {"body": Color(0.85, 0.68, 0.12), "roof": Color(0.8, 0.62, 0.1),
 			"tall": 0.0, "sign": true, "bar": false},
 	"police": {"body": Color(0.12, 0.13, 0.17), "roof": Color(0.1, 0.11, 0.14),
 			"tall": 0.0, "sign": false, "bar": true},
 	"suv": {"body": Color(0.22, 0.24, 0.2), "roof": Color(0.19, 0.21, 0.17),
-			"tall": 0.22, "sign": false, "bar": false},
+			"tall": 0.22, "sign": false, "bar": false, "palette": true},
+	"van": {"body": Color(0.34, 0.33, 0.31), "roof": Color(0.3, 0.29, 0.27),
+			"tall": 0.5, "sign": false, "bar": false, "box": true},
+	"sports": {"body": Color(0.5, 0.09, 0.08), "roof": Color(0.42, 0.08, 0.07),
+			"tall": -0.08, "sign": false, "bar": false, "palette": true,
+			"chop": true},
 }
+
+## Night-readable private paint (B26): muted noir tones that read
+## under sodium light without turning to mud.
+const CAR_PAINTS := [
+	Color(0.09, 0.12, 0.21),  # harbour blue
+	Color(0.2, 0.06, 0.08),   # burgundy
+	Color(0.06, 0.13, 0.1),   # river green
+	Color(0.36, 0.36, 0.38),  # silver, unpolished
+	Color(0.28, 0.24, 0.12),  # old mustard
+	Color(0.3, 0.31, 0.34),   # the classic grey
+]
 
 
 func _code_car(car: Node3D, rel: String) -> Node3D:
@@ -180,6 +200,8 @@ func _code_car(car: Node3D, rel: String) -> Node3D:
 	car.add_child(body)
 	var paint := StandardMaterial3D.new()
 	paint.albedo_color = st.body
+	if st.get("palette", false):
+		paint.albedo_color = CAR_PAINTS[randi() % CAR_PAINTS.size()]
 	paint.roughness = 0.35
 	paint.metallic = 0.25
 	var roof_m := StandardMaterial3D.new()
@@ -200,12 +222,20 @@ func _code_car(car: Node3D, rel: String) -> Node3D:
 	# lower body + cabin (the belt line reads through the night)
 	_boxm(body, Vector3(1.76, 0.56 + tall, 4.35), paint,
 			Vector3(0, 0.52 + tall * 0.5, 0))
-	_boxm(body, Vector3(1.64, 0.5, 2.3), roof_m,
-			Vector3(0, 1.06 + tall, -0.28))
-	# the glass band: a dark inset box wider than the cabin, split by
-	# pillars - one glass box + roof overhang reads as windows all round
-	_boxm(body, Vector3(1.67, 0.34, 2.02), glass,
-			Vector3(0, 1.08 + tall, -0.26))
+	if st.get("box", false):
+		# B26: the VAN - one full-length box over the load floor, a
+		# flat face the length of the street
+		_boxm(body, Vector3(1.68, 0.86, 3.7), roof_m,
+				Vector3(0, 1.2, -0.25))
+	else:
+		var chop := 2.3 if not st.get("chop", false) else 1.9
+		var roof_y := 1.06 + tall if not st.get("chop", false) else 0.98
+		_boxm(body, Vector3(1.64, 0.5, chop), roof_m,
+				Vector3(0, roof_y, -0.28))
+		# the glass band: a dark inset box wider than the cabin, split by
+		# pillars - one glass box + roof overhang reads as windows all round
+		_boxm(body, Vector3(1.67, 0.34, chop - 0.28), glass,
+				Vector3(0, roof_y + 0.02, -0.26))
 	# windshield + rear window slants
 	var ws := _boxm(body, Vector3(1.58, 0.1, 0.72), glass,
 			Vector3(0, 1.02 + tall, 0.78))
@@ -471,9 +501,13 @@ func _car_ahead(car: Node3D, east: bool) -> Node3D:
 
 
 func _spin_wheels(car: Node3D, speed: float, delta: float) -> void:
+	# B26 (the wheel-axis probe): the spin is about the parent frame's
+	# X - the true axle. rotate_x moved the axle itself (every wheel
+	# flopped since B19); this keeps the cylinder axis on the lateral
+	# line, which is what rolling actually is.
 	for c in car.find_children("*", "MeshInstance3D", true, false):
 		if "wheel" in (c as Node).name.to_lower():
-			(c as Node3D).rotate_x((speed / 0.32) * delta)
+			(c as Node3D).rotate(Vector3(1, 0, 0), (speed / 0.32) * delta)
 
 
 func _brake_lights(car: Node3D) -> void:
