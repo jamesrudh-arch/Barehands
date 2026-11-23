@@ -1,9 +1,9 @@
 LEVERAGE (Bare Hands 3D) - BUILD VERSION
 =======================================
-batch:  B31
-code commit: 8c8ff5a  (the game code this build runs)
-built:  2026-11-23 03:55 UTC
-stamp:  B31 8c8ff5a (2026-11-23 03:55 UTC)
+batch:  OVERRIDES-R1R4 (USER OVERRIDES R1-R4: WAREHOUSE START, VISIBLE GATE, TWO CONTROLS, XYAB)
+code commit: f563337  (the game code this build runs)
+built:  2026-11-23 04:31 UTC
+stamp:  OVERRIDES-R1R4 f563337 (2026-11-23 04:31 UTC)
 
 Which folder to import: the unzipped folder itself (it contains
 project.godot). The build stamp is visible in-game at the top-right
