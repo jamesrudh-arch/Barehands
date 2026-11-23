@@ -246,11 +246,13 @@ func _move_step(delta: float) -> void:
 	_face_travel(delta)
 	# batch 8: the fence follows the loaded block (the walk between
 	# blocks is the bible's travel); interiors keep themselves in with
-	# their own walls, no street fence reaches in there
+	# their own walls, no street fence reaches in there. USER OVERRIDES
+	# R1/R2: the warehouse start room is its OWN SCENE - the street
+	# fence applies only while the hero really is on the street
 	var cx: float = Blocks.BLOCK_X.get(Blocks.current(), 0.0)
-	if not CLS_Interior.is_inside_interior(self):
+	if not CLS_Interior.is_inside_interior(self) and Blocks.hero_on_street():
 		global_position.x = clampf(global_position.x, cx - BOUND, cx + BOUND)
-	global_position.z = clampf(global_position.z, -BOUND, BOUND)
+		global_position.z = clampf(global_position.z, -BOUND, BOUND)
 
 	if is_on_floor():
 		if was_air and _air_time > 0.08:

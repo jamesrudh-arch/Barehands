@@ -27,6 +27,7 @@
 [ext_resource type="Script" path="res://scripts/style_meter.gd" id="6_style"]
 [ext_resource type="Script" path="res://scripts/debug_panel.gd" id="7_debug"]
 [ext_resource type="Script" path="res://scripts/opening_shot.gd" id="8_opening"]
+[ext_resource type="Script" path="res://scripts/street_arrival.gd" id="10_arrival"]
 [ext_resource type="Script" path="res://scripts/neon.gd" id="9_neon"]
 [ext_resource type="Script" path="res://scripts/street_dress.gd" id="10_dress"]
 [ext_resource type="Script" path="res://scripts/rain.gd" id="11_rain"]
@@ -712,6 +713,9 @@ script = ExtResource("2_camera")
 
 [node name="OpeningShot" type="Node" parent="."]
 script = ExtResource("8_opening")
+
+[node name="Arrival" type="Node" parent="."]
+script = ExtResource("10_arrival")
 
 [node name="UI" type="CanvasLayer" parent="." groups=["hud"]]
 script = ExtResource("4_buttons")

@@ -18,7 +18,7 @@ const CLS_DeviceReport := preload("res://scripts/device_report.gd")
 ## back. Each optional system toggles on ONE AT A TIME so a single
 ## culprit can be isolated by hand.
 ##
-## The full game stays one tap away: START FULL GAME loads main.tscn.
+## The full game stays one tap away: START FULL GAME loads warehouse.tscn.
 
 const SYSTEMS := [
 	["cinematic", "CINEMATIC", "the opening shot (hides the HUD, freezes the camera until it lands; a 12 s watchdog force-finishes)"],
@@ -104,7 +104,7 @@ func _build_world() -> void:
 	hero.position = Vector3(0.0, 0.1, 3.0)
 	add_child(hero)
 
-	# a real follow camera (sibling of Player, exactly like main.tscn)
+	# a real follow camera (sibling of Player, exactly like warehouse.tscn)
 	var cam := Camera3D.new()
 	cam.name = "Camera"
 	cam.fov = 70.0
@@ -114,14 +114,14 @@ func _build_world() -> void:
 	# one dummy enemy - the same node the full game spawns at boot
 	var dummy: Node = load("res://scenes/enemy.tscn").instantiate()
 	dummy.name = "Dummy"
-	dummy.kind = 0  # (main.tscn said 'mode' - not a real property; it is 'kind')
+	dummy.kind = 0  # (warehouse.tscn said 'mode' - not a real property; it is 'kind')
 	dummy.max_hp = 5
 	dummy.position = Vector3(-1.3, 0.02, -4.5)
 	add_child(dummy)
 
 
 func _build_ui() -> void:
-	# the REAL touch controls, mounted exactly like main.tscn mounts
+	# the REAL touch controls, mounted exactly like warehouse.tscn mounts
 	# them: a "UI" CanvasLayer running touch_buttons.gd (group hud)
 	# with a full-rect Joystick control running stick_input.gd
 	var ui := CanvasLayer.new()
@@ -194,7 +194,7 @@ func _build_diag() -> void:
 	full.text = "START FULL GAME"
 	full.focus_mode = Control.FOCUS_NONE
 	full.pressed.connect(func():
-		get_tree().change_scene_to_file("res://scenes/main.tscn"))
+		get_tree().change_scene_to_file("res://scenes/warehouse.tscn"))
 	actions.add_child(full)
 
 	var toggles := HBoxContainer.new()
@@ -218,7 +218,7 @@ func _build_diag() -> void:
 	_footer.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	root.add_child(_footer)
 	_footer.text = "SafeBoot is the temporary main scene (project.godot run/main_scene). " \
-			+ "The full game is START FULL GAME, or switch run/main_scene back to scenes/main.tscn."
+			+ "The full game is START FULL GAME, or switch run/main_scene back to scenes/warehouse.tscn."
 
 
 # --- the system toggles ---------------------------------------------------------

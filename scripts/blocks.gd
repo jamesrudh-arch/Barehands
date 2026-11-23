@@ -45,11 +45,16 @@ func _build_fade() -> void:
 
 
 func _wire_main() -> void:
-	# the suites drop main.tscn in after a frame; wait for the hero
-	for i in 240:
+	# the suites drop main.tscn in after a frame; wait for the hero.
+	# USER OVERRIDES R1/R2: the street adopts only ITS OWN scene (the
+	# main.tscn root "Main") or the SafeBoot diagnostic - never the
+	# warehouse start room, whose player must not drag blocks, crowds
+	# and gates into a one-room scene. The poll runs until the real
+	# street shows up (boot begins in the warehouse now).
+	while true:
 		await get_tree().process_frame
 		var p := get_tree().get_first_node_in_group("player")
-		if p:
+		if p and str(p.get_parent().name) in ["Main", "SafeBoot"]:
 			_main = p.get_parent()
 			break
 	if not _main:
@@ -64,6 +69,17 @@ func _wire_main() -> void:
 
 func current() -> String:
 	return _current
+
+
+## USER OVERRIDES R1/R2: the street's rules end at the street scene.
+## True only when the hero currently lives under the latched street
+## main - false in the warehouse start room (and while no street is
+## up). The player's world fence asks this before clamping.
+func hero_on_street() -> bool:
+	if _main == null or not is_instance_valid(_main):
+		return false
+	var p := get_tree().get_first_node_in_group("player") as Node3D
+	return p != null and _main.is_ancestor_of(p)
 
 
 ## B20 (the hot-street fix): the crowd answers the MOOD, not just the

@@ -27,6 +27,7 @@ signal changed(key: String)
 const PATH := "user://settings.json"
 
 const DEFAULTS := {
+	"fade_s": 0.45,
 	"scheme": "floating",
 	"button_scheme": "fight",
 	"sensitivity": 1.0,
