@@ -35,6 +35,7 @@ var _fade_layer: CanvasLayer
 var _touch_ui: CanvasLayer = null
 var _missions: Node = null
 var _hud: CanvasLayer = null
+var _police: Node = null
 var _phone: CanvasLayer = null
 var _pause_menu: CanvasLayer = null
 
@@ -146,6 +147,9 @@ func _mount_player(spawn: String) -> void:
 	if _missions == null or not is_instance_valid(_missions):
 		_missions = CLS_Missions.new()
 		add_child(_missions)
+	if _police == null or not is_instance_valid(_police):
+		_police = load("res://scripts/core/police.gd").new()
+		add_child(_police)
 	if _hud == null or not is_instance_valid(_hud):
 		_hud = load("res://scripts/ui/hud.gd").new()
 		add_child(_hud)

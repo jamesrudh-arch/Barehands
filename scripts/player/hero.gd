@@ -271,6 +271,16 @@ func _actions() -> void:
 			last_action = action
 			if action == "draw" and _gun:
 				_gun.toggle()
+			elif action == "grab":
+				# GRAB at the fence pays the scrub (police.gd owns
+				# the law; anywhere else it stays GRAB)
+				var paid := false
+				for p in get_tree().get_nodes_in_group("police"):
+					if p.try_fence(self):
+						paid = true
+						break
+				if not paid:
+					face_action.emit(action)
 			elif action == "punch" and _gun and _gun.drawn:
 				_gun.fire()
 			elif action == "heavy" and _gun and _gun.drawn:

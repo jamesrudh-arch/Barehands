@@ -62,7 +62,10 @@ var _swing_hit := false  # one swing, one hit (no per-frame multi-hits)
 func _ready() -> void:
 	add_to_group("npc")
 	add_to_group("enemy")
-	name = "Thug"
+	# S5.4 meta hooks (THE COPY + future casts): one authoritative
+	# body, per-instance identity
+	name = str(get_meta("npc_name", "Thug"))
+	hp = float(get_meta("hp_max", hp))
 	var col := CollisionShape3D.new()
 	col.name = "BodyShape"
 	var shape := CapsuleShape3D.new()
@@ -80,6 +83,18 @@ func _ready() -> void:
 		_rig.name = "Rig"
 		add_child(_rig)
 		_skel = _find(_rig, Skeleton3D) as Skeleton3D
+		if has_meta("tint"):
+			_apply_tint(_rig, get_meta("tint") as Color)
+	if has_meta("npc_label"):
+		var tag := Label3D.new()
+		tag.text = str(get_meta("npc_label"))
+		tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		tag.pixel_size = 0.012
+		tag.font_size = 44
+		tag.modulate = Color(1.0, 0.85, 0.75, 0.9)
+		tag.outline_size = 10
+		tag.position = Vector3(0, 2.15, 0)
+		add_child(tag)
 		_anim = _find(_rig, AnimationPlayer) as AnimationPlayer
 		if _anim == null and _skel != null:
 			# the cast bundle ships no player (no clips of her own)
@@ -216,7 +231,9 @@ func _process(delta: float) -> void:
 					_tree.active = true
 					_tree.set("parameters/blend/blend_amount", 1.0)
 		State.DOWNED:
-			if _t >= DOWN_S:
+			# no_revive (THE COPY): the street muscle gets back up;
+			# a named body that studied your tape stays down
+			if _t >= DOWN_S and not has_meta("no_revive"):
 				hp = MAX_HP * 0.25
 				posture = POSTURE_MAX
 				state = State.IDLE
@@ -277,6 +294,26 @@ func take_hit(damage: float, knockback: float, from_dir: Vector3,
 		_play("ambient/Death_A")
 		Sound.play("body_heavy_0", -3.0, 0.8)
 		WorldState.bump("heat", 4.0)  # the street saw it
+		WorldState.push_event("crime", {"pos": global_position,
+				"base": 4.0, "who": name})
+
+
+## Per-instance clothing tint (probe law from the pedestrians).
+func _apply_tint(rig: Node, tint: Color) -> void:
+	if rig == null or tint == Color.WHITE:
+		return
+	for mi in rig.find_children("*", "MeshInstance3D", true, false):
+		var mesh: ArrayMesh = (mi as MeshInstance3D).mesh
+		if mesh == null:
+			continue
+		for s_idx in mesh.get_surface_count():
+			var mat := mesh.surface_get_material(s_idx)
+			if mat is StandardMaterial3D:
+				var clone: StandardMaterial3D = \
+						(mat as StandardMaterial3D).duplicate()
+				clone.albedo_color = tint
+				(mi as MeshInstance3D).set_surface_override_material(
+						s_idx, clone)
 
 
 func _find(root_n: Node, what) -> Node:

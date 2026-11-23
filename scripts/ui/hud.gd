@@ -17,6 +17,7 @@ var _cash: Label
 var _combo: Label
 var _ammo_label: Label = null
 var _gun: Node = null
+var _heat_pips: Array = []
 var _style: Label
 var _verb: Label
 var _heat_line: Label
@@ -64,6 +65,23 @@ func _ready() -> void:
 	_rank_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
 	_rank_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(_rank_label)
+	# the HEAT pips (top-left under the rank; the phone LEDGER has
+	# the number - this is the glance read)
+	_heat_pips = []
+	for i in 8:
+		var pip := ColorRect.new()
+		pip.name = "HeatPip%d" % i
+		# centre-top: the banner owns top-left (probe-caught: the
+		# mission objective's dark panel occluded the first pip row)
+		pip.position = Vector2(594 + i * 13, 14)
+		pip.size = Vector2(9, 14)
+		pip.color = Color(0.95, 0.65, 0.25) if i < 2 \
+				else (Color(0.95, 0.45, 0.2) if i < 5 \
+				else Color(0.9, 0.2, 0.25))
+		pip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		pip.visible = false
+		root.add_child(pip)
+		_heat_pips.append(pip)
 	# top-right: the cash line + the combo counter
 	_cash = Label.new()
 	_cash.name = "CashLine"
@@ -195,10 +213,15 @@ func _process(_delta: float) -> void:
 	if hero and is_instance_valid(hero) and hero.has_method("context_verb"):
 		verb = str(hero.call("context_verb"))
 	_verb.text = "B: %s" % verb if verb != "" else ""
-	# the heat line: only when the street is watching
+	# the heat line + pip row: only when the street is watching
+	# (the HUD already had the text line - the pips join it; one
+	# var, one scope - the parse law)
 	var heat := float(WorldState.get_value("heat", 0.0))
 	_heat_line.visible = heat > 1.0
 	_heat_line.text = "HEAT %d" % int(heat)
+	var n_pips := clampi(ceili(heat), 0, 8)
+	for i in 8:
+		_heat_pips[i].visible = i < n_pips
 	# feed the touch UI's B label too (the button is the primary read)
 	var ui := get_node_or_null("/root/Game/TouchUI")
 	if ui and ui.has_method("set_context_verb"):
