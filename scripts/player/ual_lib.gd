@@ -89,7 +89,8 @@ const CLIP_MAP := {
 
 ## Install the UAL combat/ambient clips (retargeted + renamed) onto
 ## the hero. Returns the number of clips installed.
-static func install(player: AnimationPlayer, skel: Skeleton3D) -> int:
+static func install(player: AnimationPlayer, skel: Skeleton3D,
+		baked_path := BAKED, ambient_map := {}) -> int:
 	if player == null or skel == null:
 		return 0
 	var root_node: Node = player.get_node_or_null(player.root_node)
@@ -98,7 +99,7 @@ static func install(player: AnimationPlayer, skel: Skeleton3D) -> int:
 	var dst_rel := str(root_node.get_path_to(skel))
 	# the one-time bake loads instantly on the phone; the live bake
 	# (a 30 fps full-rig pass per clip) is only the fallback
-	var raw: AnimationLibrary = load(BAKED)
+	var raw: AnimationLibrary = load(baked_path)
 	var rewrite := false
 	if raw == null or raw.get_animation_list().is_empty():
 		raw = _live_bake(skel, dst_rel)
@@ -109,7 +110,7 @@ static func install(player: AnimationPlayer, skel: Skeleton3D) -> int:
 	var installed: int = raw.get_animation_list().size()
 	if installed == 0:
 		return 0
-	_install_libs(player, raw, dst_rel, rewrite)
+	_install_libs(player, raw, dst_rel, rewrite, ambient_map)
 	return installed
 
 
@@ -144,7 +145,8 @@ static func _live_bake(skel: Skeleton3D,
 ## library, the "combat" renames the five styles expect, and the
 ## ambient additions the style data's paths want.
 static func _install_libs(player: AnimationPlayer,
-		raw: AnimationLibrary, dst_rel: String, rewrite: bool) -> void:
+		raw: AnimationLibrary, dst_rel: String, rewrite: bool,
+		ambient_map := {}) -> void:
 	if rewrite:
 		# re-point every track to this player's skeleton path
 		for an in raw.get_animation_list():
@@ -176,6 +178,16 @@ static func _install_libs(player: AnimationPlayer,
 	if player.has_animation_library("ual"):
 		player.remove_animation_library("ual")
 	player.add_animation_library("ual", raw)
+	# a cast-specific alias set (e.g. the enemy's KayKit-era
+	# names Idle_A / walking_a / Hit_A / Death_A -> UAL clips)
+	if not ambient_map.is_empty():
+		for alias in ambient_map:
+			var src_name: String = String(CLP_NORM(
+					ambient_map[alias]))
+			for an in raw.get_animation_list():
+				if String(an).trim_suffix("_Loop") == src_name:
+					ambient_add.append([alias, raw.get_animation(an)])
+					break
 	# ambient: ADD to the existing library (mixamo_lib built it
 	# with idle_b) - the style data wants "ambient/Idle_B" etc
 	var ambient: AnimationLibrary = null
@@ -195,7 +207,8 @@ static func _install_libs(player: AnimationPlayer,
 ## Animation with one rotation track per mapped dst bone, keys on
 ## a uniform 30 fps grid.
 static func _retarget(anim: Animation, src: Skeleton3D, dst: Skeleton3D,
-		bone_map: Dictionary, dst_rel: String) -> Animation:
+		bone_map: Dictionary, dst_rel: String,
+		arm := Quaternion.IDENTITY) -> Animation:
 	var bone_count := src.get_bone_count()
 	# source rotation tracks: bone name -> [times, quats]
 	var tracks := {}
@@ -233,16 +246,20 @@ static func _retarget(anim: Animation, src: Skeleton3D, dst: Skeleton3D,
 			var dj := dst.find_bone(bone_map[nm])
 			if dj >= 0:
 				src_by_dst[dj] = i
-	# THE LAW THIS BAKER EMBODIES: D(i) = S(i). The shared
-	# reference IS the source's rest pose; the map becomes a pure
-	# world-frame transfer (W_dst = W_src) and the destination's
+	# THE LAW THIS BAKER EMBODIES: D(i) = ARM^-1 * S(i). The shared
+	# reference IS the source's rest pose; the map is a world-frame
+	# transfer (W_dst = ARM^-1 * W_src) and the destination's
 	# RETARGETED PARENT CHAIN absorbs every convention difference
-	# (UE axes, the 104-deg pelvis, A-vs-T) - the earlier lift
-	# construction is falsified: it fixed arm DIRECTION but not the
-	# twist about the arm axis, so a forward jab mapped downward.
+	# (UE axes, the 104-deg pelvis, A-vs-T). ARM is the
+	# skeleton-node rotation relative to the rig root - Mixamo GLBs
+	# carry the glTF axis fix (90 deg X + cm scale) on an Armature
+	# NODE, outside the bone chain (probe-caught: without the term
+	# Michelle's bake stands upright in CHAIN space and renders
+	# lying 90 deg over). The hero's ARM is identity, so D = S
+	# there - the law the punch gate proved.
 	var d_ref := {}
 	for dj in src_by_dst:
-		d_ref[dj] = s_ref[src_by_dst[dj]]
+		d_ref[dj] = arm.inverse() * s_ref[src_by_dst[dj]]
 	# output
 	var step := 1.0 / 30.0
 	var n_samples := int(anim.length / step) + 1

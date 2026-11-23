@@ -10,8 +10,24 @@ extends CharacterBody3D
 ## quarter health after a beat - the street does not stay empty).
 ## Group "npc"; the combat core's cone hits anything in it.
 
-const RIG := "res://assets/native/thug_kaykit_barbarian.tscn"
-const CLS_KayKitLib := preload("res://scripts/player/kaykit_lib.gd")
+## S5.1c: the cast swap - Michelle (realistic textured human,
+## Mixamo-family rig) replaces the KayKit chibi. The clips come
+## from the UAL bake (world-frame transfer with her armature's
+## 90-deg compensation); the KayKit-era clip NAMES the state
+## machine plays stay, aliased onto UAL clips.
+const RIG := "res://assets/native/cast_michelle.tscn"
+const BAKED := "res://assets/native/ual_baked_michelle.res"
+const CLS_UALLib := preload("res://scripts/player/ual_lib.gd")
+
+# the state machine's KayKit-era names -> UAL sources
+const ALIASES := {
+	"Idle_A": "Idle_Loop",
+	"Idle_B": "Crouch_Idle_Loop",
+	"walking_a": "Walk_Loop",
+	"Hit_A": "Hit_Chest",
+	"Hit_B": "Hit_Head",
+	"Death_A": "Death01",
+}
 
 enum State { IDLE, ALERT, APPROACH, TELEGRAPH, SWING, RECOVER,
 		HITSTUN, DOWNED }
@@ -65,12 +81,18 @@ func _ready() -> void:
 		add_child(_rig)
 		_skel = _find(_rig, Skeleton3D) as Skeleton3D
 		_anim = _find(_rig, AnimationPlayer) as AnimationPlayer
+		if _anim == null and _skel != null:
+			# the cast bundle ships no player (no clips of her own)
+			_anim = AnimationPlayer.new()
+			_anim.name = "Anim"
+			_rig.add_child(_anim)
 		if _anim:
 			_anim.root_node = _anim.get_path_to(_rig)
 		if _anim and _skel:
-			var shared: int = CLS_KayKitLib.install(_anim, _skel)
-			if shared < 4:
-				push_error("Thug: the share failed (%d)" % shared)
+			var shared: int = CLS_UALLib.install(_anim, _skel,
+					BAKED, ALIASES)
+			if shared < 40:
+				push_error("Thug: the UAL bake install failed (%d)" % shared)
 		_build_tree()
 	_play("ambient/Idle_A")
 

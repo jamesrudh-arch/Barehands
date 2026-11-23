@@ -8,12 +8,27 @@ extends Node
 
 func _ready() -> void:
 	var lib := load("res://scripts/player/ual_lib.gd")
-	# the destination rig (the bundled native hero)
-	var hscene: PackedScene = load("res://assets/native/hero_rpm.tscn")
-	var hero := hscene.instantiate()
+	# parameterized: -- --dst=res://... --out=res://... (defaults
+	# = the hero); the same baker serves any family rig
+	var dst_path := "res://assets/native/hero_rpm.tscn"
+	var out_path := "res://assets/native/ual_baked.res"
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--dst="):
+			dst_path = a.substr(6)
+		elif a.begins_with("--out="):
+			out_path = a.substr(6)
+	print("BAKE dst=%s out=%s" % [dst_path, out_path])
+	var hscene: PackedScene = load(dst_path)
+	var hero: Node3D = hscene.instantiate()
 	add_child(hero)
 	var dst: Skeleton3D = hero.find_children("*", "Skeleton3D",
 			true, false)[0]
+	# the armature compensation: the skeleton node's rotation
+	# relative to the rig root (the hero's is identity; Mixamo GLBs
+	# carry the 90-deg glTF axis fix on an Armature node)
+	var rel: Transform3D = hero.global_transform.affine_inverse() 			* dst.global_transform
+	var arm: Quaternion = rel.basis.get_rotation_quaternion()
+	print("BAKE arm=%s" % arm)
 	# the source
 	var sscene: PackedScene = load("res://assets/UAL1_Standard.glb")
 	var src_holder := sscene.instantiate()
@@ -31,13 +46,12 @@ func _ready() -> void:
 		for an in slib.get_animation_list():
 			var anim: Animation = slib.get_animation(an)
 			var copy: Animation = lib._retarget(anim, src, dst,
-					bone_map, dst.name)
+					bone_map, dst.name, arm)
 			if copy != null:
 				baked.add_animation(an, copy)
 				count += 1
 	print("BAKE baked=%d clips" % count)
-	var err := ResourceSaver.save(baked,
-			"res://assets/native/ual_baked.res")
+	var err := ResourceSaver.save(baked, out_path)
 	print("BAKE save err=%s" % err)
 
 	# --- the numeric gate on Punch_Jab -------------------------
