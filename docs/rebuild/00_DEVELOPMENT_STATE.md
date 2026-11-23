@@ -46,13 +46,60 @@ optimise → verify → deliver).
 
 ## In progress
 
-**STAGE 4 step 10 — VEHICLES (03 §5 step 10)**: VehicleBody3D + the
-arcade handling profiles as data (D4), enter/exit through the B
-context ("B: ENTER" at a car), the GAS/BRAKE/HANDBRAKE/HORN pills +
-steer on the move stick (06_CONTROL_MAP driving table), engine
-audio, traffic lanes on the avenue (the club district was built
-dense for it). Asset: a proper vehicle model (batch 2 - Kenney cars
-are on disk; pick + convert per D3).
+**STAGE 4 step 11 — THE SYSTEMS PASS (03 §5 step 11)**: the phone
+(calls/messages/contacts driving the story), the ledger/economy
+(cash, debt, purchases - CONTINUE unlocks), heat + trust + reputation
+(the city's memory of the hero), the enemy NPC combat layer on the
+KayKit rigs (damage to the hero, the HUD health bar grows), crowd
+traffic on the avenue. Then step 12 (title 3D), 13 (perf), 14
+(final regression + device report).
+
+## Step 10 — DONE (vehicles)
+
+**smoke_vehicle 20/20** — the car experience is real:
+- VehicleBody3D + 4 VehicleWheel3D per car, the arcade profile as
+  data (data/vehicles/sedan.tres + taxi.tres: engine/brake/steer/
+  handbrake/downforce/seat - the feel knob is the file);
+- B at a car ENTERS (the verb reads ENTER, the hero rides hidden in
+  the seat - the camera rig follows the hero node, so it follows the
+  car with zero camera changes), the pills swap to GAS/BRAKE/
+  HANDBRAKE/HORN, B exits beside the car;
+- real physics: power, braking, steering (counter-steered test),
+  the handbrake, the horn, a looping engine-hum layer pitched by
+  speed (an honest synth placeholder until a CC0 engine loop);
+- cars parked ALONG the street (club avenue: sedan + taxi;
+  neighbourhood: sedan by the plaza); the parked body blocks the
+  hero (layer 2 - pushed by the world and the hero, invisible to
+  the camera arm).
+
+Five banked laws (each cost a run to learn):
+1. **The rider is not a collider**: the hero's capsule sits inside
+   the body while driving - every overlap frame fires depenetration
+   impulses; disable the hero's shape + mask for the ride.
+2. **Spawn at wheel-rest height** (y=0, not a drop): a 0.6 m fall
+   onto the suspension bounces chaotically forever after.
+3. **Never do physics surgery inside the step**: zeroing velocity +
+   sleeping at exit made the body fall through the world (suspension
+   forces stop the moment it sleeps). The driverless car coasts to a
+   halt under a RAMPING parked brake; hero-side exit work is
+   call_deferred (reparenting during a physics callback).
+4. **A drivable world has no voids**: the steer test steered off
+   the road through a side street and the car fell for seconds
+   before the suite noticed - every outdoor area now has a WORLD
+   APRON (420 m, 8 m THICK: a thin plane cannot catch a fast fall -
+   0.83 m/step tunnels straight through).
+5. **Raycast cars need grip to turn**: friction_slip 3.5 +
+   stiffness 80 or the car slides wide at speed; and an instant
+   full brake on a rolling raycast car is the classic simulation
+   explosion (ramp it).
+6. **A riding hero must not trip the gates**: the hero stays in
+   group "player" inside the car - driving through a gate zone
+   would swap AREAS MID-RIDE. Gates now skip bodies carrying the
+   "riding" meta (set by enter/exit). And timing-sensitive suite
+   choreography steers ON THE APRON (200 m of nothing to hit), not
+   between the storefronts - the first battery run's frame pacing
+   turned the car 1.46 rad and ended it in a wall.
+
 
 ## Step 9 — DONE (areas 3-4: the club district + the docks)
 
@@ -271,24 +318,23 @@ Four bugs found and fixed on the way to green, all worth remembering:
 
 ## NEXT ACTION (exact)
 
-1. Commit + push step 9 (smoke_areas 32/32 + the battery).
-2. STEP 10 — vehicles:
-   a. Pick the car model from assets/kits/kenney_cars (or fetch a
-      better CC0 pack if the kit reads poorly), convert native per
-      D3 (FLAG_BUNDLE_RESOURCES), register in the asset register.
-   b. `scripts/world/vehicle.gd`: VehicleBody3D + VehicleWheel3D x4,
-      the arcade profile (engine force, steering speed, brake
-      curves) from data/vehicles/*.tres.
-   c. Enter/exit: the B context at a car ("B: ENTER"), the driving
-      control swap (steer on move stick, GAS/BRAKE/HANDBRAKE/HORN
-      pills per 06_CONTROL_MAP), camera behaviour, engine audio.
-   d. Park 2-3 drivable cars on the club avenue + the neighbourhood
-      street; traffic AI lanes come with the systems pass.
-   e. `tests/smoke_vehicle.gd`: enter, drive (input-driven physics),
-      handbrake slide, horn, exit; render check; battery regression.
-3. THEN step 11 — the systems pass (phone, ledger/economy, heat,
-   trust); step 12 — title 3D + polish; step 13 — perf; step 14 —
-   final regression + the device report.
+1. Commit + push step 10 (smoke_vehicle 20/20 + the battery).
+2. STEP 11 — the systems pass, in order:
+   a. The hero's health + damage (enemies hit back): health on the
+      hero, the HUD health bar, death -> respawn at the last area
+      spawn (no voids: the water needs the same respawn).
+   b. Enemy NPCs on the KayKit rigs (the proven pipeline): a thug
+      with AI (approach, telegraphed swings, hit reactions,
+      downed states), spawned by a probe/mission hook; combat
+      gains targeting + i-frame use.
+   c. The ledger: cash already flows (missions, stashes); DEBT (the
+      story's spine) + CONTINUE unlocking on the menu.
+   d. Heat + trust as WorldState-backed meters with real inputs
+      (crime -> heat, story choices -> trust).
+   e. The phone (apps: messages, contacts, map) as a real screen.
+   f. smoke_systems suite + battery.
+3. THEN steps 12-14: title 3D, perf, final regression + the device
+   report (the V3-format report with VERIFIED/PHONE-ONLY rows).
 
 
 ## Known blockers / watch items

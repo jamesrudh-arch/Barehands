@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="VehicleData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/vehicle_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "sedan"
+display = "THE SEDAN"
+model = "kenney_cars/sedan.glb"
+body_size = Vector3(1.8, 0.85, 4.2)
+wheel_base = 2.6
+track = 1.45
+wheel_r = 0.34
+mass_kg = 640.0
+engine_force = 2600.0
+brake_force = 1800.0
+max_steer_deg = 34.0
+steer_speed = 5.0
+handbrake_force = 1800.0
+downforce = 220.0
+model_scale = 1.55
+seat_offset = Vector3(-0.45, 0.55, 0.25)

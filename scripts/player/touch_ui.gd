@@ -136,10 +136,26 @@ func _build_diamond() -> void:
 			_b_label = lbl
 
 
+const DRIVE_PILLS := [
+	["GAS", "accelerate"], ["BRAKE", "brake"],
+	["HANDBRAKE", "handbrake"], ["HORN", "horn"],
+]
+
+var _foot_pills: Array = []
+var _drive_pills: Array = []
+
+
 func _build_pills() -> void:
-	var x := _safe_right() - 150.0 - 250.0
 	var y := _safe_bottom() - 44.0
-	for entry in PILLS:
+	_foot_pills = _pill_row(PILLS, _safe_right() - 150.0 - 250.0, y)
+	_drive_pills = _pill_row(DRIVE_PILLS, _safe_right() - 150.0 - 250.0, y)
+	for b in _drive_pills:
+		b.visible = false
+
+
+func _pill_row(entries: Array, x: float, y: float) -> Array:
+	var out: Array = []
+	for entry in entries:
 		var label: String = entry[0]
 		var action: String = entry[1]
 		var b := Button.new()
@@ -152,7 +168,20 @@ func _build_pills() -> void:
 		b.button_down.connect(_hold_on.bind(action))
 		b.button_up.connect(_hold_off.bind(action))
 		_root.add_child(b)
+		out.append(b)
 		x += 92.0
+	return out
+
+
+## The driving control swap: on foot pills vs GAS/BRAKE/HANDBRAKE/
+## HORN (06_CONTROL_MAP's driving table).
+func set_driving(on: bool) -> void:
+	for b in _foot_pills:
+		if is_instance_valid(b):
+			b.visible = not on
+	for b in _drive_pills:
+		if is_instance_valid(b):
+			b.visible = on
 
 
 # --- input plumbing -----------------------------------------------------------

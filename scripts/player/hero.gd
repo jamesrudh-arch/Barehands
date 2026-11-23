@@ -57,6 +57,8 @@ func _build_body() -> void:
 	shape.height = 1.75
 	col.shape = shape
 	col.position = Vector3(0, 0.9, 0)
+	# mask 1|2: the world AND the parked cars hold the hero up
+	collision_mask = 3
 	add_child(col)
 
 
@@ -241,8 +243,11 @@ func _actions() -> void:
 			if action == "style" and _combat:
 				_cycle_style()
 			elif action == "dodge":
-				# B at a door answers the door law instead of dodging
-				# (the combat-priority rule returns with enemies)
+				# B at a CAR enters it; at a door it answers the door
+				# law instead of dodging (the combat-priority rule
+				# returns with enemies)
+				if _try_vehicle():
+					return
 				if Doors.context_verb(global_position) != "" \
 						and Doors.try_nearest(self):
 					return
@@ -253,10 +258,18 @@ func _actions() -> void:
 
 
 func context_verb() -> String:
-	# THE B-CONTEXT LAW: near a registered door, B answers the door
-	# (OPEN/TRY/BREAK/LOOK); swinging or mid-fight it stays DODGE
+	# THE B-CONTEXT LAW: a car at arm's reach answers first, then a
+	# registered door (OPEN/TRY/BREAK/LOOK); swinging or mid-fight
+	# it stays DODGE
 	if _combat and (_combat.swinging() or _combat.guarding()):
 		return ""
+	for v in get_tree().get_nodes_in_group("vehicle"):
+		var vn := v as Node3D
+		if vn == null or not is_instance_valid(vn):
+			continue
+		if vn.global_position.distance_to(global_position) < 3.0 \
+				and v.has_method("verb_for"):
+			return str(v.call("verb_for", self))
 	return Doors.context_verb(global_position)
 
 
@@ -279,3 +292,16 @@ func _cycle_style() -> void:
 	var i := order.find(_combat.style_id)
 	_combat.set_style(order[(i + 1) % order.size()])
 	Log.info("Hero: style -> %s" % _combat.style_id)
+
+
+## B at a car: enter it (the car's try_use mounts the hero).
+func _try_vehicle() -> bool:
+	for v in get_tree().get_nodes_in_group("vehicle"):
+		var vn := v as Node3D
+		if vn == null or not is_instance_valid(vn):
+			continue
+		if vn.global_position.distance_to(global_position) < 3.0 \
+				and v.has_method("try_use"):
+			v.call("try_use", self)
+			return true
+	return false

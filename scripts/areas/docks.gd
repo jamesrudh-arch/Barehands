@@ -363,7 +363,8 @@ func _gate(pos: Vector3, to: String, spawn: String, text: String,
 		zone.add_child(col2)
 		g.add_child(zone)
 		zone.body_entered.connect(func(b):
-			if b.is_in_group("player") and not Game._fading:
+			if b.is_in_group("player") and not Game._fading \
+					and not b.get_meta("riding", false):
 				Game.travel(to, spawn))
 
 

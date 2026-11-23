@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="VehicleData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/vehicle_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "taxi"
+display = "THE TAXI"
+model = "kenney_cars/taxi.glb"
+body_size = Vector3(1.8, 0.95, 4.4)
+wheel_base = 2.7
+track = 1.45
+wheel_r = 0.36
+mass_kg = 720.0
+engine_force = 2600.0
+brake_force = 1650.0
+max_steer_deg = 38.0
+steer_speed = 6.5
+handbrake_force = 2700.0
+downforce = 180.0
+model_scale = 1.55
+seat_offset = Vector3(-0.45, 0.55, 0.25)

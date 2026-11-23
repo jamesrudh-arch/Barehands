@@ -12,6 +12,7 @@ extends Node3D
 ## city fill), never a lamp per post.
 
 const CLS_Kit := preload("res://scripts/kit.gd")
+const CLS_Vehicle := preload("res://scripts/world/vehicle.gd")
 
 const PALETTE := {
 	"road": Color(0.055, 0.058, 0.07),
@@ -61,15 +62,26 @@ func _ready() -> void:
 	_subway()
 	_vending()
 	_lamps()
+	_parked()
 	_gates()
 	Log.info("Neighbourhood ready (area=%s spawn=%s, %d fronts)" % [
 			Game.area_id, Game.spawn_id, Doors.door_list().size()])
+
+
+## A sedan parked by the plaza (drivable - the street's one car
+## until the traffic pass fills the lanes).
+func _parked() -> void:
+	CLS_Vehicle.spawn(self, "sedan", Vector3(40.0, 0.05, -3.2), -PI / 2.0)
 
 
 # --- the ground: road + sidewalks -----------------------------------------
 
 
 func _ground() -> void:
+	# THE WORLD APRON: no voids to fall through, ever (the vehicle
+	# step's law - a drivable city has ground everywhere)
+	_solid(self, Vector3(420.0, 8.0, 420.0), Vector3(0, -4.2, 0),
+			Color(0.03, 0.031, 0.04), 0.95)
 	# the road: dark, low-roughness (the wet-night read without a
 	# reflection probe per street - mobile budget). COLLIDERS FIRST:
 	# a mesh-only street is a hole - the whole door block fell
@@ -517,7 +529,8 @@ func _gate(pos: Vector3, to: String, spawn: String, text: String,
 		zone.add_child(col2)
 		g.add_child(zone)
 		zone.body_entered.connect(func(b):
-			if b.is_in_group("player") and not Game._fading:
+			if b.is_in_group("player") and not Game._fading \
+					and not b.get_meta("riding", false):
 				Game.travel(to, spawn))
 	else:
 		# the honest locked gate: solid across the lane, signed

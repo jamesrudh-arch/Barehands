@@ -11,6 +11,7 @@ extends Node3D
 ## + the fill - the avenue GLOWS without a lamp per post.
 
 const CLS_Kit := preload("res://scripts/kit.gd")
+const CLS_Vehicle := preload("res://scripts/world/vehicle.gd")
 
 const PALETTE := {
 	"road": Color(0.05, 0.052, 0.065),
@@ -57,16 +58,30 @@ func _ready() -> void:
 	_side_streets()
 	_crossing()
 	_queue_and_props()
+	_parked()
 	_lamps()
 	_gates()
 	Log.info("Club district ready (area=%s spawn=%s)" % [
 			Game.area_id, Game.spawn_id])
 
 
+## The avenue's parked cars: a sedan by the curb, the taxi at the
+## hotel (both drivable - B at the door).
+func _parked() -> void:
+	CLS_Vehicle.spawn(self, "sedan", Vector3(-12.0, 0.05, 3.2), PI / 2.0)
+	CLS_Vehicle.spawn(self, "taxi", Vector3(-22.0, 0.05, -3.2), -PI / 2.0)
+
+
 # --- the avenue ------------------------------------------------------------
 
 
 func _ground() -> void:
+	# THE WORLD APRON: a huge dark floor under everything - a
+	# drivable city must have no void to fall through (the first
+	# drive test steered off the road through a side street and the
+	# car fell for five seconds before anyone noticed)
+	_solid(self, Vector3(420.0, 8.0, 420.0), Vector3(0, -4.2, 0),
+			Color(0.03, 0.031, 0.04), 0.95)
 	_solid(self, Vector3(STREET_X * 2.0 + 10.0, 0.2, 10.0),
 			Vector3(0, -0.1, 0), PALETTE.road, 0.14, 0.05)
 	for sz in [-1.0, 1.0]:
@@ -396,7 +411,8 @@ func _gate(pos: Vector3, to: String, spawn: String, text: String,
 		zone.add_child(col2)
 		g.add_child(zone)
 		zone.body_entered.connect(func(b):
-			if b.is_in_group("player") and not Game._fading:
+			if b.is_in_group("player") and not Game._fading \
+					and not b.get_meta("riding", false):
 				Game.travel(to, spawn))
 	else:
 		_solid(g, Vector3(0.3, 3.2, 2.8), Vector3(0, 1.6, 0),
