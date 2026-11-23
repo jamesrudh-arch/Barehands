@@ -19,7 +19,7 @@ const FACE := [
 ]
 const PILLS := [
 	["GUARD", "guard"], ["GRAB", "grab"], ["SPRINT", "sprint"],
-	["JUMP", "jump"], ["LOCK", "lock"],
+	["JUMP", "jump"], ["LOCK", "lock"], ["GUN", "draw"],
 ]
 
 const STICK_R := 86.0

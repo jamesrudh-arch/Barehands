@@ -18,6 +18,7 @@ extends CharacterBody3D
 const CLS_MixamoLib := preload("res://scripts/player/mixamo_lib.gd")
 const CLS_UALLib := preload("res://scripts/player/ual_lib.gd")
 const CLS_Combat := preload("res://scripts/player/combat.gd")
+const CLS_Gun := preload("res://scripts/player/gun.gd")
 const RIG := "res://assets/native/hero_rpm.tscn"
 
 const WALK_SPEED := 3.1
@@ -46,6 +47,7 @@ var _yaw := 0.0
 var _vel_y := 0.0
 var _grounded := true
 var _combat: Node = null
+var _gun: Node = null
 
 
 func _ready() -> void:
@@ -148,6 +150,10 @@ func _build_tree() -> void:
 	_combat = CLS_Combat.new()
 	add_child(_combat)
 	_combat.mount(_anim, _tree)
+	_gun = CLS_Gun.new()
+	_gun.name = "Gun"
+	add_child(_gun)
+	_gun.mount(self, _anim, _tree, _rig)
 	face_action.connect(func(a): _combat.on_action(a))
 
 
@@ -201,6 +207,8 @@ func _var_stick_processing(delta: float) -> void:
 	var max_speed := RUN_SPEED if (sprint and not crouching) else WALK_SPEED
 	if crouching:
 		max_speed = 1.6
+	if _gun and _gun.drawn:
+		max_speed *= CLS_Gun.SPEED_SCALE  # the aimed shuffle
 	# camera-relative movement
 	var cam := get_viewport().get_camera_3d()
 	var fwd := Vector3(0, 0, -1)
@@ -258,10 +266,16 @@ func set_crouch(on: bool) -> void:
 ## hook) and face actions signal the combat layer (step 5).
 func _actions() -> void:
 	for action in ["punch", "heavy", "kick", "dodge", "guard", "grab",
-			"sprint", "jump", "lock", "style", "super", "phone"]:
+			"sprint", "jump", "lock", "style", "super", "phone", "draw"]:
 		if Input.is_action_just_pressed(action):
 			last_action = action
-			if action == "style" and _combat:
+			if action == "draw" and _gun:
+				_gun.toggle()
+			elif action == "punch" and _gun and _gun.drawn:
+				_gun.fire()
+			elif action == "heavy" and _gun and _gun.drawn:
+				_gun.reload()
+			elif action == "style" and _combat:
 				_cycle_style()
 			elif action == "dodge":
 				# B at a CAR enters it; at a door it answers the door

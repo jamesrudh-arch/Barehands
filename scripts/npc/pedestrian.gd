@@ -152,8 +152,7 @@ func _new_stretch() -> void:
 	# back to the walk clip if we fled
 	if _tree and _tree.active \
 			and _anim.has_animation("ambient/walking_a"):
-		_tree.set("parameters/walk/animation",
-				_anim.get_animation("ambient/walking_a"))
+		_swap_walk_clip("ambient/walking_a")
 	_dir = -_dir if _rng.randf() < 0.7 else _dir
 	_target_x = clampf(_dir * _rng.randf_range(8.0, 46.0), -52.0, 30.0)
 
@@ -186,8 +185,7 @@ func _step_towards(target: Vector3, speed: float,
 func _play_run() -> void:
 	if _tree and _tree.active \
 			and _anim.has_animation("ambient/running_a"):
-		_tree.set("parameters/walk/animation",
-				_anim.get_animation("ambient/running_a"))
+		_swap_walk_clip("ambient/running_a")
 		_blend = 1.0
 	elif _anim and _anim.has_animation("ambient/running_a") \
 			and not _tree:
@@ -233,6 +231,18 @@ func _build_tree() -> void:
 	root.connect_node("output", 0, "blend")
 	_tree.tree_root = root
 	_tree.active = true
+
+
+## The clip swap law (probe-caught): the tree parameter path
+## 'parameters/<node>/animation' is a SILENT NO-OP - the blend
+## tree's own node is the writable target.
+func _swap_walk_clip(clip: String) -> void:
+	var bt := _tree.tree_root as AnimationNodeBlendTree
+	if bt == null:
+		return
+	var node := bt.get_node("walk") as AnimationNodeAnimation
+	if node:
+		node.animation = StringName(clip)  # a StringName clip id
 
 
 func _first(keys: Array) -> StringName:

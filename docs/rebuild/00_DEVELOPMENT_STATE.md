@@ -173,15 +173,49 @@ PROBE LAWS (expensive - four were new):
 Open nit: the doorway interior is a flat glow panel (no depth
 gradient) - the interior dressing is occluded by it.
 
+## S5.4 — THE PISTOL (first system of the roadmap)
+
+Draw, aim stance, fire, auto-reload, holster - the UAL pistol set
+on the hero's own bake. gun.gd rides the hero: the 'draw' action
+(G key / pad 10 / the GUN touch pill) toggles; while drawn the
+locomotion tree's idle/walk/run nodes swap to combat/Pistol_Idle
+(the aimed shuffle, movement x0.55), the punch button fires and
+the heavy button reloads. A code-built noir hand-cannon (~1.6x
+scale, the readability law) bolts to the RightHand bone via
+BoneAttachment3D - BUILT IN HAND SPACE (probe-measured at the aim
+pose: hand +X points at the target, +Z is up; the first build ran
+along +Z and pointed at the sky). The shot: a cone hitscan
+(reach 34, arc 0.22 - sniper-tight 0.15 lost circling enemies),
+closest target takes 26 + knockback through the SAME take_hit the
+punches use (proven Hit_A/Hit_B reactions); dry shots roll
+straight into the reload; 12+24 ammo, HUD 'PISTOL n / n' top-
+right. The muzzle flash: an emissive box + a MOMENTARY OmniLight
+(energy 5, 0.13s) - LUMINANCE-PROVEN (scene mean 47.5 -> 68.7 on
+the shot frame, bright pixels x3) though a LOCALIZED burst needs
+real-hardware bloom (the door-glow emission law again).
+smoke_pistol 10/10; combat_r 28, hero 30 green.
+TWO NEW PROBE LAWS:
+1. 'parameters/<node>/animation' on an AnimationTree is a SILENT
+   NO-OP for AnimationNodeAnimation - the blend tree's own node
+   (.animation, a StringName) is the only writable target; this
+   no-op had also hidden the pedestrian's flee sprint swap (fixed
+   the same way - the flee speed came from velocity, the clip
+   never swapped).
+2. Freeze a circling enemy for staged captures (set_physics_process
+   off) - it rotates the hero out of any fixed camera.
+Open nits: the localized muzzle-burst read (bloom), the enemy
+flinch capture timing (the reaction itself is the proven take_hit
+chain), no aim reticle yet, no holster-slot UI.
+
 ## NEXT ACTION (exact)
 
-1. S5.4 per the LEVERAGE roadmap: police heat, phone 2.0 +
-   missions M2-M6, weapons (the UAL pistol set is already
-   retargeted + baked), vehicles, map/GPS, rain, audio,
-   progression.
-2. Open nits: Soldier's jab twist (walker-only), walk counter-arm
-   swing, swing-to-hero contact frame, doorway interior depth,
-   traffic headlight sweep.
+1. S5.4 continued: police heat (take_hit on DOWNED bumps heat
+   already - build the cop response + decay), phone 2.0 +
+   missions M2-M6 (M1's RAIN GLASS delivery exists), vehicles
+   (the sedan is drivable), map/GPS, rain, audio, progression.
+2. Open nits: Soldier's jab twist, walk counter-arm swing,
+   swing-to-hero contact frame, doorway interior depth, traffic
+   headlight sweep, pistol reticle.
 
 ## Known blockers / watch items
 

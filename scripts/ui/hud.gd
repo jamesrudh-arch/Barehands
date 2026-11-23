@@ -15,6 +15,8 @@ var _meter: ProgressBar
 var _rank_label: Label
 var _cash: Label
 var _combo: Label
+var _ammo_label: Label = null
+var _gun: Node = null
 var _style: Label
 var _verb: Label
 var _heat_line: Label
@@ -90,6 +92,23 @@ func _ready() -> void:
 	_combo.add_theme_color_override("font_color", Color(0.95, 0.96, 0.99))
 	_combo.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(_combo)
+	# the ammo counter (top-right under the combo line; only when
+	# the pistol is drawn)
+	_ammo_label = Label.new()
+	_ammo_label.name = "AmmoLine"
+	_ammo_label.text = ""
+	_ammo_label.anchor_left = 1.0
+	_ammo_label.anchor_right = 1.0
+	_ammo_label.offset_left = -120.0
+	_ammo_label.offset_right = -24.0
+	_ammo_label.offset_top = 68.0
+	_ammo_label.offset_bottom = 92.0
+	_ammo_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_ammo_label.add_theme_font_size_override("font_size", 18)
+	_ammo_label.add_theme_color_override("font_color",
+			Color(1.0, 0.85, 0.45))
+	_ammo_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(_ammo_label)
 	# bottom-centre-left: the current style
 	_style = Label.new()
 	_style.name = "StyleLine"
@@ -145,6 +164,15 @@ func _build_wheel(root: Control) -> void:
 
 
 func _process(_delta: float) -> void:
+	# the gun's ammo readout (hooked once - the gun rides the hero)
+	if _gun == null:
+		var hero := get_tree().get_first_node_in_group("player")
+		if hero:
+			_gun = hero.get_node_or_null("Gun")
+			if _gun:
+				_gun.ammo_changed.connect(_on_ammo)
+				if _gun.drawn:
+					_on_ammo(_gun.ammo, _gun.reserve)
 	_tick += 1
 	if _tick % 3 != 0:  # ~20 Hz: readouts do not need every frame
 		return
@@ -198,3 +226,11 @@ func _combat() -> Node:
 
 func _exit_tree() -> void:
 	Engine.time_scale = 1.0  # never leave the world slowed
+
+func _on_ammo(in_clip: int, reserve: int) -> void:
+	if _ammo_label == null:
+		return
+	if in_clip < 0:
+		_ammo_label.text = ""
+	else:
+		_ammo_label.text = "PISTOL %d / %d" % [in_clip, reserve]
