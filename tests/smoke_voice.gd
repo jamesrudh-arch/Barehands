@@ -92,6 +92,48 @@ func _ready() -> void:
 			% str(vp.stream.resource_path if vp and vp.stream else "none"))
 	Dialogue.call("_close")
 
+	# 4b. B31: the CONDITIONAL variants play by their TEXT key - the
+	# rep/heat lines whose run slot shifts with the district's mood
+	var variants := [
+		["velvet", "The street likes you. So do I, a little. Prices stay honest."],
+		["velvet", "The street doesn't like you. That makes my counters costlier. Business is business."],
+		["mama_sun", "The street says you break things. Eat somewhere else until it stops saying that."],
+		["kessler", "Your name's on three reports tonight. Disappear for a while or I start collecting."],
+	]
+	var have_all := true
+	for v in variants:
+		var digest: String = str(v[1]).md5_text().substr(0, 8)
+		if not ResourceLoader.exists(
+				"res://assets/voice/%s_m%s.wav" % [str(v[0]), digest]):
+			have_all = false
+	_check(have_all, "all four conditional variants are recorded (by text md5)")
+	# the REAL run shape: the variant lands on slot 3, where no
+	# velvet_03 exists - the text key takes over exactly as it does
+	# in the street (base lines first, then the district-mood line)
+	Dialogue.run([
+		{"speaker": "Velvet", "color": Color(0.55, 0.3, 0.35),
+			"voice_id": "velvet",
+			"text": "You're the one burning through my neighbourhood. Bullets aren't sold, they're rented - from your wallet."},
+		{"speaker": "Velvet", "color": Color(0.55, 0.3, 0.35),
+			"voice_id": "velvet",
+			"text": "Five dollars leaves you the moment the hammer drops. The ledger keeps the receipts. Browse."},
+		{"speaker": "Velvet", "color": Color(0.55, 0.3, 0.35),
+			"voice_id": "velvet",
+			"text": "The street likes you. So do I, a little. Prices stay honest."},
+	])
+	await get_tree().create_timer(0.2).timeout
+	# the advance laddering: each _advance first completes the current
+	# line's reveal, the NEXT one moves on - four taps walk 3 lines
+	for i in 4:
+		Dialogue.call("_advance")
+		await get_tree().create_timer(0.25).timeout
+	var vp2: AudioStreamPlayer = Dialogue.get("_voice")
+	_check(vp2 != null and vp2.playing and vp2.stream != null
+			and str(vp2.stream.resource_path).contains("velvet_m"),
+			"the rep variant plays by its TEXT key (%s)"
+			% str(vp2.stream.resource_path if vp2 and vp2.stream else "none"))
+	Dialogue.call("_close")
+
 	# 5. an unrecorded line falls back down the old ladder - no phantom
 	# clip, no crash, the subtitle still shows
 	Narrator.say("A line nobody ever recorded.", "CREW")

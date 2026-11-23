@@ -161,9 +161,15 @@ func _show_line() -> void:
 		Music.duck(-7.0, 1.0)
 
 
-## Voice hook: plays assets/voice/<voice_id>_<n>.wav if the recording exists.
+## Voice hook: plays assets/voice/<voice_id>_<n>.wav if the recording
+## exists, then the B31 per-TEXT name <voice_id>_m<md5-8>.wav for the
+## rep/heat conditional variants (their run slot shifts with the
+## district's mood - the TEXT is the stable key, never the index).
 func _play_voice() -> void:
 	var path := "res://assets/voice/%s_%02d.wav" % [_voice_id, _line + 1]
+	if not ResourceLoader.exists(path):
+		var m := _full_text.md5_text()
+		path = "res://assets/voice/%s_m%s.wav" % [_voice_id, m.substr(0, 8)]
 	if ResourceLoader.exists(path):
 		_voice.stream = load(path)
 		_voice.play()

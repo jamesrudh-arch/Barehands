@@ -1,5 +1,23 @@
 # CHANGELOG.md — batch history (newest first)
 
+## B31 — THE DISTRICT MOOD, IN HER OWN VOICE (2026-11-23, the production mandate Section 12)
+
+- **THE CONDITIONAL VARIANTS**: the cast's rep/heat lines - the ones
+  whose run slot shifts with the district's mood - are recorded too.
+  dialogue.gd's hook now falls from `<id>_<n>.wav` to
+  `<id>_m<md5-8>.wav`: the TEXT is the stable key, never the index,
+  so Velvet's friendly counter ("The street likes you. So do I, a
+  little."), her hostile one ("Business is business."), Mama Sun's
+  eat-somewhere-else and Kessler's your-name-is-on-three-reports
+  each have their own take (35 real recordings in the bank).
+  `smoke_voice` grows to 13/13 - the variant leg walks the REAL
+  3-line run (base lines on slots 1-2, the mood line on slot 3 where
+  no numbered take exists) and the text-key take plays:
+  `velvet_ma39830df.wav`. Two suite-leg lessons caught in review:
+  a variant run as line 1 collides with the numbered take (it never
+  does in the street - the mood line is always third), and the
+  advance ladder completes a reveal before it moves on.
+
 ## B30 — THE DRUNKEN CHAIN (2026-11-23, the production mandate Section 9)
 
 - **DRUNKEN COMPLETE (Section 9 - the last combat discipline reads

@@ -11,6 +11,7 @@ Texts are WORD-FOR-WORD the subtitles the game shows (cast.gd /
 narrator.gd); voice/speed per speaker from VOICE_MAP. Re-run safe:
 skips files that already exist and pass the size check.
 """
+import hashlib
 import pathlib
 import subprocess
 import sys
@@ -89,39 +90,60 @@ SPEAKERS = {
 # narrator clip number -> LINES key the game asks for
 NARRATOR_KEYS = {1: "call_demand", 2: "call_invite", 3: "voicemail"}
 
+# B31: the rep/heat CONDITIONAL variants. Their run slot shifts with
+# the district's mood, so dialogue.gd looks them up by the TEXT's
+# md5 prefix: <voice_id>_m<md5-8>.wav (the text is the stable key).
+CONDITIONALS = [
+    ("velvet", "kazi", 1.0,
+        "The street likes you. So do I, a little. Prices stay honest."),
+    ("velvet", "kazi", 1.0,
+        "The street doesn't like you. That makes my counters costlier. Business is business."),
+    ("mama_sun", "tongtong", 1.05,
+        "The street says you break things. Eat somewhere else until it stops saying that."),
+    ("kessler", "kazi", 0.88,
+        "Your name's on three reports tonight. Disappear for a while or I start collecting."),
+]
+
 
 def main() -> int:
     OUT.mkdir(parents=True, exist_ok=True)
     made = skipped = failed = 0
+    jobs = []
     for voice_id, clips in SPEAKERS.items():
         for clip_no, tts_voice, speed, text in clips:
-            name = f"{voice_id}_{clip_no:02d}.wav"
-            path = OUT / name
-            if path.exists() and path.stat().st_size > 20000:
-                skipped += 1
-                continue
-            cmd = ["z-ai", "tts", "-i", text, "-o", str(path),
-                   "--voice", tts_voice, "--speed", str(speed),
-                   "--format", "wav"]
-            ok = False
-            for attempt in range(4):
-                r = subprocess.run(cmd, capture_output=True, text=True,
-                                   timeout=180)
-                ok = path.exists() and path.stat().st_size > 20000
-                if ok:
-                    break
-                # 429 rate limit: back off and try the clip again
-                time.sleep(6.0 + attempt * 6.0)
-            # a small gap between clips keeps the API friendly
-            time.sleep(1.5)
+            jobs.append((f"{voice_id}_{clip_no:02d}.wav", tts_voice, speed, text))
+    for voice_id, tts_voice, speed, text in CONDITIONALS:
+        digest = hashlib.md5(text.encode("utf-8")).hexdigest()[:8]
+        jobs.append((f"{voice_id}_m{digest}.wav", tts_voice, speed, text))
+    for name, tts_voice, speed, text in jobs:
+        path = OUT / name
+        if path.exists() and path.stat().st_size > 20000:
+            skipped += 1
+            continue
+        cmd = ["z-ai", "tts", "-i", text, "-o", str(path),
+               "--voice", tts_voice, "--speed", str(speed),
+               "--format", "wav"]
+        ok = False
+        r = None
+        for attempt in range(4):
+            r = subprocess.run(cmd, capture_output=True, text=True,
+                               timeout=180)
+            ok = path.exists() and path.stat().st_size > 20000
             if ok:
-                made += 1
-                print(f"VOICE ok: {name} ({tts_voice} @{speed}) "
-                      f"{path.stat().st_size} bytes")
-            else:
-                failed += 1
-                print(f"VOICE FAIL: {name}: {r.stdout.strip()[-120:]} "
-                      f"{r.stderr.strip()[-120:]}")
+                break
+            # 429 rate limit: back off and try the clip again
+            time.sleep(6.0 + attempt * 6.0)
+        # a small gap between clips keeps the API friendly
+        time.sleep(1.5)
+        if ok:
+            made += 1
+            print(f"VOICE ok: {name} ({tts_voice} @{speed}) "
+                  f"{path.stat().st_size} bytes")
+        else:
+            failed += 1
+            print(f"VOICE FAIL: {name}: "
+                  f"{(r.stdout.strip()[-120:] if r else '?')} "
+                  f"{(r.stderr.strip()[-120:] if r else '?')}")
     print(f"VOICE RESULT: {made} made, {skipped} kept, {failed} failed")
     return 1 if failed else 0
 
