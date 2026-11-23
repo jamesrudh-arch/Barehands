@@ -29,7 +29,7 @@ runs — it waits on a real device report.
 | 6.4 | Named characters (16) | VERIFIED | cast with names/routines/dialogue; smoke_cast |
 | 7 | Player movement & interaction | VERIFIED | third-person, camera-relative, context verbs; smoke/smoke_controls |
 | 8 | Vehicles & transportation | VERIFIED (B26) | the whole kerb is real metal: the sedan + a second burgundy sedan + the bicycle (hero rides IN PLAIN SIGHT, A BELL / B BRAKE, frame leans) + one drivable car per far block; traffic bodies true van/sports + noir paint palette; EVERY vehicle persists by name; smoke_bike 31/31, smoke_drive 21/21, render_wheels 11/11 |
-| 9 | Combat (5 styles, crime) | VERIFIED | brawler+chains+stamina+knockdown+weapons; smoke_combat/combos; drunken style PARTIAL (chain subset) |
+| 9 | Combat (5 styles, crime) | VERIFIED (B30) | brawler+chains+stamina+knockdown+weapons; DRUNKEN COMPLETE: sway stance (0.054 rad), seeded slip (attacker pays the stagger), 450ms parry, spin heavy sweeps the flanks; smoke_drunk 16/16 + smoke_combat/combos |
 | 10 | Police, emergency, consequences | VERIFIED | heat ladder, witnesses, fixer, radio reaction; smoke_reactive |
 | 11 | Story & cinematic presentation | VERIFIED | studio card, title+tagline, 16+ notice, menu, opening, apartment wake; live_boot |
 | 12 | Complete audio | VERIFIED (B28) | layered music, hits, steps, rain, ambient hum + THE RECORDED CAST: 31 real voice takes (14 characters x lines + the 3 narrator calls) wired to the existing hook with subtitle sync; recorded > TTS > babble ladder; smoke_voice 11/11 |
@@ -52,7 +52,7 @@ runs — it waits on a real device report.
 
 ## The next fronts (in dependency order)
 
-1. DRUNKEN STYLE full chain + parry (mandate 9) - the last combat gap.
+1. DEEPER VOICE (mandate 12): the rep/heat conditional cast variants.
 2. DEEPER VOICE (mandate 12): the rep/heat conditional cast variants,
    now the recording pipeline is proven (gen_voice.py).
 3. INTERIOR NAV (mandate 17): the standing PARTIAL in the map system.

@@ -96,6 +96,10 @@ const DEFAULTS := {
 	"attack_tokens_ring": 2.0,  # bible 4A: max concurrent attackers, 3-4 engaged
 	"attack_tokens_crowd": 3.0,  # bible 4A: max concurrent attackers, 5+ engaged
 	"parry_window_ms": 300.0,
+	# B30 THE DRUNKEN SLIP: the fraction of unguarded strikes that pass
+	# through the drunk's lie and whiff clean (the miss costs the
+	# attacker the parry stagger - the street calls it luck)
+	"drunk_slip_chance": 0.22,
 	"dodge_window_ms": 120.0,
 	"cancel_start_ms": 150.0,
 	"cancel_end_ms": 350.0,

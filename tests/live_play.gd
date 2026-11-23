@@ -136,20 +136,16 @@ func _ready() -> void:
 	var cars := get_tree().get_nodes_in_group("traffic").size()
 	_check(cars >= 1, "cars are spawned (%d)" % cars)
 
-	# --- PHASE 5: the noodle shop (walk in through the door) ---------------
+	# --- PHASE 5: the noodle shop (walk to the shop front) ------------------
+	# HONEST SCOPE (the suite's own comment, finally true): the live
+	# harness walks to the shop FRONT; the door-zone ENTRY into the
+	# furnished room is proven headless by smoke_interiors. The old
+	# call-based enter() "rescue" ran exactly when the walk SUCCEEDED
+	# (x < 700 at the front) and teleported the hero to the interior -
+	# its own comment said it "stalled mid-fade"; it is gone.
 	await _walk_plain(Vector3(-6.6, 0.02, 8.2), 20.0,
 			func() -> bool: return _player.global_position.x > 700.0)
-	if _player.global_position.x < 700.0:
-		# use the REAL entry path (fade + designed pose + camera snap -
-		# the same function the door zone calls; only the walk through
-		# the zone is skipped, and that is proven by smoke_interiors).
-		# Hand-rolled teleports kept parking the follow camera outside
-		# the room's back wall - all-black frames.
-		var shop := get_tree().get_first_node_in_group("interior")
-		if shop and shop.has_method("enter"):
-			shop.call("enter")
-			await _wait(2.6)
-	await _wait(1.0)  # the interior settle
+	await _wait(1.0)  # the settle
 	var cam7 := get_viewport().get_camera_3d()
 	print("LUMPROBE cam=", str(cam7.global_position.round()) if cam7 else "?",
 			" hero=", str(_player.global_position.round()),

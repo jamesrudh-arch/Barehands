@@ -104,6 +104,10 @@ var _combo_anim_i := 0   # next anim beat to play
 var _combo_spin_from := 0.0
 var _powerbomb_pending := false  # Y,B pressed while the grab was still closing
 var _punch_heavy := false
+# B30 THE DRUNKEN CHAIN: the tipsy spin (the heavy whirls the whole
+# body) + the seeded slip RNG (deterministic for the suites)
+var _spin_until := -1.0
+var _drunk_rng := RandomNumberGenerator.new()
 var _punch_t := 0.0
 var _punch_hit_done := false
 var _punch_buffered_at := -99.0
@@ -135,6 +139,8 @@ func _ready() -> void:
 	hit_landed.connect(func(_k: String, _d: int) -> void: Progression.add_xp(1.0, "hit"))
 	add_to_group("player")
 	_rig._velocity_fn = func() -> Vector3: return velocity  # drives the coat sway
+	# B30: the slip's dice - seeded once, reseedable by the suites
+	_drunk_rng.seed = 13
 	# B26 (the smoke_guide finding, broken since B24): a FRESH install
 	# wakes the hero in the APARTMENT wherever the boot comes from - the
 	# menu's PLAY re-affirms it, the first-run picker leads to it, and a
@@ -366,6 +372,14 @@ func _start_punch(stage: int, heavy: bool) -> void:
 	_punch_hit_done = false
 	_punch_buffered_at = -99.0
 	_punch_variant = "super" if stage == 4 else _stick_variant()
+	# B30 THE DRUNKEN SPIN: the drunk's heavy is the tipsy whirl - the
+	# backfist arrives from the wrong side every time (the kick and the
+	# super keep their own shapes)
+	if heavy and Styles.current == "drunken" and stage != 4 and stage != 5:
+		_punch_variant = "spin"
+		_spin_until = _t + 0.38
+	else:
+		_spin_until = -1.0
 	# a heavy always starts its own swing; a light chains from where it is
 	if heavy and stage != 4:
 		_punch_stage = 3
@@ -434,11 +448,17 @@ func _punch_step(delta: float) -> void:
 		_punch_buffered_at = _t
 	_gravity(delta)
 	_punch_t += delta
+	# B30 THE DRUNKEN SPIN: the whirl carries the whole body round
+	if _t < _spin_until:
+		_body.rotation.y += delta * (TAU / 0.38)
 	velocity.x = move_toward(velocity.x, 0.0, 9.0 * delta)
 	velocity.z = move_toward(velocity.z, 0.0, 9.0 * delta)
 	if not _punch_hit_done and _punch_t >= _impact_time():
 		_punch_hit_done = true
 		_land_punch()
+		# the spin's far side: the flanks eat the whirl
+		if _punch_variant == "spin":
+			_drunk_spin_sweep()
 	# while a chain link is buffered and this swing's hit has landed, keep
 	# stepping toward the target so the early chain connects: the cross's
 	# knockback must not eat the hook (same rule as the stage-6 strings)
@@ -944,6 +964,25 @@ func take_hit(dir: Vector3, from: CharacterBody3D = null) -> String:
 	dir = dir.normalized()
 	if state == State.DODGE:
 		return "hit"  # resolved by the enemy via dodge_age() before this
+	# B30 THE DRUNKEN SLIP: the drunk's body lies about where it is - a
+	# fifth of everything thrown at an unguarded drunk goes THROUGH the
+	# spot he seemed to be. No damage, no stun, and the miss costs the
+	# attacker the stagger (the street calls it luck; the Drunk calls it
+	# footwork). The seeded RNG keeps it honest for the suites.
+	if Styles.current == "drunken" and state == State.GROUND \
+			and not Composure.guard_broken() \
+			and _drunk_rng.randf() < Tuning.v("drunk_slip_chance"):
+		velocity.x = dir.x * 2.4
+		velocity.z = dir.z * 2.4
+		velocity.y = 0.7
+		_rig.play("Dodge_Roll", 0.06, 1.6)  # the lurch that was the lie
+		Fx.burst(global_position + Vector3.UP * 1.1, Color(0.85, 0.75, 0.3))
+		Fx.emit_hit("slip", global_position + Vector3.UP * 1.1)
+		if from and from.has_method("parried"):
+			from.parried()  # the whiff pays like a parry
+		Tactics.record_player_move("slip")
+		Log.info("Player: THE SLIP - the punch went through smoke")
+		return "parried"
 	if state == State.BLOCK and not Composure.guard_broken():
 		# a broken guard stops nothing: the strike goes through
 		if _block_t <= _parry_window():
@@ -1629,6 +1668,34 @@ func _gravity(delta: float) -> void:
 		velocity.y = maxf(velocity.y - GRAVITY * delta, -30.0)
 
 
+## B30: the spin heavy catches the flanks - everyone inside the
+## whirl's radius eats the backfist's far side. The street learns to
+## not stand behind a drunk.
+func _drunk_spin_sweep() -> void:
+	var swept := 0
+	for e in get_tree().get_nodes_in_group("enemy"):
+		var en := e as CharacterBody3D
+		if en == null or not is_instance_valid(en):
+			continue
+		if not en.has_method("take_hit"):
+			continue
+		if en.state in [CLS_Enemy.State.DOWN, CLS_Enemy.State.GRABBED,
+				CLS_Enemy.State.LAUNCHED]:
+			continue
+		var to := en.global_position - global_position
+		to.y = 0.0
+		if to.length() > 1.65:
+			continue
+		var d := to.normalized()
+		en.take_hit(d, "hit")
+		Fx.burst(en.global_position + Vector3.UP * 1.3, Color(0.85, 0.75, 0.3))
+		_style_add("spin_sweep", en)
+		hit_landed.emit("spin_sweep", 1)
+		swept += 1
+	if swept > 0:
+		Log.info("Player: the whirl swept %d from the flanks" % swept)
+
+
 func _drive_anim() -> void:
 	if driving:
 		return  # aboard: the seated pose set on boarding stays put
@@ -1651,3 +1718,12 @@ func _drive_anim() -> void:
 	else:
 		_rig.play("Sprint", 0.25)
 		_rig.set_speed(clampf(speed / 5.6, 0.75, 1.5))
+	# B30 THE DRUNKEN SWAY: the drunk never stands where you look - a
+	# slow off-axis roll through the idle and the walk, the stance
+	# nobody can read twice. Brawler stands square (the roll dies to 0).
+	if Styles.current == "drunken" and state == State.GROUND \
+			and _t >= _land_until:
+		_body.rotation.z = lerpf(_body.rotation.z,
+				sin(_t * 4.6) * 0.055, 0.3)
+	else:
+		_body.rotation.z = lerpf(_body.rotation.z, 0.0, 0.25)

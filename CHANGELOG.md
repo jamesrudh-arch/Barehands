@@ -1,5 +1,31 @@
 # CHANGELOG.md — batch history (newest first)
 
+## B30 — THE DRUNKEN CHAIN (2026-11-23, the production mandate Section 9)
+
+- **DRUNKEN COMPLETE (Section 9 - the last combat discipline reads
+  full)**: THE SWAY - an off-axis body roll through the idle and the
+  walk, the stance nobody reads twice (measured 0.054 rad under
+  drunken, 0.000 under brawler); THE SLIP - a seeded fifth of
+  everything thrown at an unguarded drunk passes through smoke: no
+  damage, no stun, and the miss costs the ATTACKER the parry stagger
+  (`drunk_slip_chance` 0.22 in Tuning; the RNG is seeded so the
+  suites are honest); THE WIDE PARRY - 1.5x window, 450 ms live; THE
+  SPIN HEAVY - the tipsy whirl: the whole body carries round in
+  0.38 s, the backfist arrives from the wrong side, and everyone
+  inside 1.65 m of the flank eats the far side as its own style move
+  (`spin_sweep`). The brawler contrast is proven: no whirl, the
+  flank is safe, the front still pays. `smoke_drunk` NEW 16/16.
+- **A live_play FLAKE root-caused and removed**: its enter() "rescue"
+  ran exactly when the shop-front walk SUCCEEDED (x < 700 at the
+  front) and teleported the hero into the interior - failing the
+  walk check it was meant to protect. The block contradicted the
+  suite's own honest-scope comment (a call-based enter() "stalled
+  mid-fade") and predated the walk-to-front scope. Deleted; the leg
+  is deterministic and passes twice.
+- **REGRESSION AT FINAL CODE**: drunk 16/16, combat, combos 61,
+  face 31, controls 55, smoke, difficulty 22, progression 23,
+  kidnap 62, null_watch 992 frames 0 fails, live_play 12/12 x2.
+
 ## B29 — THE DRESSED STREET (2026-11-23, the production mandate Sections 4.3/21)
 
 - **FACADE JEWELRY (Section 4.3 - high-grade environment art)**: the
