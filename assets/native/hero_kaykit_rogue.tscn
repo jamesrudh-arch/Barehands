@@ -223,12 +223,12 @@ _surfaces = [{
 }]
 blend_shape_mode = 0
 
-[node name="Rogue" type="Node3D" unique_id=1325744839]
-transform = Transform3D(1, -7.4175796e-07, 4.4448117e-07, 6.076064e-07, 0.2369874, -0.97151273, 6.152909e-07, 0.97151273, 0.2369874, 0, 0, 0)
+[node name="Rogue" type="Node3D" unique_id=1938676334]
+transform = Transform3D(1, -7.379642e-07, 4.2958138e-07, 6.04498e-07, 0.25650123, -0.9665439, 6.0308673e-07, 0.9665439, 0.25650123, 0, 0, 0)
 
-[node name="Rig_Medium" type="Node3D" parent="." unique_id=454311672]
+[node name="Rig_Medium" type="Node3D" parent="." unique_id=147361016]
 
-[node name="Skeleton3D" type="Skeleton3D" parent="Rig_Medium" unique_id=472019798]
+[node name="Skeleton3D" type="Skeleton3D" parent="Rig_Medium" unique_id=967538063]
 bones/0/name = "root"
 bones/0/parent = -1
 bones/0/rest = Transform3D(1, 0, 2.3841855e-07, 0, 1, 0, -2.3841855e-07, 0, 1, 0, 0, 0)
@@ -240,7 +240,7 @@ bones/1/name = "hips"
 bones/1/parent = 0
 bones/1/rest = Transform3D(1, 0, -2.3841855e-07, 0, 1, 0, 2.3841855e-07, 0, 1, 0, 0.40566343, 0)
 bones/1/enabled = true
-bones/1/position = Vector3(0, 0.32875153, 0)
+bones/1/position = Vector3(4.3561184e-18, 0.33263245, 1.0385796e-24)
 bones/1/rotation = Quaternion(0, -1.19209275e-07, 0, 1)
 bones/1/scale = Vector3(1, 1, 1)
 bones/2/name = "upperleg.l"
@@ -304,14 +304,14 @@ bones/10/parent = 1
 bones/10/rest = Transform3D(1, 0, 1.4210855e-14, 0, 1, 0, -1.4210855e-14, 0, 1, 0, 0.1919775, 0)
 bones/10/enabled = true
 bones/10/position = Vector3(0, 0.1919775, 0)
-bones/10/rotation = Quaternion(1.1358172e-10, -8.4654355e-09, 0.027431894, 0.9996237)
+bones/10/rotation = Quaternion(1.1354685e-10, -8.462833e-09, 0.036967013, 0.9993166)
 bones/10/scale = Vector3(1, 1, 1)
 bones/11/name = "chest"
 bones/11/parent = 10
 bones/11/rest = Transform3D(1, 0, -1.6940659e-21, 0, 0.99999994, 0, 1.6940659e-21, 0, 1, 0, 0.37498796, 0)
 bones/11/enabled = true
 bones/11/position = Vector3(0, 0.37498796, 0)
-bones/11/rotation = Quaternion(1.1271521e-10, 8.445645e-09, -0.02743189, 0.9996237)
+bones/11/rotation = Quaternion(1.1268049e-10, 8.443047e-09, -0.036967, 0.9993166)
 bones/11/scale = Vector3(1, 0.99999994, 1)
 bones/12/name = "upperarm.r"
 bones/12/parent = 11
@@ -391,37 +391,37 @@ bones/22/position = Vector3(5.1389204e-10, 0.09612507, -0.057500124)
 bones/22/rotation = Quaternion(1.6806123e-09, 1.6806123e-09, -0.7071068, 0.7071067)
 bones/22/scale = Vector3(0.99999994, 1, 0.99999994)
 
-[node name="Rogue_ArmLeft" type="MeshInstance3D" parent="Rig_Medium/Skeleton3D" unique_id=1314831316]
+[node name="Rogue_ArmLeft" type="MeshInstance3D" parent="Rig_Medium/Skeleton3D" unique_id=1479814856]
 mesh = SubResource("ArrayMesh_xqbar")
 skin = SubResource("Skin_j0d0h")
 skeleton = NodePath("..")
 
-[node name="Rogue_ArmRight" type="MeshInstance3D" parent="Rig_Medium/Skeleton3D" unique_id=700346992]
+[node name="Rogue_ArmRight" type="MeshInstance3D" parent="Rig_Medium/Skeleton3D" unique_id=1186936941]
 mesh = SubResource("ArrayMesh_wfksc")
 skin = SubResource("Skin_j0d0h")
 skeleton = NodePath("..")
 
-[node name="Rogue_Body" type="MeshInstance3D" parent="Rig_Medium/Skeleton3D" unique_id=1242168970]
+[node name="Rogue_Body" type="MeshInstance3D" parent="Rig_Medium/Skeleton3D" unique_id=1875014773]
 mesh = SubResource("ArrayMesh_bwtbv")
 skin = SubResource("Skin_j0d0h")
 skeleton = NodePath("..")
 
-[node name="Rogue_Cape" type="MeshInstance3D" parent="Rig_Medium/Skeleton3D" unique_id=2075768827]
+[node name="Rogue_Cape" type="MeshInstance3D" parent="Rig_Medium/Skeleton3D" unique_id=245983876]
 mesh = SubResource("ArrayMesh_yvl80")
 skin = SubResource("Skin_j0d0h")
 skeleton = NodePath("..")
 
-[node name="Rogue_Head" type="MeshInstance3D" parent="Rig_Medium/Skeleton3D" unique_id=1151594941]
+[node name="Rogue_Head" type="MeshInstance3D" parent="Rig_Medium/Skeleton3D" unique_id=1875930866]
 mesh = SubResource("ArrayMesh_v5wia")
 skin = SubResource("Skin_j0d0h")
 skeleton = NodePath("..")
 
-[node name="Rogue_LegLeft" type="MeshInstance3D" parent="Rig_Medium/Skeleton3D" unique_id=1426241006]
+[node name="Rogue_LegLeft" type="MeshInstance3D" parent="Rig_Medium/Skeleton3D" unique_id=1267779865]
 mesh = SubResource("ArrayMesh_02ppx")
 skin = SubResource("Skin_j0d0h")
 skeleton = NodePath("..")
 
-[node name="Rogue_LegRight" type="MeshInstance3D" parent="Rig_Medium/Skeleton3D" unique_id=1540786977]
+[node name="Rogue_LegRight" type="MeshInstance3D" parent="Rig_Medium/Skeleton3D" unique_id=1557375253]
 mesh = SubResource("ArrayMesh_fdwnq")
 skin = SubResource("Skin_j0d0h")
 skeleton = NodePath("..")

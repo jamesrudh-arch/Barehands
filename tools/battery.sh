@@ -7,6 +7,13 @@ cd /home/z/my-project || exit 1
 OUT=/tmp/battery.log
 : > "$OUT"
 FAIL=0
+# S5.0: the import cache is untracked and can be lost by a recycle -
+# a battery (or any build) without it ships MISSING-TEXTURE MAGENTA
+# characters (the overhaul audit's root cause #1). Import FIRST.
+echo "=== import pass ($(date +%H:%M:%S)) ===" >> "$OUT"
+rm -rf /tmp/bat-import && mkdir -p /tmp/bat-import
+HOME=/tmp/bat-import timeout 420 "$G" --headless --path . --import >> "$OUT" 2>&1
+if [ $? -ne 0 ]; then FAIL=1; echo ">>> IMPORT FAILED"; fi
 HEADLESS="smoke_boot"
 RENDER="pipeline_probe smoke_hero smoke_home smoke_combat_r smoke_street smoke_missions smoke_hud smoke_areas smoke_vehicle smoke_systems smoke_title"
 for t in $HEADLESS; do

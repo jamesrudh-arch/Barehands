@@ -47,7 +47,33 @@ func _ready() -> void:
 	await _structure()
 	await _share_and_blend()
 	await _native_roundtrip()
+	await _texture_guard()
 	_finish()
+
+
+## S5.0 THE TEXTURE GUARD: no character material may render without
+## its texture - the missing-import-cache failure ships magenta
+## placeholders (the overhaul audit's root cause #1).
+func _texture_guard() -> void:
+	for rig_file in ["res://assets/native/hero_kaykit_rogue.tscn",
+			"res://assets/native/thug_kaykit_barbarian.tscn"]:
+		var packed: PackedScene = load(rig_file)
+		var rig: Node3D = packed.instantiate()
+		add_child(rig)
+		var mats := 0
+		var textured := 0
+		for n in rig.find_children("*", "MeshInstance3D", true, false):
+			var mi := n as MeshInstance3D
+			for s in mi.get_surface_override_material_count():
+				var mat := mi.get_active_material(s)
+				if mat is StandardMaterial3D:
+					mats += 1
+					if (mat as StandardMaterial3D).albedo_texture != null:
+						textured += 1
+		_check(mats > 0 and mats == textured,
+				"%s: every material textured (%d/%d)" % [
+				rig_file.get_file(), textured, mats])
+		rig.queue_free()
 
 
 func _finish() -> void:
