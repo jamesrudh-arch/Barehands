@@ -100,8 +100,11 @@ func _ready() -> void:
 	_check(mkt.try_grab(hero), "the cap answers too")
 	_check(is_equal_approx(float(WorldState.get_value("stash_cash",
 			0.0)), 400.0), "the window cap holds at 600")
-	WorldState.set_value("launder_last",
-			float(Time.get_ticks_msec() - 400000))
+	# S5.8: the window opens on the BEAT, not a clock
+	var wsx := get_tree().get_first_node_in_group("worldsim")
+	wsx.advance_beat()
+	WorldState.set_value("launder_cap", 600.0)  # deterministic
+	await _wait_s(0.3)
 	_check(mkt.try_grab(hero), "a new window answers")
 	_check(is_equal_approx(float(WorldState.get_value("clean_cash",
 			0.0)), 800.0) and is_equal_approx(float(
@@ -125,7 +128,68 @@ func _ready() -> void:
 			5025.0), "interest: 5000 +0.5%% = 5025")
 	_check(is_equal_approx(float(WorldState.get_value("heat", 0.0)),
 			0.3), "the full pocket gets noticed (+0.3 heat)")
+	await _beat_checks()
 	_finish()
+
+func _beat_checks() -> void:
+	# S5.8: the pressure + windows ride the beat, midnight costs more
+	var ws := get_tree().get_first_node_in_group("worldsim")
+	_check(ws != null, "the worldsim is up for the economy")
+	if ws == null:
+		return
+	# the earlier sections leave the hero at the fence's dock -
+	# come home to the street for Dee's counter
+	await Game.travel("neighbourhood", "start")
+	await _wait_s(1.4)
+	ws = get_tree().get_first_node_in_group("worldsim")
+	WorldState.set_value("debt", 1000.0)
+	WorldState.set_value("stash_cash", 0.0)
+	ws.advance_beat()
+	await _wait_s(0.4)
+	_check(float(WorldState.get_value("debt", 0.0)) > 1000.0,
+			"a beat ticks the interest (debt grew)")
+	_check(is_equal_approx(
+			float(WorldState.get_value("laundered_window", -1.0)),
+			0.0), "a beat opens a fresh laundering window")
+	var cap1 := float(WorldState.get_value("launder_cap", 0.0))
+	_check(cap1 > 0.0, "the drifting cap re-rolled (%d)" % int(cap1))
+	# the burn notice fires per beat now
+	WorldState.set_value("stash_cash", 3000.0)
+	WorldState.set_value("heat", 0.0)
+	ws.advance_beat()
+	await _wait_s(0.4)
+	_check(float(WorldState.get_value("heat", 0.0)) > 0.0,
+			"a full pocket gets noticed each beat")
+	# the night premium: MIDNIGHT (beat % 3 == 1) costs +10%
+	ws.set_weather("clear")
+	var hero := get_tree().get_first_node_in_group("player") as Node3D
+	var mkt2: Node = null
+	for m in get_tree().get_nodes_in_group("market"):
+		mkt2 = m
+	var mkt: Node = null
+	for m in get_tree().get_nodes_in_group("market"):
+		mkt = m
+	hero.global_position = Vector3(-40.4, 0.05, 5.4)
+	hero.set("hp", 40.0)
+	while int(ws.beat()) % 3 != 1:
+		ws.advance_beat()
+		await _wait_s(0.2)
+	WorldState.set_value("clean_cash", 200.0)
+	mkt2.try_grab(hero)
+	await _wait_s(0.3)
+	_check(is_equal_approx(float(WorldState.get_value(
+			"clean_cash", 0.0)), 191.2),
+			"MIDNIGHT: the bowl costs $8.80 (8 x 1.10)")
+	while int(ws.beat()) % 3 != 0:
+		ws.advance_beat()
+		await _wait_s(0.2)
+	hero.set("hp", 40.0)
+	WorldState.set_value("clean_cash", 200.0)
+	mkt2.try_grab(hero)
+	await _wait_s(0.3)
+	_check(is_equal_approx(float(WorldState.get_value(
+			"clean_cash", 0.0)), 192.0),
+			"DUSK: the bowl is $8 again (no premium)")
 
 func _finish() -> void:
 	print("ECON RESULT pass=%d fail=%d" % [_pass, _fail])

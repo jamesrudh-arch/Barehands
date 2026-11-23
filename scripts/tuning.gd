@@ -42,6 +42,11 @@ const DEFAULTS := {
 	"rate_family": 0.03,  # Family interest per day (bible 14)
 	"rate_corp": 0.08,  # Corporation interest per day
 	"beat_real_seconds": 360.0,
+	"weather_rain_chance": 0.6,  # rain frequent - the signature
+	"weather_rain_stop": 0.35,  # it does eventually let up
+	"rain_particles": 340.0,  # the column density (mobile-honest)
+	"night_premium": 0.10,  # after MIDNIGHT everything costs more
+	"launder_cap_drift": 0.35,  # each window the cap drifts +/-35%
 	"overnight_heat_cool": 1.0,  # stars the night takes off (world sim)
 	"trust_skip_drift": 2.0,  # magnitude: what a day unseen costs a Warm+ friend (the sign lives in trust.gd)
 	"rumor_age_days": 2,  # days a street rumor stays in retelling

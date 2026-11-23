@@ -24,19 +24,35 @@ const VENDORS := {
 			"pos": Vector3(-41.5, 0.05, -5.0), "who": "VESPER"},
 }
 
-var _tick_t := 0.0
+var _beat_wired := false
 
 
 func _ready() -> void:
 	add_to_group("market")
 
 
-func _process(delta: float) -> void:
-	_tick_t += delta
-	if _tick_t < Tuning.v("economy_tick_s"):
+func _process(_delta: float) -> void:
+	# the pressure rides the BEAT now (S5.8) - wire whenever the
+	# worldsim shows up (it is created after the market's siblings)
+	if _beat_wired:
 		return
-	_tick_t = 0.0
+	var ws := get_tree().get_first_node_in_group("worldsim")
+	if ws and not ws.beat_advanced.is_connected(_on_beat):
+		ws.beat_advanced.connect(_on_beat)
+		_beat_wired = true
+
+
+## one BEAT of the city's pressure: interest, the noticed pocket,
+## and a fresh laundering window with a re-rolled drifting cap.
+func _on_beat(_beat: int, _name: String) -> void:
 	_overnight_pressure()
+	WorldState.set_value("laundered_window", 0.0)
+	var base := Tuning.v("launder_daily_drifting")
+	var drift := 1.0 + randf_range(-Tuning.v("launder_cap_drift"),
+			Tuning.v("launder_cap_drift"))
+	WorldState.set_value("launder_cap", roundf(base * drift))
+	Log.info("Market: the window opens - Vesper can move ~$%d tonight"
+			% int(float(WorldState.get_value("launder_cap", base))))
 
 
 # --- the pools ---------------------------------------------------------------
@@ -49,6 +65,10 @@ func _pool(key: String) -> float:
 ## look away charges the surcharge on the dirty part it takes.
 ## Returns null-shape {ok: false} when the pockets cannot cover it.
 func pay(price: float, who := "") -> Dictionary:
+	# after MIDNIGHT the city charges for the hour (S5.8)
+	var ws := get_tree().get_first_node_in_group("worldsim")
+	if ws and int(ws.beat()) % 3 == 1:
+		price *= 1.0 + Tuning.v("night_premium")
 	var clean := _pool("clean_cash")
 	var dirty := _pool("stash_cash")
 	var clean_part := minf(clean, price)
@@ -136,12 +156,9 @@ func _ammo(hero: Node3D) -> bool:
 ## trust per window (the "day" is a timer stand-in until the
 ## day/night cycle lands).
 func _laundry() -> bool:
-	var cap := Tuning.v("launder_daily_drifting")
-	var now := Time.get_ticks_msec()
-	var window_ms := int(Tuning.v("launder_window_s")) * 1000
-	var last := int(float(WorldState.get_value("launder_last", 0.0)))
-	if now - last >= window_ms:
-		WorldState.set_value("laundered_window", 0.0)  # new window
+	# the window opens on each BEAT (S5.8) with a drifted cap
+	var cap := float(WorldState.get_value("launder_cap",
+			Tuning.v("launder_daily_drifting")))
 	var moved := float(WorldState.get_value("laundered_window", 0.0))
 	var room := cap - moved
 	if room <= 0.0:
@@ -158,7 +175,6 @@ func _laundry() -> bool:
 	WorldState.set_value("stash_cash", stash - amount)
 	WorldState.set_value("clean_cash", _pool("clean_cash") + clean)
 	WorldState.set_value("laundered_window", moved + amount)
-	WorldState.set_value("launder_last", float(now))
 	WorldState.push_event("vendor_yes", {"who": "VESPER",
 			"msg": "Moved $%d. Your cut: $%d." % [int(amount),
 					int(clean)]})

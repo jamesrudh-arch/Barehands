@@ -36,6 +36,7 @@ var _touch_ui: CanvasLayer = null
 var _missions: Node = null
 var _hud: CanvasLayer = null
 var _police: Node = null
+var _worldsim: Node = null
 var _market: Node = null
 var _phone: CanvasLayer = null
 var _pause_menu: CanvasLayer = null
@@ -154,6 +155,9 @@ func _mount_player(spawn: String) -> void:
 	if _police == null or not is_instance_valid(_police):
 		_police = load("res://scripts/core/police.gd").new()
 		add_child(_police)
+	if _worldsim == null or not is_instance_valid(_worldsim):
+		_worldsim = load("res://scripts/worldsim.gd").new()
+		add_child(_worldsim)
 	if _market == null or not is_instance_valid(_market):
 		_market = load("res://scripts/core/market.gd").new()
 		add_child(_market)
