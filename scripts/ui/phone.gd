@@ -246,6 +246,16 @@ func _apply(eff: Dictionary) -> void:
 		WorldState.bump("stash_cash", float(eff["stash_cash"]))
 	if eff.has("flag"):
 		WorldState.set_flag(str(eff["flag"]))
+	if eff.has("also_flag"):
+		WorldState.set_flag(str(eff["also_flag"]))
+	# THE CHOICE's teeth: some prices zero a pool outright
+	for k in eff.get("zero", []):
+		WorldState.set_value(str(k), 0.0)
+	if eff.has("also_flag"):
+		WorldState.set_flag(str(eff["also_flag"]))
+	# THE CHOICE's teeth: some prices zero a pool outright
+	for k in eff.get("zero", []):
+		WorldState.set_value(str(k), 0.0)
 
 
 func _choice(i: int) -> void:

@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="MissionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/mission_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "k2"
+title = "THE INVESTIGATION"
+blurb = "No fists yet. Walk the city the way they walked it."
+stages = [{
+"area": "neighbourhood",
+"check": "reach",
+"marker": Vector3(-20.0, 1.2, 3.4),
+"objective": "The alley mouth - where they waited",
+}, {
+"area": "club_district",
+"check": "reach",
+"marker": Vector3(-41.5, 1.2, -5.0),
+"objective": "The Velvet Room's back curb - where they paid",
+}, {
+"area": "docks",
+"check": "any_flag",
+"flags": ["k_clue"],
+"grab_flag": "k_clue",
+"marker": Vector3(-36.0, 1.2, -6.0),
+"objective": "The tape on WAREHOUSE 9's doors - search it (GRAB)",
+}, ]
+reward_cash = 150
+reward_clean = 0
+reward_xp = 45.0
+next = "k3"

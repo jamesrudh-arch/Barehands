@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="MissionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/mission_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "j1"
+title = "THE DROP"
+blurb = "Sal's fish market needs a package that never touched the alley."
+stages = [{
+"area": "warehouse",
+"check": "package_taken",
+"marker": Vector3(-6.5, 1.05, 4.8),
+"objective": "Take the package from your workbench",
+}, {
+"area": "docks",
+"check": "delivered",
+"marker": Vector3(30.0, 1.2, -1.6),
+"objective": "Walk it to SAL at the fish market",
+}, ]
+reward_cash = 250
+reward_clean = 0
+reward_xp = 30.0
+next = "j2"

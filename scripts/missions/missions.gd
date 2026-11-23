@@ -25,6 +25,7 @@ var _marker: Node3D = null
 var _package: Node3D = null
 var _has_package := false
 var _last_area := ""
+var _last_scene: Node = null
 var _defeat_count := 0
 var _pending_spawn: Array = []
 var _punch_wired := false
@@ -84,6 +85,16 @@ func _enter_stage() -> void:
 	_place_marker(stage)
 	_defeat_count = 0
 	_pending_spawn = stage.get("spawn", [])
+	# the story door: a stage can unseal one (k3's tape)
+	if stage.has("unlock_door"):
+		var ulabel := str(stage["unlock_door"])
+		WorldState.set_flag("door_open:" + ulabel)
+		Doors.open_door(ulabel)
+	# the story door: a stage can unseal one (k3's tape)
+	if stage.has("unlock_door"):
+		var ulabel := str(stage["unlock_door"])
+		WorldState.set_flag("door_open:" + ulabel)
+		Doors.open_door(ulabel)
 	# in-area stages spawn NOW; cross-area stages wait for the
 	# travel to land (the _process branch below)
 	if not _pending_spawn.is_empty() \
@@ -214,8 +225,11 @@ func _process(delta: float) -> void:
 	# Game.area_id flips BEFORE the swap lands (during the fade) -
 	# placing then writes into the DYING scene. Wait until the
 	# current scene's file IS the new area's file, then re-place.
-	if Game.area_id != _last_area:
+	var scene_now := get_tree().current_scene
+	if Game.area_id != _last_area \
+			or scene_now != _last_scene:
 		if _scene_landed():
+			_last_scene = scene_now
 			_last_area = Game.area_id
 			if active != null and stage_index < active.stages.size():
 				var st: Dictionary = active.stages[stage_index]
@@ -370,7 +384,8 @@ func _spawn_muscle() -> void:
 	if scene == null:
 		return
 	var escalate := 1.0
-	if WorldState.flag("m6_declined"):
+	if WorldState.flag("m6_declined") \
+			or WorldState.flag("corp_enemy"):
 		escalate = Tuning.v("escalate_hp_mult")
 	var script := load("res://scripts/npc/enemy.gd") as GDScript
 	for spec in _pending_spawn:

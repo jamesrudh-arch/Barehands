@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="MissionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/mission_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "j3"
+title = "THE COPY'S DEBT"
+blurb = "The man who studied your tape wants a word. He sends friends."
+stages = [{
+"area": "docks",
+"check": "at_area",
+"marker": Vector3(10.0, 1.2, 0.0),
+"objective": "They wait at the docks yard",
+}, {
+"area": "docks",
+"check": "defeat",
+"need": 1,
+"spawn": [{"pos": Vector3(10.0, 0.05, 0.0), "hp": 90.0}],
+"marker": Vector3(10.0, 1.2, 0.0),
+"objective": "THE STUDENT: put him down",
+}, {
+"area": "docks",
+"check": "area_clear",
+"marker": Vector3(10.0, 1.2, 0.0),
+"objective": "Let the yard go quiet",
+}, ]
+reward_cash = 300
+reward_clean = 0
+reward_xp = 40.0
+next = "j4"

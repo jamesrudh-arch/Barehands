@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="MissionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/mission_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "k3"
+title = "THE ASSAULT"
+blurb = "The tape comes off. What is behind it has been waiting."
+stages = [{
+"area": "docks",
+"check": "at_area",
+"unlock_door": "DOCK WAREHOUSE 9",
+"marker": Vector3(-36.0, 1.2, -6.0),
+"objective": "DOCK WAREHOUSE 9 - the tape is coming off",
+}, {
+"area": "docks",
+"check": "defeat",
+"need": 3,
+"spawn": [{"pos": Vector3(-32.0, 0.05, -8.0)}, {"pos": Vector3(-40.0, 0.05, -8.0)}, {"pos": Vector3(-36.0, 0.05, -16.0)}],
+"marker": Vector3(-36.0, 1.2, -6.0),
+"objective": "The guards at the doors",
+}, {
+"area": "docks",
+"check": "defeat",
+"need": 3,
+"spawn": [{"pos": Vector3(-33.0, 0.05, -10.0), "hp": 120.0}, {"pos": Vector3(-39.0, 0.05, -10.0), "hp": 120.0}, {"pos": Vector3(-36.0, 0.05, -12.0), "hp": 200.0}],
+"marker": Vector3(-36.0, 1.2, -6.0),
+"objective": "THE LIEUTENANT and his two - the last door",
+}, {
+"area": "docks",
+"check": "area_clear",
+"marker": Vector3(-36.0, 1.2, -6.0),
+"objective": "The yard goes quiet. Go in.",
+}, ]
+reward_cash = 400
+reward_clean = 0
+reward_xp = 80.0
+next = "k4"

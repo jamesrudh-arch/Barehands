@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="MissionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/mission_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "j9"
+title = "THE QUIET WARNING"
+blurb = "The Corporation calls again. They are polite. That is worse."
+stages = [{
+"area": "neighbourhood",
+"check": "any_flag",
+"flags": ["j9_visit", "j9_stay"],
+"ring": {"from": "THE CORPORATION", "duration": 14.0, "lines": ["'A courtesy call. There is a matter at the container maze.'", "'Come see it yourself, or stay home and let it come to you.'"], "choices": [{"label": "PAY A VISIT\nthe container maze, tonight", "flag": "j9_visit"}, {"label": "STAY AWAY\nthey come either way (+heat)", "flag": "j9_stay", "heat": 3.0}], "decline": {"flag": "j9_stay", "heat": 3.0}},
+"marker": Vector3(-42.0, 1.2, 7.2),
+"objective": "THE CORPORATION is calling - answer",
+}, {
+"area": "docks",
+"check": "defeat",
+"need": 2,
+"spawn": [{"pos": Vector3(20.0, 0.05, -8.0)}, {"pos": Vector3(24.0, 0.05, -12.0)}],
+"marker": Vector3(22.0, 1.2, -10.0),
+"objective": "They came anyway - the container maze",
+}, ]
+reward_cash = 280
+reward_clean = 0
+reward_xp = 40.0
+next = "j10"

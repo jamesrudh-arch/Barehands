@@ -1,0 +1,38 @@
+[gd_resource type="Resource" script_class="MissionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/mission_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "j5"
+title = "THE WATCH"
+blurb = "The Velvet Room's curb is contested ground tonight."
+stages = [{
+"area": "club_district",
+"check": "reach",
+"marker": Vector3(-41.5, 1.2, 3.0),
+"objective": "Stand the Velvet Room's curb",
+}, {
+"area": "club_district",
+"check": "defeat",
+"need": 2,
+"spawn": [{"pos": Vector3(-38.5, 0.05, 3.0)}, {"pos": Vector3(-44.5, 0.05, 3.0)}],
+"marker": Vector3(-41.5, 1.2, 3.0),
+"objective": "The first pair",
+}, {
+"area": "club_district",
+"check": "defeat",
+"need": 3,
+"spawn": [{"pos": Vector3(-38.5, 0.05, 3.0)}, {"pos": Vector3(-44.5, 0.05, 3.0)}, {"pos": Vector3(-41.5, 0.05, 0.0), "hp": 60.0}],
+"marker": Vector3(-41.5, 1.2, 3.0),
+"objective": "Three more - hold the curb",
+}, {
+"area": "club_district",
+"check": "area_clear",
+"marker": Vector3(-41.5, 1.2, 3.0),
+"objective": "The strip breathes again",
+}, ]
+reward_cash = 320
+reward_clean = 0
+reward_xp = 55.0
+next = "j6"

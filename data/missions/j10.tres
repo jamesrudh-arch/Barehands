@@ -1,0 +1,38 @@
+[gd_resource type="Resource" script_class="MissionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/mission_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "j10"
+title = "THE BIG MOVE"
+blurb = "Whatever they are moving through the docks, it moves tonight."
+stages = [{
+"area": "docks",
+"check": "at_area",
+"marker": Vector3(20.0, 1.2, 0.0),
+"objective": "The docks, after dark",
+}, {
+"area": "docks",
+"check": "defeat",
+"need": 3,
+"spawn": [{"pos": Vector3(18.0, 0.05, 2.0)}, {"pos": Vector3(24.0, 0.05, 2.0)}, {"pos": Vector3(21.0, 0.05, -3.0)}],
+"marker": Vector3(20.0, 1.2, 0.0),
+"objective": "The movers - three of them",
+}, {
+"area": "docks",
+"check": "defeat",
+"need": 3,
+"spawn": [{"pos": Vector3(18.0, 0.05, 2.0), "hp": 120.0}, {"pos": Vector3(24.0, 0.05, 2.0), "hp": 120.0}, {"pos": Vector3(21.0, 0.05, -3.0), "hp": 90.0}],
+"marker": Vector3(20.0, 1.2, 0.0),
+"objective": "The escort - harder men",
+}, {
+"area": "docks",
+"check": "area_clear",
+"marker": Vector3(20.0, 1.2, 0.0),
+"objective": "The yard must go quiet",
+}, ]
+reward_cash = 500
+reward_clean = 0
+reward_xp = 70.0
+next = "k1"

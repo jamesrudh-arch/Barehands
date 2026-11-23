@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="MissionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/mission_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "j7"
+title = "THE MECHANIC'S PROBLEM"
+blurb = "The garage's shutter is steel, but the street talks."
+stages = [{
+"area": "club_district",
+"check": "reach",
+"marker": Vector3(36.0, 1.2, 7.2),
+"objective": "THE MECHANIC's shutter, the club strip's end",
+}, {
+"area": "club_district",
+"check": "defeat",
+"need": 3,
+"spawn": [{"pos": Vector3(33.0, 0.05, 9.0)}, {"pos": Vector3(39.0, 0.05, 9.0)}, {"pos": Vector3(36.0, 0.05, 11.0), "hp": 60.0}],
+"marker": Vector3(36.0, 1.2, 7.2),
+"objective": "The problem has hands - three of them",
+}, ]
+reward_cash = 350
+reward_clean = 0
+reward_xp = 50.0
+next = "j8"

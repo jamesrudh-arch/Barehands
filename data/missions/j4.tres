@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="MissionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/mission_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "j4"
+title = "VESPER'S FAVOR"
+blurb = "The club owner counts on you. That is a compliment and a bill."
+stages = [{
+"area": "club_district",
+"check": "any_flag",
+"flags": ["j4_ok"],
+"grab_flag": "j4_ok",
+"marker": Vector3(-41.5, 1.2, -5.0),
+"objective": "Hear Vesper out at the Velvet Room's back curb (GRAB)",
+}, {
+"area": "club_district",
+"check": "reach",
+"marker": Vector3(-41.5, 1.2, 3.0),
+"objective": "Take his corner out front",
+}, ]
+reward_cash = 180
+reward_clean = 0
+reward_xp = 25.0
+next = "j5"

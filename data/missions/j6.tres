@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="MissionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/mission_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "j6"
+title = "DEE'S SUPPLIES"
+blurb = "Old Dee fed you for years. His supplier didn't show."
+stages = [{
+"area": "neighbourhood",
+"check": "package_taken",
+"marker": Vector3(6.0, 1.0, 5.4),
+"objective": "Collect the crate at THE CORNER STORE",
+}, {
+"area": "neighbourhood",
+"check": "delivered",
+"marker": Vector3(-40.4, 1.2, 5.4),
+"objective": "Carry it to Dee's counter at MAMA SUN'S",
+}, ]
+reward_cash = 120
+reward_clean = 80
+reward_xp = 20.0
+next = "j7"

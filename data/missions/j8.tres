@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="MissionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/mission_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "j8"
+title = "WALK HIS ROUTE"
+blurb = "You cannot follow a man forever. You can learn where he goes."
+stages = [{
+"area": "docks",
+"check": "reach",
+"marker": Vector3(10.0, 1.2, 8.0),
+"objective": "The route starts at the harbour mouth",
+}, {
+"area": "docks",
+"check": "reach",
+"marker": Vector3(-10.0, 1.2, -2.0),
+"objective": "Second stop: the container gap",
+}, {
+"area": "docks",
+"check": "reach",
+"marker": Vector3(-30.0, 1.2, -8.0),
+"objective": "Last stop - memorize the way to Warehouse 9",
+}, ]
+reward_cash = 220
+reward_clean = 0
+reward_xp = 30.0
+next = "j9"

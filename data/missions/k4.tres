@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="MissionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/mission_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "k4"
+title = "THE CHOICE"
+blurb = "Inside: your friend, the money, and a phone that already knows you're here."
+stages = [{
+"area": "docks",
+"check": "any_flag",
+"flags": ["k_saved", "k_paid"],
+"ring": {"from": "THE CORPORATION", "duration": 20.0, "lines": ["'You are standing in our building with our property.'", "'The man is nothing. The case beside him is two thousand, clean.'", "'Choose. The phone only rings once.'"], "choices": [{"label": "SAVE THEM\nthe money burns, the Corporation remembers", "flag": "k_saved", "also_flag": "corp_enemy", "zero": ["stash_cash", "clean_cash"]}, {"label": "TAKE THE PAYOFF\n+$2000 clean, the friend is theirs", "flag": "k_paid", "clean_cash": 2000.0}], "decline": {"flag": "k_saved", "also_flag": "corp_enemy", "zero": ["stash_cash", "clean_cash"]}},
+"marker": Vector3(-36.0, 1.2, -6.0),
+"objective": "THE CORPORATION is calling - this is the choice",
+}, ]
+reward_cash = 0
+reward_clean = 0
+reward_xp = 100.0
+next = ""

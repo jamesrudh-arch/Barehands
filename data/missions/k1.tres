@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="MissionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/mission_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "k1"
+title = "COLD CALL"
+blurb = "The voice on the phone is your brother's, and it is shaking."
+stages = [{
+"area": "neighbourhood",
+"check": "any_flag",
+"flags": ["k1_heard"],
+"ring": {"from": "THE BROTHER", "duration": 16.0, "lines": ["'They took him. The one of us with the softest hands.'", "'I traced the call - the docks. Warehouse 9. The tape is theirs.'", "'Come home first. We plan this right.'"], "choices": [{"label": "ON MY WAY", "flag": "k1_heard"}], "decline": {"flag": "k1_heard"}},
+"marker": Vector3(-42.0, 1.2, 7.2),
+"objective": "THE BROTHER is calling - answer him",
+}, {
+"area": "warehouse",
+"check": "reach",
+"marker": Vector3(-6.5, 1.2, 4.8),
+"objective": "Come home - the workbench, like the old days",
+}, ]
+reward_cash = 0
+reward_clean = 0
+reward_xp = 40.0
+next = "k2"

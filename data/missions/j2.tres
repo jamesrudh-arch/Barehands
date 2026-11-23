@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="MissionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/mission_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "j2"
+title = "ROOM SERVICE"
+blurb = "Hotel Aurora's guests are loud and the management is worse."
+stages = [{
+"area": "club_district",
+"check": "reach",
+"marker": Vector3(-22.0, 1.2, 7.2),
+"objective": "Reach HOTEL AURORA's door",
+}, {
+"area": "club_district",
+"check": "defeat",
+"need": 2,
+"spawn": [{"pos": Vector3(-24.0, 0.05, 9.0)}, {"pos": Vector3(-20.0, 0.05, 9.0)}],
+"marker": Vector3(-22.0, 1.2, 7.2),
+"objective": "The guests object - settle it",
+}, ]
+reward_cash = 200
+reward_clean = 0
+reward_xp = 35.0
+next = "j3"
