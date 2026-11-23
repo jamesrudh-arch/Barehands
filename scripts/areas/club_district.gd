@@ -60,6 +60,7 @@ func _ready() -> void:
 	_queue_and_props()
 	_parked()
 	_muscle()
+	_life()
 	_lamps()
 	_gates()
 	Log.info("Club district ready (area=%s spawn=%s)" % [
@@ -102,6 +103,28 @@ func _ground() -> void:
 
 
 ## Fronts on one side (side -1 = north, +1 = south): the facade row.
+## THE LIVING WORLD (S5.3 p2): the club strip breathes - the
+## same pooled walkers, the lane parade, and the fixer at the
+## door the story keeps pointing at.
+func _life() -> void:
+	var peds := load("res://scripts/npc/pedestrian.gd") as GDScript
+	for i in 5:
+		var p: CharacterBody3D = peds.new()
+		var x := -44.0 + 17.0 * i + randf_range(-4.0, 4.0)
+		p.position = Vector3(x, 0.05,
+				5.0 if i % 2 == 0 else -5.0)
+		add_child(p)
+	var CLS_Traffic := load("res://scripts/world/traffic.gd")
+	CLS_Traffic.fill(self, 2)
+	var CLS_Local := load("res://scripts/npc/local.gd")
+	CLS_Local.place(self, "res://assets/native/cast_michelle.tscn",
+			"res://assets/native/ual_baked_michelle.res",
+			Vector3(-41.5, 0.05, -5.0), 0.0, "VESPER - THE VELVET ROOM")
+	CLS_Local.place(self, "res://assets/native/cast_soldier.tscn",
+			"res://assets/native/ual_baked_soldier.res",
+			Vector3(-35.5, 0.05, 5.0), PI, "TONY - IRON PALM GYM")
+
+
 func _fronts(table: Array, side: float) -> void:
 	for entry in table:
 		var label: String = entry[0]
@@ -439,6 +462,10 @@ func _lamps() -> void:
 
 
 func _gates() -> void:
+	# the DEFAULT 'start' spawn (probe-caught law: without it the
+	# hero materializes at the raw origin)
+	_spawn_marker("SpawnStart", Vector3(-30.0, 0.05, 2.6))
+
 	# west: back to the neighbourhood
 	_spawn_marker("SpawnFromNeighbourhood", Vector3(-STREET_X + 4.0, 0.05, 4.4))
 	_gate(Vector3(-STREET_X - 1.0, 1.0, 4.4), "neighbourhood",

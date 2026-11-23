@@ -38,6 +38,7 @@ func _ready() -> void:
 	_market()
 	_warehouse9()
 	_empty_lot()
+	_life()
 	_lamps()
 	_gates()
 	Log.info("Docks ready (area=%s spawn=%s)" % [
@@ -188,6 +189,22 @@ func _container_maze() -> void:
 
 ## The fish market: two open stalls (kind "open" - a walk-in awning
 ## with the counter + crates), sodium-lit.
+## THE LIVING WORLD (S5.3 p2): the yard breathes - walkers along
+## the harbour band, the fence at the fish market. No lane parade
+## here (the docks are working ground, not a street).
+func _life() -> void:
+	var peds := load("res://scripts/npc/pedestrian.gd") as GDScript
+	for i in 3:
+		var p: CharacterBody3D = peds.new()
+		var x := -30.0 + 22.0 * i + randf_range(-3.0, 3.0)
+		p.position = Vector3(x, 0.05, 4.4)
+		add_child(p)
+	var CLS_Local := load("res://scripts/npc/local.gd")
+	CLS_Local.place(self, "res://assets/native/cast_michelle.tscn",
+			"res://assets/native/ual_baked_michelle.res",
+			Vector3(30.0, 0.05, -1.6), 0.0, "SAL - THE FENCE")
+
+
 func _market() -> void:
 	var market := Node3D.new()
 	market.name = "FishMarket"
@@ -370,6 +387,9 @@ func _lamps() -> void:
 func _gates() -> void:
 	# west: the underpass back to the club district
 	_spawn_marker("SpawnFromClub", Vector3(-YARD_X + 4.0, 0.05, 4.4))
+	# the DEFAULT 'start' spawn (the neighbourhood's probe-caught
+	# bug: no SpawnStart = the hero materializes at the raw origin)
+	_spawn_marker("SpawnStart", Vector3(-20.0, 0.05, 4.4))
 	_gate(Vector3(-YARD_X - 1.0, 1.0, 4.4), "club_district", "from_docks",
 			"← THE CLUB DISTRICT - underpass", Color(0.45, 0.8, 0.95))
 	# the honest far edge: the harbour (east) - no gate, the water
