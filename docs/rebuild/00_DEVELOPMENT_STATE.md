@@ -107,19 +107,37 @@ a per-bone correction from it). Then the visual punch gate, then
 wire Hit_Chest/Hit_Head/Death01/Roll into enemies + the enemy
 RPM swap.
 
+## S5.1c — DONE (the enemy is a real human; 74c66be)
+
+Michelle (realistic textured Mixamo rig from the three.js cast)
+replaces the KayKit chibi as the thug: bundled native
+cast_michelle.tscn (clean bone names + 65/65 skin rebinds), her own
+ual_baked_michelle.res (the baker + THE ARMATURE COMPENSATION law:
+D = ARM^-1 * S - Mixamo GLBs carry the 90-deg glTF axis fix on an
+Armature NODE; the hero's ARM is identity), ual_lib.install
+parameterized (baked_path + per-cast alias map), enemy.gd rewired
+(the KayKit-era clip names alias onto UAL clips). Gates: idle/walk/
+jab all read correctly (the walk verdict flipped once the camera
+moved to a SIDE view - fore/aft stride is invisible from the
+front), combat_r 28/28 + areas 32/32. Evidence:
+download/overhaul_audit/shots/s51c_*.jpg.
+
 ## NEXT ACTION (exact)
 
-1. S5.1b finisher (above): the reference-pose fix, then the
-   enemy cast swap (second RPM avatar - hunt three.js mirrors +
-   other CC0 RPM sources).
-2. S5.2 part 3 when convenient: per-front lit doorway geometry
-   (the club gate's 'pools float on a featureless street'), brick
-   on any remaining code massing, club sign scale.
-3. S5.3 THE LIVING WORLD: pedestrians (pooled, waypoint walk,
+1. S5.1c polish: frame-catch the 0.18s SWING window (the burst
+   probe timed out - poll state==SWING then capture 3 frames at
+   0.07s), capture the thug's Hit_A/Death_A reactions in-game, and
+   give the walk a counter-arm swing (the one open VLM nit).
+2. S5.3 THE LIVING WORLD: pooled pedestrians (waypoint walk,
    phone idle, flee + call-police states) + spline traffic + the
    named-NPC routine table (the fixer at the club, the fence at
    the docks). THE gap between this build and the LEVERAGE
-   vision.
+   vision's 'city that feels alive'.
+3. S5.2 part 3 when convenient: per-front lit doorway geometry,
+   brick on remaining code massing, club sign scale.
+4. S5.4+: police heat, phone 2.0 + missions M2-M6, weapons (the
+   UAL pistol set is already retargeted + baked), vehicles,
+   map/GPS, rain, audio, progression - the LEVERAGE roadmap.
 
 ## Known blockers / watch items
 
