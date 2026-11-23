@@ -89,6 +89,27 @@ func _ready() -> void:
 		_check(hero != null and hero.global_position.length() > 1.0,
 				"%s: the start spawn is placed (%s)" % [area, str(
 						hero.global_position if hero else Vector3.ZERO)])
+		# THE FLEE GATE (neighbourhood only): a thug appears 4m from
+		# a walker -> the walker sprints the OTHER way within a beat
+		if area == "neighbourhood" and walkers.size() > 0:
+			var w: CharacterBody3D = walkers[0]
+			var cls := load("res://scripts/npc/enemy.gd") as GDScript
+			var thug: CharacterBody3D = cls.new()
+			thug.position = (w as Node3D).global_position \
+					+ Vector3(4.0, 0, 0)
+			get_tree().current_scene.add_child(thug)
+			await _wait_s(0.7)
+			_check(w.state == 2,
+					"flee: a thug at 4m sends the walker sprinting (state %d)" 					% w.state)
+			var d0 := (w as Node3D).global_position.distance_to(
+					thug.global_position)
+			await _wait_s(1.5)
+			var d1 := (w as Node3D).global_position.distance_to(
+					thug.global_position)
+			_check(d1 > d0 + 1.0,
+					"flee: the walker opens distance (%.1f -> %.1f)" % [
+							d0, d1])
+			thug.queue_free()
 	_finish()
 
 func _finish() -> void:
