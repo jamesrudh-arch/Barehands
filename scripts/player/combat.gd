@@ -110,6 +110,8 @@ func _process(delta: float) -> void:
 				phase = Phase.ACTIVE
 				_t = 0.0
 				_hit_done = false
+				Log.info("CBT trace: ->ACTIVE %s at t=%.3f" % [
+						_attack.id, _t])
 		Phase.ACTIVE:
 			if not _hit_done:
 				_try_hit()

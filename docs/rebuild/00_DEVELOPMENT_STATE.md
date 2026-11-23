@@ -46,32 +46,46 @@ optimise → verify → deliver).
 
 ## In progress
 
-**STAGE 4 step 5 — combat core, 18/24 checks green, ONE bug left**:
-the data layer is DONE and proven (30 AttackData + 5 StyleData .tres
-via scripts/player/build_style_data.gd; the clip inventory found the
-real unarmed clips: Melee_Unarmed_Attack_Punch_A/Kick, block set,
-4-direction dodges, Hit_A/B reactions). combat.gd (state machine,
-cancels, dodge i-frames, selective hitstop, Leverage meter, Style
-Rank), train_target.gd (bag sway, dummy posture-break + recovery)
-and the hero integration are in. smoke_combat_r proves: mount,
-default style, X starts the punch, dodge window + movement + return
-to IDLE, the 5-style cycle, WEAPON reach, posture break + recovery,
-finisher spending meter (18 ok).
+**STAGE 4 step 6 — the neighbourhood (03 §5 step 6, the big one)**:
+the area-2 street scene per 02_MASTER_DESIGN §3.2 (>=6 street
+segments, side streets, two alleys, a small plaza, >=12 distinct
+buildings from the city kits - ASSET BATCH 2 first: the Kenney city
+kit GLBs are already on disk in assets/kits/, verify breadth, fetch
+more CC0 if thin), the named fronts (noodle shop, THE RAIN GLASS
+bar, barber, pawn shop, convenience store, laundromat, clinic,
+subway entrance, bus stop, newsstand, vending machines), THE DOOR
+LAW (world/doors.gd: approach prompt, OPEN walk-in interiors, TRY,
+LOCKED with its reason, BREAK with progress + heat + stash - the
+proven old-game design, rebuilt on the new stack), WorldState
+persistence (broken doors + visited areas survive reload), the yard
+gate opens home<->street both ways, THEN the teardown: blocks.gd,
+block_builder.gd, main.tscn, street_arrival.gd, interior*.gd,
+doors.gd (old), map_data.gd + their suites die; input_bus.gd and
+the last old player cluster go with them. Suite: smoke_street.
 
-**THE OPEN BUG: hits never land on the dummy** (hp unchanged in
-every damage check). Verified on paper: hero 1.4 m south of the
-dummy, `_yaw` = PI, combat fwd convention corrected to +Z-at-yaw-0
-(D13 convention), reach 1.7 > 1.4, arc 1.25 > 0. NEXT SESSION's
-first action: instrument `_try_hit()` in scripts/player/combat.gd
-with one Log.info per phase transition (STARTUP->ACTIVE timing) and
-per candidate target (distance, angle, has_method) - the likely
-suspects: (a) the phase never reaches ACTIVE inside the suite's
-wait window (the _t clock vs phase transitions under ~10 fps
-headless), (b) take_hit's group query returns the dummy under a
-stale reference, (c) the hero's lunge pushes it past the arc during
-STARTUP. The suite's timing waits may also need widening (0.35 s
-was tuned for 60 fps). The data + reaction layers are NOT the
-problem (posture break + recovery checks pass by direct set).
+## Step 5 — DONE (the combat core)
+
+**smoke_combat_r 28/28 + smoke_hero 30/30 + smoke_home 26/26** —
+the five styles are live and PLAY DIFFERENTLY (distinct data +
+clips + stances behind the constant X/Y/A/B): the data layer (30
+AttackData + 5 StyleData .tres, built by
+scripts/player/build_style_data.gd), combat.gd (startup/active/
+recover with cancel windows, punch chain p1->p2->p3 with reset,
+dodge with i-frames, guard, finisher spending the Leverage meter,
+Style Rank decay, selective hitstop on the attacker only),
+train_target.gd (bag sway, dummy posture-break + recovery), the
+hero integration (movement lock while swinging, style cycling).
+
+The landing bug was a SUITE bug, caught by instrumentation in one
+run: the suite stood the hero 1.4 m SOUTH of the dummy - the
+training corner sits at the hall's south edge, so z=7.6 was past
+the floor and inside the south wall: the hero fell out of the world
+(distances 4 -> 38 -> 103 in the trace). Approaching from the
+north (yaw 0, the model's authored +Z forward) fixed it. Also
+fixed: the posture test now uses the heavy (2.5 posture damage -
+p1's 1.0 could never break from 2.0 with the 0.8/s heal), and the
+finisher test resets the dummy's hp (the suite itself had chewed
+it to 0, hiding the 18-damage delta).
 
 ## Step 4 — DONE (the warehouse home)
 
@@ -156,14 +170,28 @@ Four bugs found and fixed on the way to green, all worth remembering:
 
 ## NEXT ACTION (exact)
 
-1. Commit step 5 as IN PROGRESS (data layer done, combat wired,
-   18/24; the hit-landing bug open with the suspect list above).
-2. Instrument _try_hit (one-line logs), re-run
-   tests/smoke_combat_r.tscn under Xvfb, read the numbers, fix the
-   landing bug, re-run to green, THEN commit step 5 DONE.
-3. THEN step 6 — the neighbourhood area + the door law + WorldState
-   persistence (the big teardown: blocks/block_builder/main.tscn +
-   their suites; asset batch 2: city kits).
+1. Commit + push step 5 DONE (combat green, regressions green).
+2. STEP 6 order:
+   a. Asset check: `ls assets/kits/kenney_city` + breadth report;
+      fetch batch 2 (Quaternius modular city / Kenney city full)
+      only if the on-disk set cannot dress 12+ distinct fronts.
+   b. `scripts/world/doors.gd` (the door law, new implementation)
+      + `scripts/areas/neighbourhood.gd` + `scenes/areas/
+      neighbourhood.tscn`; register the area in Game.AREAS; open
+      the yard gate both ways (travel home<->street).
+   c. `tests/smoke_street.tscn`: area loads, the named fronts
+      exist, doors answer the law (open/try/locked/broken),
+      WorldState survives a reload, the hero walks home<->street.
+   d. THE TEARDOWN (same commit): delete the old street cluster
+      (blocks, block_builder, main.tscn, street_arrival, interiors,
+      old doors, map_data, their suites) + input_bus.gd + the old
+      player cluster (player.gd, touch_buttons, camera_follow,
+      cam_stick, input_strip, action_button) + now-dead autoloads;
+      fix whatever still references them; run the full new battery
+      (smoke_boot, pipeline_probe, smoke_hero, smoke_home,
+      smoke_combat_r, smoke_street) green.
+3. THEN step 7 — missions M0-M1 (the mission system + the first
+   two chainable).
 
 
 ## Known blockers / watch items

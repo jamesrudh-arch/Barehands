@@ -95,11 +95,13 @@ func _setup_at_dummy() -> void:
 	_check(h != null and d != null, "the hero and the dummy exist")
 	if h == null or d == null:
 		return
-	h.global_position = d.global_position + Vector3(0, 0.05, 1.4)
+	# approach from the NORTH (hall z ends at +-7.5: standing 1.4 m
+	# south of the dummy is inside the south wall - the hero fell out
+	# of the world, which is exactly what the trace caught)
+	h.global_position = d.global_position + Vector3(0, 0.05, -1.4)
 	h.set("move_stick", Vector2.ZERO)
-	# face the dummy (north, -Z): set the hero's OWN yaw - its physics
-	# loop writes the rig's rotation from _yaw every frame
-	h.set("_yaw", PI)
+	# face the dummy (south, +Z: the model's authored forward at yaw 0)
+	h.set("_yaw", 0.0)
 	await _wait_s(0.3)
 
 
@@ -168,7 +170,8 @@ func _hits_land() -> void:
 	# the bag also answers
 	var bag := _bag()
 	var bag_hp0: float = bag.get("hp")
-	h.global_position = bag.global_position + Vector3(0, 0.05, 1.4)
+	h.global_position = bag.global_position + Vector3(0, 0.05, -1.4)
+	h.set("_yaw", 0.0)
 	await _wait_s(0.3)
 	Input.action_press("punch")
 	await get_tree().process_frame
@@ -258,7 +261,7 @@ func _styles() -> void:
 	_check(hp0 - hp1 >= 7.0 - 0.1,
 			"WEAPON X hits harder than BRAWLER X (%.1f)" % (hp0 - hp1))
 	# and reaches further: step back out of brawler reach, still lands
-	_hero().global_position = d.global_position + Vector3(0, 0.05, 2.0)
+	_hero().global_position = d.global_position + Vector3(0, 0.05, -2.0)
 	await _wait_s(0.3)
 	var hp2: float = d.get("hp")
 	Input.action_press("punch")
@@ -275,9 +278,11 @@ func _posture_break() -> void:
 	await _setup_at_dummy()
 	var d := _dummy()
 	d.set("posture", 2.0)
-	Input.action_press("punch")
+	# the heavy carries posture_damage 2.5 - one clean break from 2.0
+	# (p1's 1.0 cannot, and the dummy heals posture at 0.8/s)
+	Input.action_press("heavy")
 	await get_tree().process_frame
-	Input.action_release("punch")
+	Input.action_release("heavy")
 	await _wait_s(0.5)
 	_check(int(d.get("tips")) >= 1 and bool(d.get("_broken")),
 			"posture hits zero and the dummy BREAKS (tips %d)" % d.get("tips"))
@@ -291,6 +296,9 @@ func _finisher() -> void:
 	c.meter = 60.0
 	await _setup_at_dummy()
 	var d := _dummy()
+	# the practice corner resets: the suite's own chew ate the dummy's
+	# hp to 0, and a 0 -> 0 delta would hide the finisher's damage
+	d.set("hp", 60.0)
 	var hp0: float = d.get("hp")
 	Input.action_press("super")
 	await get_tree().process_frame
