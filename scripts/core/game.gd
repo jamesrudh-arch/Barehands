@@ -19,6 +19,8 @@ const AREAS := {
 }
 
 const CLS_CameraRig := preload("res://scripts/player/camera_rig.gd")
+const CLS_Missions := preload("res://scripts/missions/missions.gd")
+const M0_PATH := "res://data/missions/m0.tres"
 
 const FADE_S := 0.4
 
@@ -29,6 +31,7 @@ var _fading := false
 var _fade: ColorRect
 var _fade_layer: CanvasLayer
 var _touch_ui: CanvasLayer = null
+var _missions: Node = null
 
 
 func _ready() -> void:
@@ -115,6 +118,14 @@ func _mount_player(spawn: String) -> void:
 	if _touch_ui == null or not is_instance_valid(_touch_ui):
 		_touch_ui = load("res://scripts/player/touch_ui.gd").new()
 		add_child(_touch_ui)
+	# the mission module rides Game; a NEW GAME (WorldState was reset
+	# in start_new_game) opens with M0 WAKE-UP CALL
+	if _missions == null or not is_instance_valid(_missions):
+		_missions = CLS_Missions.new()
+		add_child(_missions)
+	if not WorldState.flag("first_play_done"):
+		WorldState.set_flag("first_play_done")
+		_missions.start(M0_PATH)
 
 
 func fade_out(t := FADE_S) -> void:

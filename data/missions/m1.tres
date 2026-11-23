@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="MissionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/mission_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "m1"
+title = "THE COLLECTION"
+blurb = "Someone left a package at your workbench. The bar is expecting it tonight."
+stages = [{
+"area": "warehouse",
+"check": "package_taken",
+"marker": Vector3(-6.5, 1.0, 4.8),
+"objective": "Take the package from the workbench"
+}, {
+"area": "neighbourhood",
+"check": "delivered",
+"marker": Vector3(-6, 1.2, 7.2),
+"objective": "Deliver it to THE RAIN GLASS - the bar on the street"
+}]
+reward_cash = 120
+reward_xp = 25.0
+next = ""

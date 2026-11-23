@@ -8,7 +8,7 @@ OUT=/tmp/battery.log
 : > "$OUT"
 FAIL=0
 HEADLESS="smoke_boot"
-RENDER="pipeline_probe smoke_hero smoke_home smoke_combat_r smoke_street"
+RENDER="pipeline_probe smoke_hero smoke_home smoke_combat_r smoke_street smoke_missions"
 for t in $HEADLESS; do
   rm -rf "/tmp/bat-$t" && mkdir -p "/tmp/bat-$t"
   echo "=== $t ($(date +%H:%M:%S)) ===" >> "$OUT"

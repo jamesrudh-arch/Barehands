@@ -289,6 +289,10 @@ func _try_hit() -> void:
 				float(_attack.posture_damage))
 		landed += 1
 		hit_landed.emit(n, float(_attack.damage))
+		# the mission module listens for its beats (M0: hit the bag)
+		var missions := get_tree().get_first_node_in_group("missions")
+		if missions and missions.has_method("note_hit"):
+			missions.note_hit(n)
 	_hit_done = true
 	if landed > 0:
 		combo_count += 1

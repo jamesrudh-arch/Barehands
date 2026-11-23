@@ -46,13 +46,37 @@ optimise → verify → deliver).
 
 ## In progress
 
-**STAGE 4 step 7 — missions M0–M1 (03 §5 step 7)**: the mission
-system (`missions/missions.gd` + mission data as .tres: stages,
-objectives, markers, briefing, pass/fail, rewards, consequences) and
-the first two chainable — M0 WAKE-UP CALL (the tutorial beats: move,
-camera, punch the bag, try the door, walk the street) and M1 THE
-COLLECTION (deliver to a street front; the objective marker + the
-guide line; a first locked-door beat that uses the door law).
+**STAGE 4 step 8 — the HUD pass (03 §5 step 8)**: health/meter/
+rank readouts, the style wheel UI (hold-flick), the objective
+banner's real styling, the B-context verb label wiring, the pause
+menu (resume/settings/quit), safe-area polish - all reading the
+live systems (Combat.meter/rank, WorldState, Missions).
+
+## Step 7 — DONE (the mission system + M0/M1)
+
+**smoke_missions 20/20 + the full battery GREEN (7 suites, 202
+checks)**: MissionData .tres (m0, m1), the missions module hosted
+by Game (no new autoloads) with the objective banner + the green
+marker pulse, stages that complete on REAL conditions (move
+distance, camera yaw, a landed punch on the bag via Combat's
+hit signal, the door-tried WorldState event, the area change,
+walk-up package pickup, area-gated proximity delivery), M0 WAKE-UP
+CALL chains into M1 THE COLLECTION, rewards land in WorldState
+(+$120), done-flags survive a save round trip, and M0 fires on
+every NEW GAME (WorldState reset clears first_play_done).
+
+Bugs caught (all suite-driven, all banked): MissionData class_name
+does not resolve at parse time on a fresh tree (the global class
+cache is editor-built - type as Resource + load by path, the
+stage-0 rule), the module's marker/package must re-place when the
+area changes BUT ONLY after the new scene lands (Game.area_id
+flips during the fade - placing then writes into the dying scene),
+the doors registry lazily purges laws whose fronts died with a
+scene (and reads nodes UNTYPED before is_instance_valid - a typed
+assign of a freed instance is itself an error), and marker
+proximity checks must gate on the stage's AREA (raw distances
+across scene spaces "delivered" M1 from the warehouse workbench,
+2.06 m from the street marker).
 
 ## Step 6 — DONE (the neighbourhood + THE TEARDOWN)
 
@@ -195,27 +219,23 @@ Four bugs found and fixed on the way to green, all worth remembering:
 
 ## NEXT ACTION (exact)
 
-1. Commit + push step 6 (the street + door law + teardown, battery
-   green).
-2. STEP 7 — missions:
-   a. `scripts/data/mission_data.gd` (Resource: id, title, blurb,
-      stages[{objective, marker_pos, on_complete}], rewards,
-      consequences) + `data/missions/m0.tres`, `m1.tres` via a
-      builder; `scripts/missions/missions.gd` (autoload-free module
-      under Game? decision: a plain node the areas host, per the
-      architecture's "no new autoloads" spirit - missions live on
-      the Game flow).
-   b. M0 fires on first PLAY (WorldState flag first_play): the
-      beats walk the player through move/camera/punch/door/street,
-      each beat completes on its real condition.
-   c. M1 from M0's end: the delivery run with the objective marker
-      (a green pulse at the target) + completion + reward recorded
-      in WorldState.
-   d. `tests/smoke_missions.gd`: M0 beats fire in order and
-      complete on their conditions; M1 chains from M0; rewards land
-      in WorldState; the flow survives a save/load round trip.
-3. THEN step 8 — the HUD pass (health/meter/rank readouts, the
-   style wheel UI, the objective banner).
+1. Commit + push step 7 (missions green, battery 7 suites).
+2. STEP 8 — the HUD pass:
+   a. `scripts/ui/hud.gd` (+ CanvasLayer mounted by Game at PLAY):
+      health bar, the Leverage meter, the Style Rank pips, the
+      combo counter, the cash line (stash_cash), all reading the
+      live systems; nothing decorative, nothing fake.
+   b. The style wheel: hold STYLE slows time ~30% (Engine
+      time_scale - carefully: pause-safe), a radial picker over the
+      five styles, flick/press to swap.
+   c. The pause menu (PAUSE action -> Game.pause_game, a real menu:
+      resume/settings/quit-to-menu), the B-context verb label on
+      the diamond (hero.context_verb wired through touch_ui).
+   d. `tests/smoke_hud.gd`: bars track real values (meter rises on
+      hits, cash updates, rank pips), the style wheel swaps styles
+      live, pause freezes the world and its buttons work.
+3. THEN step 9 — areas 3-4 (the club district, the docks) on the
+   area-scene pattern + asset batch 2/3 for their dressing.
 
 
 ## Known blockers / watch items

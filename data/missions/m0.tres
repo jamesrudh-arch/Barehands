@@ -1,0 +1,38 @@
+[gd_resource type="Resource" script_class="MissionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/mission_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "m0"
+title = "WAKE-UP CALL"
+blurb = "The loft, the bag, the street. Learn what your hands are for."
+stages = [{
+"area": "warehouse",
+"check": "moved",
+"marker": Vector3(0, 0.1, 3),
+"objective": "Move - push the left stick (or WASD)"
+}, {
+"area": "warehouse",
+"check": "camera",
+"marker": Vector3(0, 1.5, 3),
+"objective": "Look - drag the right stick (or arrow keys)"
+}, {
+"area": "warehouse",
+"check": "punch_landed",
+"marker": Vector3(8.8, 1.4, 5.8),
+"objective": "Hit the punching bag - X"
+}, {
+"area": "warehouse",
+"check": "door_tried",
+"marker": Vector3(17.6, 1.2, 0),
+"objective": "Try the yard gate - walk east, B at the door"
+}, {
+"area": "neighbourhood",
+"check": "street_reached",
+"marker": Vector3(-60, 0.1, 4.4),
+"objective": "Walk the street - through the yard, east"
+}]
+reward_cash = 0
+reward_xp = 10.0
+next = "m1"

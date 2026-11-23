@@ -81,8 +81,19 @@ func _process(_delta: float) -> void:
 	if _tick % 6 != 0:
 		return
 	var hero := get_tree().get_first_node_in_group("player") as Node3D
-	if hero == null:
+	if hero == null or not is_instance_valid(hero):
 		return
+	# lazy purge: laws whose fronts died with a left scene (the area
+	# re-registers on its next load; broken state lives in WorldState)
+	var stale: Array = []
+	for law in _doors.values():
+		# read UNTYPED first: assigning a freed instance to a typed
+		# var is itself the error (is_instance_valid never runs)
+		var n = law["node"]
+		if n == null or not (n is Node3D) or not is_instance_valid(n):
+			stale.append(law["label"])
+	for label in stale:
+		_doors.erase(label)
 	for law in _doors.values():
 		var n: Node3D = law["node"]
 		if n == null or not is_instance_valid(n):
