@@ -1,5 +1,17 @@
 # LEVERAGE — PRODUCTION CHECKLIST
 
+## !!! USER OVERRIDES R1-R16 — ABOVE EVERY SECTION BELOW !!!
+
+The user's overrides (2026-11-23) beat this mandate. Full text:
+`docs/USER_OVERRIDES.md` — READ IT AT EVERY SESSION START. Build order:
+R1/R2 warehouse-start scene + street through a visible gate -> R3 move
+stick + second camera control -> R4 X punch / Y heavy / A kick / B dodge
++ context -> DEVICE REPORT + zip, STOP for the phone result -> R11
+doors -> R13+R16 -> R5 faces/bodies -> R12 missions. Track in
+`docs/TRACEABILITY.md`. The source file LEVERAGE_ZAI_MASTER_PROMPT_V3.txt
+is not in the sandbox; R6-R10/R13/R14/R16 text is SOURCE MISSING.
+
+
 The living record of the COMPLETE OPEN-WORLD GAME PRODUCTION MANDATE.
 Every section of the mandate is tracked here with its REAL status —
 what is built and verified, what is partial, what is not started.
