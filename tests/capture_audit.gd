@@ -46,6 +46,17 @@ func _ready() -> void:
 	# 3-4 the neighbourhood at night: establishing + the new hero
 	await Game.travel("neighbourhood", "start")
 	await _wait_s(1.5)
+	# composed from street facts: the road runs X -60..60, the LIT
+	# lamp row is z=+7 (posts at x -48/-16/16/48). Stand west on the
+	# south walk, look east DOWN the lit line, hero placed in frame.
+	var hero2 := get_tree().get_first_node_in_group("player") as Node3D
+	hero2.global_position = Vector3(-30.0, 0.05, 6.2)
+	hero2.rotation.y = PI / 2.0
+	await _wait_s(0.4)
+	var cam := await _take_camera()
+	cam.fov = 55.0
+	cam.global_position = Vector3(-46.0, 2.6, 10.8)
+	cam.look_at(Vector3(24.0, 1.5, 7.4))
 	await _snap("03_street_night")
 	await _aim_at_player(Vector3(0.9, 1.5, 1.6), 50.0)
 	await _snap("04_hero_closeup")
@@ -87,6 +98,11 @@ func _aim_at_world(eye: Vector3, at: Vector3, fov: float) -> void:
 
 
 func _take_camera() -> Camera3D:
+	# THE RIG LAW (S5.2, probe-caught): camera_rig._process calls
+	# make_current() EVERY FRAME - any other camera is instantly
+	# overridden. Silence the rig first.
+	for r in get_tree().get_nodes_in_group("camera_rig"):
+		r.set_process(false)
 	var old := get_viewport().get_camera_3d()
 	if old != null:
 		old.current = false

@@ -1,0 +1,3 @@
+PBR textures from Polyhaven (polyhaven.com), CC0 licence.
+asphalt_01, concrete_floor_worn_001, brick_4,
+corrugated_iron_03, container_side - 1k JPG variants.

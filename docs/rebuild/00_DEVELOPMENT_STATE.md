@@ -30,9 +30,44 @@ Hit_Chest/Head, Death01, Roll + the full pistol set (43 CC0 clips
 on Unreal naming - the retarget math is the next session's opener).
 The enemy cast is still KayKit Barbarian (S5.1b too).
 
+## S5.2 progress (the material city) - part 1 LIVE
+
+The neighbourhood street is now a LIT NIGHT STREET (VLM gate:
+"unmistakably night, classic empty city at 2 AM mood", 6/10 from
+the audit's 1/10 black void): Polyhaven CC0 PBR set (asphalt +
+normal / concrete / brick / corrugated / container) in
+assets/v2/pbr with mat_lib.gd (per-surface UV scale, triplanar,
+the night albedo lift 1.45 - Polyhaven maps photograph mid-grey
+and read as void at night); the road + walks + apron wired;
+the NightAir environment (filmic tonemap, ambient, fog); sodium
+lamps: 15 posts, 4 REAL OmniLights (energy 3.0), hot emissive
+heads + pool decals. smoke_street 33/33, smoke_hero 30/30,
+smoke_home 26/26.
+
+THREE banked laws from the probe war (each one cost a run):
+1. **camera_rig._process calls make_current() EVERY FRAME** - any
+   other camera is silently overridden; every "composed" capture
+   was the rig's view until the audit tool sets rig.set_process(
+   false). Pixel-proof caught it: under-lamp 32.7 (rig view) vs
+   142.7 (real top-down view).
+2. **Duplicate sibling names become @ClassName@N in 4.7** - the
+   lamp probe matched "LampPost" exactly and saw 1 of 15. Name
+   generated nodes by position (LampPost_-44_1), count by
+   substring.
+3. **The old lit-set keys (-46/-12/22/54) matched NO post grid
+   position** - the four "real lights" never existed until this
+   pass (floats compared with is_equal_approx now).
+
 ## NEXT ACTION (exact)
 
-1. S5.1b: retarget UAL1_Standard.glb (Unreal bone names, 43 clips
+1. S5.2 part 2: the wet-road reflection smear (roughness is 0.07
+   but the diffuse photo map has no gloss - try a reflection
+   probe at street level, or the vertical-smear pool decal
+   trick); brick on the north massing + corrugated/container at
+   the docks/warehouse; the same NightAir + lamp treatment for
+   club_district (it has an env already - lift it) + docks; then
+   the club/docks capture + gate.
+2. S5.1b: retarget UAL1_Standard.glb (Unreal bone names, 43 clips
    incl. combat + pistol) onto the RPM rig - either via Godot's
    import-time BoneMap retarget (.import options + SkeletonProfile-
    Humanoid) or the GDScript rest-delta math. Then combat swings

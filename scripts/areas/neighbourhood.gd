@@ -13,6 +13,7 @@ extends Node3D
 
 const CLS_Kit := preload("res://scripts/kit.gd")
 const CLS_Vehicle := preload("res://scripts/world/vehicle.gd")
+const CLS_MatLib := preload("res://scripts/world/mat_lib.gd")
 
 const PALETTE := {
 	"road": Color(0.055, 0.058, 0.07),
@@ -91,17 +92,18 @@ func _ground() -> void:
 	# THE WORLD APRON: no voids to fall through, ever (the vehicle
 	# step's law - a drivable city has ground everywhere)
 	_solid(self, Vector3(420.0, 8.0, 420.0), Vector3(0, -4.2, 0),
-			Color(0.03, 0.031, 0.04), 0.95)
+			Color(0.03, 0.031, 0.04), 0.95, 0.0, "concrete")
 	# the road: dark, low-roughness (the wet-night read without a
 	# reflection probe per street - mobile budget). COLLIDERS FIRST:
 	# a mesh-only street is a hole - the whole door block fell
 	# through it (the DBG line caught y=-5.35 under the sidewalk).
 	_solid(self, Vector3(STREET_X * 2.0 + 8.0, 0.2, 8.0),
-			Vector3(0, -0.1, 0), PALETTE.road, 0.18, 0.1)
+			Vector3(0, -0.1, 0), PALETTE.road, 0.18, 0.1, "asphalt")
 	# the sidewalk strips both sides
 	for sz in [-1.0, 1.0]:
 		_solid(self, Vector3(STREET_X * 2.0 + 8.0, 0.24, 3.4),
-				Vector3(0, -0.08, sz * 5.7), PALETTE.walk, 0.85, 0.0)
+				Vector3(0, -0.08, sz * 5.7), PALETTE.walk, 0.85, 0.0,
+				"concrete")
 	# lane dashes down the middle (emissive-less, just lighter)
 	for i in range(-12, 13):
 		var dash := MeshInstance3D.new()
@@ -431,7 +433,7 @@ func _alley(x: float) -> void:
 ## light (the mobile budget): the rest read by emissive head + a
 ## light-pool decal.
 func _lamps() -> void:
-	var lit := {-46.0: true, -12.0: true, 22.0: true, 54.0: true}
+	var lit := [-48.0, -16.0, 16.0, 48.0]
 	for i in range(-60, 61, 16):
 		for sz in [-1.0, 1.0]:
 			var x := float(i) + (4.0 if sz < 0 else -4.0)
@@ -445,47 +447,74 @@ func _lamps() -> void:
 			pm.material = _mat(PALETTE.trim.darkened(0.4))
 			post.mesh = pm
 			post.position = Vector3(x, 2.3, sz * 7.4)
-			post.name = "LampPost"
+			post.name = "LampPost_%d_%d" % [i, int(sz)]
 			add_child(post)
 			var head := MeshInstance3D.new()
 			var hm := BoxMesh.new()
 			hm.size = Vector3(0.5, 0.16, 0.24)
-			hm.material = _glow(PALETTE.sodium, 0.9)
+			hm.material = _glow(PALETTE.sodium, 4.0)
 			head.mesh = hm
 			head.position = Vector3(x, 4.55, sz * 7.0)
-			head.name = "LampHead"
+			head.name = "LampHead_%d_%d" % [i, int(sz)]
 			add_child(head)
 			# the light pool decal on the walk
 			var pool := MeshInstance3D.new()
 			var qm := QuadMesh.new()
-			qm.size = Vector2(4.2, 3.0)
+			qm.size = Vector2(7.0, 5.2)
 			var qmat := StandardMaterial3D.new()
-			qmat.albedo_color = Color(1.0, 0.72, 0.4, 0.14)
+			qmat.albedo_color = Color(1.0, 0.72, 0.4, 0.65)
 			qmat.emission_enabled = true
 			qmat.emission = Color(1.0, 0.72, 0.4)
-			qmat.emission_energy_multiplier = 0.16
+			qmat.emission_energy_multiplier = 2.2
 			qmat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 			qm.material = qmat
 			pool.mesh = qm
 			pool.rotation = Vector3(-PI / 2.0, 0, 0)
 			pool.position = Vector3(x, 0.015, sz * 5.8)
-			pool.name = "LightPool"
+			pool.name = "LightPool_%d_%d" % [i, int(sz)]
 			add_child(pool)
-			if lit.has(x) and sz > 0:
+			var is_lit := false
+			for lx in lit:
+				if is_equal_approx(lx, x):
+					is_lit = true
+			if is_lit and sz > 0:
 				var light := OmniLight3D.new()
 				light.light_color = PALETTE.sodium
-				light.light_energy = 1.1
-				light.omni_range = 11.0
+				light.light_energy = 3.0
+				light.omni_range = 16.0
 				light.position = Vector3(x, 4.4, sz * 6.8)
-				light.name = "LampLight"
+				light.name = "LampLight_%d" % i
 				add_child(light)
 	# the city fill: the night sky's cold wash
 	var fill := DirectionalLight3D.new()
 	fill.name = "CityFill"
 	fill.rotation_degrees = Vector3(-62, 24, 0)
 	fill.light_color = Color(0.26, 0.3, 0.45)
-	fill.light_energy = 0.5
+	fill.light_energy = 0.8
 	add_child(fill)
+	# THE NIGHT AIR (S5.2): ambient + fog - the audit's void-black
+	# streets. Fog gives the far street a VALUE (depth reads, silhouettes
+	# exist) instead of pure black; ambient lifts the shadows the fill
+	# cannot reach. Cinematic exposure, not a filter.
+	var env := WorldEnvironment.new()
+	env.name = "NightAir"
+	var e := Environment.new()
+	e.background_mode = Environment.BG_COLOR
+	e.background_color = Color(0.03, 0.04, 0.08)
+	e.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	e.ambient_light_color = Color(0.09, 0.10, 0.15)
+	e.ambient_light_energy = 1.0
+	# S5.2 exposure: filmic + lifted white point - the pixel proof
+	# showed under-lamp ground at 29/255 (lit but invisible on
+	# screen). Cinematic night needs VALUES, not black.
+	e.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	e.tonemap_exposure = 1.35
+	e.tonemap_white = 1.0
+	e.fog_enabled = true
+	e.fog_light_color = Color(0.05, 0.055, 0.09)
+	e.fog_density = 0.007
+	env.environment = e
+	add_child(env)
 
 
 # --- gates + spawns ---------------------------------------------------------
@@ -552,7 +581,7 @@ func _gate(pos: Vector3, to: String, spawn: String, text: String,
 
 
 func _solid(parent: Node, sz: Vector3, pos: Vector3, col: Color,
-		rough := 0.9, metal := 0.0) -> void:
+		rough := 0.9, metal := 0.0, mat_name := "") -> void:
 	var body := StaticBody3D.new()
 	body.position = pos
 	var cshape := CollisionShape3D.new()
@@ -564,10 +593,14 @@ func _solid(parent: Node, sz: Vector3, pos: Vector3, col: Color,
 	var m := MeshInstance3D.new()
 	var bm := BoxMesh.new()
 	bm.size = sz
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = col
-	mat.roughness = rough
-	mat.metallic = metal
+	var mat: StandardMaterial3D
+	if mat_name != "":
+		mat = CLS_MatLib.surface(mat_name, sz)
+	else:
+		mat = StandardMaterial3D.new()
+		mat.albedo_color = col
+		mat.roughness = rough
+		mat.metallic = metal
 	bm.material = mat
 	m.mesh = bm
 	m.position = pos
