@@ -30,13 +30,8 @@ func _ready() -> void:
 	fill.light_color = Color(0.35, 0.38, 0.5)
 	fill.light_energy = 0.5
 	add_child(fill)
-	# the camera: third-person framing over the future spawn point
-	var cam := Camera3D.new()
-	cam.name = "Camera3D"  # runtime nodes get @Class@id names otherwise
-	cam.position = Vector3(0, 2.6, 7.5)
-	cam.rotation_degrees = Vector3(-14, 0, 0)
-	add_child(cam)
-	cam.make_current()
+	# the camera is the camera RIG's (mounted by Game with the hero in
+	# PLAY) - one camera authority per scene, the BuildStamp lesson
 	# the shell's name plate, honest about what it is
 	var plate := Label3D.new()
 	plate.text = "THE WAREHOUSE\nrebuild step 4 fills the home"
@@ -46,6 +41,11 @@ func _ready() -> void:
 	plate.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	plate.position = Vector3(0, 2.4, -5.0)
 	add_child(plate)
+	# the spawn marker (Game lands the hero here by spawn id "start")
+	var spawn := Node3D.new()
+	spawn.name = "SpawnStart"
+	spawn.position = Vector3(0, 0.05, 3.0)
+	add_child(spawn)
 	# a spawn ring so the arrival spot reads
 	var ring := MeshInstance3D.new()
 	var rm := TorusMesh.new()
@@ -66,6 +66,14 @@ func _ready() -> void:
 
 
 func _floor(sz: Vector3, pos: Vector3, col: Color) -> void:
+	var body := StaticBody3D.new()
+	body.position = pos
+	var shape := CollisionShape3D.new()
+	var cs := BoxShape3D.new()
+	cs.size = sz
+	shape.shape = cs
+	body.add_child(shape)
+	add_child(body)
 	var m := MeshInstance3D.new()
 	var bm := BoxMesh.new()
 	bm.size = sz

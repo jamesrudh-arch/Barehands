@@ -79,7 +79,8 @@ func _match() -> void:
 
 
 func _unlocked(c: Dictionary, player: Node) -> bool:
-	if c.get("requires_grab", false) and player.state != CLS_Player.State.GRAB \
+	if c.get("requires_grab", false) \
+			and player.get("state") != CLS_Player.State.GRAB \
 			and not InputBus.grab_pending():
 		return false
 	if c.get("pipe", false) and not player.has_pipe:

@@ -198,7 +198,10 @@ func _scan_game() -> void:
 
 	if state == State.RESOLVE:
 		return
-	if nearest < 4.0 or player.state == CLS_Player.State.PUNCH or player.state == CLS_Player.State.DODGE:
+	# rebuild step 3 transitional: the new hero has no `state` yet -
+	# null-safe read keeps this poll alive until the audio step replaces it
+	var pstate = player.get("state") if player else null
+	if nearest < 4.0 or pstate == CLS_Player.State.PUNCH or pstate == CLS_Player.State.DODGE:
 		if state == State.COMBAT:
 			_combat_calm = 0.0
 		else:

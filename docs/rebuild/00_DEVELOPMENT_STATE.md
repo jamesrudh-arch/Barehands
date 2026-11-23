@@ -46,14 +46,29 @@ optimise → verify → deliver).
 
 ## In progress
 
-**STAGE 4 step 3 — player + camera + touch UI (03 §5 step 3)**:
-`player/hero.gd` on the proven KayKit rig (locomotion blend from the
-shared library, jump/vault/crouch hooks), `player/camera_rig.gd`
-(spring-arm third-person, collision, face light), `player/touch_ui.gd`
-GENERATED from the InputMap (floating move stick, look stick, the
-X/Y/A/B diamond, pills). Delete on landing: input_bus.gd,
-touch_buttons.gd, action_button.gd, cam_stick.gd, input_strip.gd,
-camera_follow.gd, player.gd (+ their suites).
+**STAGE 4 step 4 — the warehouse home (03 §5 step 4)**: the full
+home from 02_MASTER_DESIGN §3 area 1 — bed, workbench, phone table,
+weapon rack, punching bag, sparring dummy, mirror, the roller door +
+side door to a private yard — built on the kits (Kenney furniture
+GLBs are on disk; the kit placement contract from the old project is
+harvested first), replacing the shell's placeholder dressing in
+place (same scene path, the shell grows into the home).
+
+## Step 3 — DONE (the player stack)
+
+**smoke_hero 30/30 + smoke_boot 42/42 + pipeline_probe 23/23 (with
+the strengthened pose check) + old smoke PASS** — the live hero
+exists: `player/hero.gd` on the native KayKit rig (61 shared clips:
+locomotion/ambient/posture/combat), the locomotion AnimationTree
+(idle/walk/run/crouch blends, proven by pose hashes), the spring-arm
+camera rig with look control + face light, and the touch UI
+generated from the control table (X/Y/A/B diamond + pills, sticks,
+the InputMap is the single truth). Game.travel mounts hero + rig +
+touch UI per area; the shell gained real collision + the spawn
+marker. Three pipeline corrections banked in D13 (connect_node
+order, root_node-relative track paths, root-motion tracks dropped).
+Transitional null-safety in music/combo_input/traffic keeps the old
+game runnable until its teardown steps.
 
 ## Step 2 — DONE (the character pipeline proof, D12)
 
@@ -103,25 +118,16 @@ Four bugs found and fixed on the way to green, all worth remembering:
 
 ## NEXT ACTION (exact)
 
-1. Commit step 2 (pipeline proof + native asset + docs).
-2. STEP 3 — player + camera + touch UI:
-   a. `scripts/player/hero.gd`: CharacterBody3D that instantiates
-      `assets/native/hero_kaykit_rogue.tscn`'s rig under itself, runs
-      the shared library through an AnimationTree (idle/walk/run by
-      stick magnitude), InputMap-driven (move/jump/sprint/crouch).
-   b. `scripts/player/camera_rig.gd`: SpringArm3D third-person with
-      collision + the `look` action; soft face light on the hero.
-   c. `scripts/player/touch_ui.gd`: generated FROM InputMap — move
-      stick, look stick, X/Y/A/B diamond (letters from the control
-      map), pills (GUARD/GRAB/SPRINT/JUMP/LOCK), context verb on B.
-   d. `tests/smoke_hero.gd`: boot the shell, move the hero via
-      Input.action_press, camera turns, animations actually change
-      (skeleton pose differs between idle and run), every diamond
-      button maps to its action; render check with the moving hero.
-   e. DELETE the replaced input/camera/player old files + suites
-      (input_bus, touch_buttons, action_button, cam_stick,
-      input_strip, camera_follow, player.gd) — one commit.
-3. THEN step 4 (the full warehouse home) per 03 §5.
+1. Commit step 3 (the player stack + docs).
+2. STEP 4 — the warehouse home: harvest the old kit placement
+   contract (scripts/kit.gd + furniture list), dress
+   scenes/areas/warehouse_shell.tscn into the full home (bed,
+   workbench, phone table, weapon rack, bag, dummy, mirror, roller
+   door, side door, yard), light it to the art direction (2-3
+   dynamic lights + practicals), suite: smoke_home (each furnishing
+   present + enterable yard + render check).
+3. THEN step 5 — combat core (the five styles' first pass on the
+   dummy + bag, AttackData, hit reactions, Style Rank).
 
 
 ## Known blockers / watch items

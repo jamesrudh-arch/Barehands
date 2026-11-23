@@ -210,21 +210,27 @@ func _tree_blend(player: AnimationPlayer) -> void:
 	root.add_node("walk", walk)
 	var blend := AnimationNodeBlend2.new()
 	root.add_node("blend", blend)
-	# 4.7 signature: connect_node(input_node, input_index, output_node)
-	# - the blend's inputs fill in connection order (idle=0, walk=1),
-	# and the graph must end wired into the special "output" node
-	root.connect_node("idle", 0, "blend")
-	root.connect_node("walk", 0, "blend")
-	root.connect_node("blend", 0, "output")
+	# 4.7 connect_node(input_node, input_index, output_node): the
+	# FIRST arg is the DESTINATION and its input slot, the LAST arg is
+	# the SOURCE; the special "output" node is a DESTINATION
+	root.connect_node("blend", 0, "idle")
+	root.connect_node("blend", 1, "walk")
+	root.connect_node("output", 0, "blend")
 	tree.tree_root = root
 	tree.active = true
 	tree.set("parameters/blend/blend_amount", 0.0)
 	await _wait_s(0.3)
+	# the blend must actually MOVE the skeleton: capture a bone pose at
+	# idle, tween to walk, capture again - a real blend differs
+	var skel := _find_node(_hero, Skeleton3D) as Skeleton3D
+	var pose_a := _pose_hash(skel)
 	var t := get_tree().create_tween()
 	t.tween_method(func(v): tree.set("parameters/blend/blend_amount", v),
 			0.0, 1.0, 0.5)
 	await _wait_s(0.6)
-	_check(true, "the AnimationTree blends idle->walk live")
+	var pose_b := _pose_hash(skel)
+	_check(pose_a != pose_b,
+			"the AnimationTree blend actually changes the pose")
 
 
 func _first_clip(player: AnimationPlayer, lib: String, keys: Array) -> StringName:
@@ -404,3 +410,16 @@ func _hero_aabb() -> AABB:
 		else:
 			aabb = aabb.merge(box)
 	return aabb
+
+
+## A stable pose signature (bone positions snapped to 1 mm) - the
+## blend proof compares signatures, not eyeballs.
+func _pose_hash(skel: Skeleton3D) -> int:
+	if skel == null:
+		return 0
+	var h := 0
+	for i in skel.get_bone_count():
+		var p := skel.get_bone_pose(i).origin
+		h = hash([h, snappedf(p.x, 0.001), snappedf(p.y, 0.001),
+				snappedf(p.z, 0.001)])
+	return h

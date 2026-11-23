@@ -17,6 +17,8 @@ const AREAS := {
 	"warehouse": "res://scenes/areas/warehouse_shell.tscn",
 }
 
+const CLS_CameraRig := preload("res://scripts/player/camera_rig.gd")
+
 const FADE_S := 0.4
 
 var state: State = State.BOOT
@@ -25,6 +27,7 @@ var spawn_id := ""
 var _fading := false
 var _fade: ColorRect
 var _fade_layer: CanvasLayer
+var _touch_ui: CanvasLayer = null
 
 
 func _ready() -> void:
@@ -80,8 +83,35 @@ func travel(id: String, spawn: String = "") -> void:
 	# safe margin for change_scene_to_file)
 	await get_tree().process_frame
 	await get_tree().process_frame
+	_mount_player(spawn)
 	_fading = false
 	await fade_in(FADE_S)
+
+
+## PLAY mounts the player stack exactly once per area: the hero at
+## the spawn marker, the camera rig on it, and the touch UI (one
+## instance for the whole session - it survives area swaps).
+func _mount_player(spawn: String) -> void:
+	var area := get_tree().current_scene
+	if area == null:
+		return
+	# clear any previous hero/camera from the last area
+	for old in get_tree().get_nodes_in_group("player") + \
+			get_tree().get_nodes_in_group("camera_rig"):
+		if old != null and is_instance_valid(old):
+			old.queue_free()
+	var hero: Node3D = load("res://scenes/entities/hero.tscn").instantiate()
+	var marker := area.get_node_or_null("Spawn" + (spawn.capitalize() \
+			if spawn != "" else "Start")) as Node3D
+	hero.global_position = marker.global_position \
+			if marker else Vector3(0, 0.05, 0)
+	area.add_child(hero)
+	var rig := CLS_CameraRig.new()
+	rig.global_position = hero.global_position + Vector3(0, 1.45, 0)
+	area.add_child(rig)
+	if _touch_ui == null or not is_instance_valid(_touch_ui):
+		_touch_ui = load("res://scripts/player/touch_ui.gd").new()
+		add_child(_touch_ui)
 
 
 func fade_out(t := FADE_S) -> void:

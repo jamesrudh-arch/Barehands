@@ -375,11 +375,15 @@ func _drive_all(delta: float, block: String) -> void:
 	var player := get_tree().get_first_node_in_group("player") as Node3D
 	var nearest: Node3D = null
 	var nearest_d := 1e9
-	for v in _pool.duplicate():
+	# rebuild-era guard: erase() on a FREED instance fails TypedArray
+	# validation (the new area scenes free nodes traffic still holds) -
+	# remove_at by index instead
+	for i in range(_pool.size() - 1, -1, -1):
+		var v: Node3D = _pool[i]
 		if not is_instance_valid(v):
-			_pool.erase(v)
+			_pool.remove_at(i)
 			continue
-		var car := v as Node3D
+		var car := v
 		if str(car.get_meta("block", "")) != block:
 			_recycle(car)  # the street behind the gate empties out
 			continue

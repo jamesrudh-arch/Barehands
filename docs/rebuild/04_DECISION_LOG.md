@@ -221,3 +221,43 @@ Engine facts learned (each cost a debugging round; keep them):
 **UAL retarget (D11)** stays open: UAL1_Standard uses Quaternius'
 own bone naming; the retarget will go through a BoneMap with the
 KayKit table above. Blocks nothing until the NPC/crowd variety step.
+
+## D13 — The player stack (step 3): three pipeline corrections
+
+Building the live hero surfaced three facts the step-2 proof missed
+(all now fixed in code and proven by `smoke_hero` 30/30):
+
+1. **connect_node argument order**: `connect_node(input_node,
+   input_index, output_node)` — the FIRST argument is the
+   DESTINATION node and its input slot; the LAST argument is the
+   SOURCE. The special "output" node is a DESTINATION
+   (`connect_node("output", 0, "last_node")`). The step-2 probe's
+   reversed calls produced engine errors and a silently dead blend —
+   its old check (`_check(true, ...)`) proved nothing; it now
+   compares real skeleton pose hashes.
+2. **Track paths are relative to each AnimationPlayer's root_node**:
+   the rig nests (`Rig/Rig_Medium/Skeleton3D`), so a library shared
+   with paths relative to the wrong level resolves to null and no
+   animation ever binds. `kaykit_lib.install()` resolves the
+   player's root_node first and builds the skeleton path from THERE;
+   the hero always rebases `root_node` after instantiating the
+   packed scene (packed scenes carry absolute paths from the tree
+   they were saved in).
+3. **Root-motion tracks must be DROPPED for gameplay locomotion**:
+   KayKit clips carry root position/rotation tracks; remapped onto
+   the rig root they fight the character controller every frame
+   (the hero's facing test caught a clip-authored rotation beating
+   the controller's yaw). The remap keeps bone tracks, drops root
+   property tracks — in-place clips, the controller owns the root.
+
+Transitional null-safety (these files die at their teardown steps):
+music.gd + combo_input.gd read the OLD player's `state` per frame —
+now `get("state")` null-safe reads; traffic.gd's pool loop uses
+`remove_at(i)` (TypedArray erase on a freed instance errors).
+
+Deferred deletions, honestly recorded: player.gd / touch_buttons.gd /
+camera_follow.gd / input_bus.gd are still referenced by old
+autoloads (enemy/music/progression) and old scenes
+(main.tscn/street_arrival/safe_boot) — each dies at ITS dependent's
+teardown step (5-6, 10, 13), not before; the web was mapped, not
+guessed.
