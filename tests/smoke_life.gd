@@ -92,7 +92,16 @@ func _ready() -> void:
 		# THE FLEE GATE (neighbourhood only): a thug appears 4m from
 		# a walker -> the walker sprints the OTHER way within a beat
 		if area == "neighbourhood" and walkers.size() > 0:
+			# pick a walker CLEAR of the street muscle (the fixed
+			# thug at -20,3.4 keeps its own flee cycle running - the
+			# gate's walker was oscillating between two dangers and
+			# opened no net distance; suite flake, not a game bug)
 			var w: CharacterBody3D = walkers[0]
+			for cand in walkers:
+				if (cand as Node3D).global_position.distance_to(
+						Vector3(-20.0, 0.05, 3.4)) > 14.0:
+					w = cand
+					break
 			var cls := load("res://scripts/npc/enemy.gd") as GDScript
 			var thug: CharacterBody3D = cls.new()
 			thug.position = (w as Node3D).global_position \

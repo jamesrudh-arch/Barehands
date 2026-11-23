@@ -20,7 +20,8 @@ var _anim: AnimationPlayer = null
 ## Static spawner: cast_path = a cast bundle tscn, bake = its UAL
 ## bake; name floats over the head.
 static func place(parent: Node, cast_path: String, bake_path: String,
-		pos: Vector3, face_yaw: float, who: String) -> Node3D:
+		pos: Vector3, face_yaw: float, who: String,
+		tint := Color.WHITE) -> Node3D:
 	var script := load("res://scripts/npc/local.gd") as GDScript
 	var npc: CharacterBody3D = script.new()
 	npc.position = pos
@@ -28,6 +29,8 @@ static func place(parent: Node, cast_path: String, bake_path: String,
 	npc.set_meta("who", who)
 	npc.set_meta("cast", cast_path)
 	npc.set_meta("bake", bake_path)
+	if tint != Color.WHITE:
+		npc.set_meta("tint", tint)
 	parent.add_child(npc)
 	return npc
 
@@ -68,15 +71,38 @@ func _ready() -> void:
 		if _anim.has_animation("ambient/Idle_A"):
 			_anim.play("ambient/Idle_A")
 	# the name: small, billboarded, readable against the night
-	var label := Label3D.new()
-	label.text = String(get_meta("who", "LOCAL"))
-	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	label.pixel_size = 0.012
-	label.font_size = 48
-	label.modulate = Color(1.0, 0.92, 0.75, 0.85)
-	label.outline_size = 10
-	label.position = Vector3(0, 2.05, 0)
-	add_child(label)
+	# (queue-goers and other background bodies pass who="" - no tag)
+	if String(get_meta("who", "LOCAL")) != "":
+		var label := Label3D.new()
+		label.text = String(get_meta("who", "LOCAL"))
+		label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		label.pixel_size = 0.012
+		label.font_size = 48
+		label.modulate = Color(1.0, 0.92, 0.75, 0.85)
+		label.outline_size = 10
+		label.position = Vector3(0, 2.05, 0)
+		add_child(label)
+	if has_meta("tint"):
+		_apply_tint(_rig, get_meta("tint") as Color)
+
+
+## Per-instance clothing tint (the pedestrian law: OVERRIDE on the
+## mesh instance - surface_set_material mutates the SHARED mesh).
+func _apply_tint(rig: Node, tint: Color) -> void:
+	if rig == null or tint == Color.WHITE:
+		return
+	for mi in rig.find_children("*", "MeshInstance3D", true, false):
+		var mesh: ArrayMesh = (mi as MeshInstance3D).mesh
+		if mesh == null:
+			continue
+		for s_idx in mesh.get_surface_count():
+			var mat := mesh.surface_get_material(s_idx)
+			if mat is StandardMaterial3D:
+				var clone: StandardMaterial3D = \
+						(mat as StandardMaterial3D).duplicate()
+				clone.albedo_color = tint
+				(mi as MeshInstance3D).set_surface_override_material(
+						s_idx, clone)
 
 
 func _find(root_n: Node, what) -> Node:

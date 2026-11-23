@@ -139,18 +139,49 @@ cars in the lane (its spawn view faces the venue wall - turn the
 hero down-street for action views; the 'sparse' note is S5.2p3
 lookdev, not the life systems).
 
+## S5.2 part 3 (lookdev) — DONE
+
+The code-built fronts get the real shopfront treatment, street and
+club both. Per open front: TWO amber panes with dark casings +
+mullion crosses PROUD of the facade face, a recessed dark doorway
+(jambs + lintel + a dim warm interior-glow panel at the slot back),
+a warm spill quad on the pavement (emissive, zero lights), BRICK on
+all code massing via MatLib.surface_box (per-axis UV tiling - the
+floor convention gives walls giant bricks). The club strip: same
+doorways + a seeded SKYLINE of tenement silhouettes with sparse lit
+windows behind the strip + real tinted queue-goers at the Velvet
+Room curb (local.gd gained tints + label-less background bodies).
+QUEUE BUG FIXED: the VelvetQueue stood across the street on the
+gym's block. VLM gates: street storefront = windows flank the
+doorway YES, brick YES, 'a plausible noir bar storefront' YES;
+club = lit doorway + figures + backdrop YES. Suites: areas 32,
+street 33, life 21 all green.
+PROBE LAWS (expensive - four were new):
+1. THE Z-AXIS FLIP: 'in front of the facade' is TOWARD THE STREET
+   (rel -Z on the street's north fronts, rel +Z on the club's) -
+   the first pane placement was 8cm INSIDE the wall slab and
+   rendered as nothing for five captures (byte-stable pixels were
+   the buried panes, not a frozen renderer).
+2. A full-slot pale glow panel reads as 'one flat rectangle' - the
+   interior glimpse must be dimmer and lower than the panes.
+3. The composed-camera graveyard (continued): a traffic sedan can
+   park 0.7m from the lens; the south front row sits at z=-7.2;
+   verify capture coordinates against the area layout FIRST.
+4. The interior RoomLight lamps render ~2m IN FRONT of the facade
+   (pre-existing quirk that doubles as a free street wash).
+5. Capture-time camera assertions belong INSIDE the capture loop.
+Open nit: the doorway interior is a flat glow panel (no depth
+gradient) - the interior dressing is occluded by it.
+
 ## NEXT ACTION (exact)
 
-1. S5.1c/S5.3 open nits: Soldier's jab twist (walker-only),
-   walk counter-arm swing, the swing-to-hero contact frame, the
-   pedestrian FLEE gate (thug proximity -> sprint, suite + VLM).
-2. S5.2 part 3 (lookdev): per-front lit doorway geometry, brick
-   on remaining code massing, club sign scale, the club stretch's
-   'sparse' read from the life gate.
-3. S5.4+ per the LEVERAGE roadmap: police heat, phone 2.0 +
+1. S5.4 per the LEVERAGE roadmap: police heat, phone 2.0 +
    missions M2-M6, weapons (the UAL pistol set is already
    retargeted + baked), vehicles, map/GPS, rain, audio,
    progression.
+2. Open nits: Soldier's jab twist (walker-only), walk counter-arm
+   swing, swing-to-hero contact frame, doorway interior depth,
+   traffic headlight sweep.
 
 ## Known blockers / watch items
 

@@ -12,6 +12,7 @@ extends Node3D
 
 const CLS_Kit := preload("res://scripts/kit.gd")
 const CLS_Vehicle := preload("res://scripts/world/vehicle.gd")
+const CLS_MatLib := preload("res://scripts/world/mat_lib.gd")
 
 const PALETTE := {
 	"road": Color(0.05, 0.052, 0.065),
@@ -61,6 +62,7 @@ func _ready() -> void:
 	_parked()
 	_muscle()
 	_life()
+	_skyline()
 	_lamps()
 	_gates()
 	Log.info("Club district ready (area=%s spawn=%s)" % [
@@ -125,6 +127,61 @@ func _life() -> void:
 			Vector3(-35.5, 0.05, 5.0), PI, "TONY - IRON PALM GYM")
 
 
+## THE SKYLINE (S5.2p3): tenement silhouettes behind the strip -
+## dark massing with a few lit windows, so the street reads as a
+## city block and not a stage set against the void.
+func _skyline() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 4751
+	for spec in [[-16.0, 4], [16.0, 3]]:
+		var zz: float = spec[0]
+		for b in spec[1]:
+			var w := rng.randf_range(16.0, 26.0)
+			var h := rng.randf_range(12.0, 22.0)
+			var x: float = -52.0 + float(b) * 30.0 \
+				+ rng.randf_range(-4.0, 4.0)
+			_solid(self, Vector3(w, h, 9.0), Vector3(x, h / 2.0, zz),
+					Color(0.045, 0.042, 0.055), 0.95, 0.0)
+			# the lit windows: a sparse grid of warm dots on the
+			# street face (emissive, zero lights)
+			for r in rng.randi_range(3, 5):
+				for c in rng.randi_range(3, 4):
+					if rng.randf() < 0.55:
+						continue
+					var dot := MeshInstance3D.new()
+					var dm := BoxMesh.new()
+					dm.size = Vector3(0.9, 1.2, 0.08)
+					dm.material = _glow(Color(1.0, 0.78, 0.5),
+							rng.randf_range(0.35, 0.8))
+					dot.mesh = dm
+					dot.position = Vector3(
+							x - w / 2.0 + 2.0 + c * (w - 3.0) / 4.0,
+							2.5 + r * (h - 4.0) / 6.0,
+							zz - signf(zz) * 4.56)
+					add_child(dot)
+
+
+## A textured BRICK solid (S5.2p3): _solid's mat path uses the
+## floor-tiling convention (one axis dominates); walls need the
+## box-aware per-axis scale or the courses come out giant.
+func _brick(parent: Node, sz: Vector3, pos: Vector3) -> void:
+	var body := StaticBody3D.new()
+	body.position = pos
+	var cshape := CollisionShape3D.new()
+	var s := BoxShape3D.new()
+	s.size = sz
+	cshape.shape = s
+	body.add_child(cshape)
+	parent.add_child(body)
+	var m := MeshInstance3D.new()
+	var bm := BoxMesh.new()
+	bm.size = sz
+	bm.material = CLS_MatLib.surface_box("brick", sz)
+	m.mesh = bm
+	m.position = pos
+	parent.add_child(m)
+
+
 func _fronts(table: Array, side: float) -> void:
 	for entry in table:
 		var label: String = entry[0]
@@ -160,11 +217,12 @@ func _kind_of(label: String) -> String:
 
 func _open_front(front: Node3D, label: String, glow: Color,
 		kind: String) -> void:
+	# S5.2p3: brick massing + the split-band doorway (street side is
+	# rel +Z here - the south fronts are rotated PI, the north face
+	# the street at +Z natively)
 	for sx in [[-3.1, 2.6], [3.1, 2.6]]:
-		_solid(front, Vector3(3.4, 5.4, 3.0), Vector3(sx[0], 2.7, -1.5),
-				PALETTE.facade)
-	_solid(front, Vector3(9.6, 1.5, 3.0), Vector3(0, 6.1, -1.5),
-			PALETTE.facade2)
+		_brick(front, Vector3(3.4, 5.4, 3.0), Vector3(sx[0], 2.7, -1.5))
+	_brick(front, Vector3(9.6, 1.5, 3.0), Vector3(0, 6.1, -1.5))
 	var room := Node3D.new()
 	room.name = "Room"
 	room.position = Vector3(0, 0, -1.5)
@@ -177,14 +235,37 @@ func _open_front(front: Node3D, label: String, glow: Color,
 			[Vector3(0.3, 5.2, 7.0), Vector3(4.65, 2.6, -3.5)],
 			[Vector3(9.6, 5.2, 0.3), Vector3(0, 2.6, -6.85)]]:
 		_solid(room, wall[0], wall[1], PALETTE.facade2)
-	var band := MeshInstance3D.new()
-	var bm := BoxMesh.new()
-	bm.size = Vector3(7.0, 2.3, 0.12)
-	bm.material = _glow(glow, 0.7)
-	band.mesh = bm
-	band.position = Vector3(0, 2.5, 0.02)
-	band.name = "WindowBand"
-	front.add_child(band)
+	for wx in [-2.45, 2.45]:
+		var band := MeshInstance3D.new()
+		var bm := BoxMesh.new()
+		bm.size = Vector3(2.1, 2.3, 0.12)
+		bm.material = _glow(glow, 0.7)
+		band.mesh = bm
+		band.position = Vector3(wx, 2.5, 0.08)
+		band.name = "WindowBand"
+		front.add_child(band)
+	var interior := MeshInstance3D.new()
+	var im := BoxMesh.new()
+	im.size = Vector3(2.4, 2.7, 0.1)
+	im.material = _glow(Color(1.0, 0.72, 0.42), 0.75)
+	interior.mesh = im
+	interior.position = Vector3(0, 1.55, -0.02)
+	interior.name = "DoorGlow"
+	front.add_child(interior)
+	for jx in [-1.55, 1.55]:
+		_solid(front, Vector3(0.34, 4.9, 0.7), Vector3(jx, 2.45, 0.15),
+				Color(0.07, 0.06, 0.08))
+	_solid(front, Vector3(3.7, 0.55, 0.7), Vector3(0, 4.95, 0.15),
+			Color(0.07, 0.06, 0.08))
+	var spill := MeshInstance3D.new()
+	var sp := QuadMesh.new()
+	sp.size = Vector2(2.6, 1.9)
+	sp.material = _glow(Color(1.0, 0.72, 0.45), 0.32)
+	spill.mesh = sp
+	spill.rotation.x = -PI / 2.0
+	spill.position = Vector3(0, 0.03, 1.15)
+	spill.name = "DoorSpill"
+	front.add_child(spill)
 	_sign(front, label, glow, Vector3(0, 4.8, 0.2), 42)
 	_interior(room, kind, glow)
 	var lamp := OmniLight3D.new()
@@ -248,10 +329,8 @@ func _interior(room: Node3D, kind: String, glow: Color) -> void:
 
 func _shut_front(front: Node3D, label: String, glow: Color) -> void:
 	for sx in [[-3.1, 2.6], [3.1, 2.6]]:
-		_solid(front, Vector3(3.4, 5.4, 3.0), Vector3(sx[0], 2.7, -1.5),
-				PALETTE.facade)
-	_solid(front, Vector3(9.6, 1.5, 3.0), Vector3(0, 6.1, -1.5),
-			PALETTE.facade2)
+		_brick(front, Vector3(3.4, 5.4, 3.0), Vector3(sx[0], 2.7, -1.5))
+	_brick(front, Vector3(9.6, 1.5, 3.0), Vector3(0, 6.1, -1.5))
 	var band := MeshInstance3D.new()
 	var bm := BoxMesh.new()
 	bm.size = Vector3(7.0, 2.0, 0.12)
@@ -333,7 +412,9 @@ func _queue_and_props() -> void:
 	# (simple stands now; the crowd pass gives them people)
 	var queue := Node3D.new()
 	queue.name = "VelvetQueue"
-	queue.position = Vector3(-40.0, 0, FRONT_Z - 1.2)
+	# probe-caught: the queue used to sit at +FRONT_Z-1.2 - ACROSS
+	# the street on the gym's block; the club's own curb is north
+	queue.position = Vector3(-40.0, 0, -(FRONT_Z - 1.2))
 	add_child(queue)
 	for i in 5:
 		var post := MeshInstance3D.new()
@@ -346,6 +427,18 @@ func _queue_and_props() -> void:
 		post.position = Vector3(1.2 + i * 0.9, 0.5, i * 0.35)
 		post.name = "Post_%d" % i
 		queue.add_child(post)
+		# the queue-goers: tinted locals along the rope (S5.2p3 -
+		# the 'sparse' read's cheapest fix is people)
+		if i == 1 or i == 2 or i == 4:
+			var CLS_Local := load("res://scripts/npc/local.gd")
+			var tints := [Color(0.55, 0.5, 0.62), Color(0.35, 0.45, 0.55),
+					Color(0.6, 0.42, 0.3)]
+			CLS_Local.place(queue,
+					"res://assets/native/cast_michelle.tscn",
+					"res://assets/native/ual_baked_michelle.res",
+					Vector3(0.55 + i * 0.95, 0, 0.55 + i * 0.35),
+					-PI / 2.0, "",
+					tints[[1, 2, 4].find(i)])
 		var body := StaticBody3D.new()
 		body.position = post.position
 		var cshape := CollisionShape3D.new()

@@ -185,11 +185,11 @@ func _open_front(label: String, x: float, glow: Color,
 	front.position = Vector3(x, 0, FRONT_Z)
 	add_child(front)
 	# the facade mass: two wall slabs + a header, the doorway between
+	# (S5.2p3: BRICK on the code massing - box-scaled so the courses
+	# read at true size on the wall faces)
 	for sx in [[-3.1, 2.6], [3.1, 2.6]]:
-		_solid(front, Vector3(3.4, 5.2, 3.0),
-				Vector3(sx[0], 2.6, -1.5), PALETTE.facade)
-	_solid(front, Vector3(9.6, 1.4, 3.0), Vector3(0, 5.9, -1.5),
-			PALETTE.facade2)
+		_brick(front, Vector3(3.4, 5.2, 3.0), Vector3(sx[0], 2.6, -1.5))
+	_brick(front, Vector3(9.6, 1.4, 3.0), Vector3(0, 5.9, -1.5))
 	# the interior shell (the room the doorway leads into)
 	var room := Node3D.new()
 	room.name = "Room"
@@ -205,15 +205,77 @@ func _open_front(label: String, x: float, glow: Color,
 			PALETTE.facade2)
 	_solid(room, Vector3(9.6, 5.0, 0.3), Vector3(0, 2.5, -6.85),
 			PALETTE.facade2)
-	# the window band: emissive, the shop's glow onto the street
-	var band := MeshInstance3D.new()
-	var bm := BoxMesh.new()
-	bm.size = Vector3(7.0, 2.2, 0.12)
-	bm.material = _glow(glow, 0.65)
-	band.mesh = bm
-	band.position = Vector3(0, 2.4, 0.02)
-	band.name = "WindowBand"
-	front.add_child(band)
+	# the shopfront: TWO lit window bands flanking the doorway (the
+	# old single 7m band covered the door gap - you walked THROUGH
+	# the glow; now the door is a real dark opening between lit
+	# windows) + jambs/lintel + the warm spill on the pavement
+	# (emissive quad, not a light - the mobile light budget)
+	for wx in [-2.45, 2.45]:
+		var band := MeshInstance3D.new()
+		var bm := BoxMesh.new()
+		bm.size = Vector3(2.1, 2.2, 0.12)
+		# window panes: pale-amber albedo + emission (the probe-caught
+		# software-GL law: emission ENERGY is invisible in the
+		# capture pipeline - real hardware shows it; the pale
+		# albedo makes the pane pop under lamp light in ANY
+		# renderer, pixel-verified)
+		# the pane: the DOOR-GLOW's exact recipe (probe-caught:
+		# this material renders bright in the capture pipeline;
+		# the pale-albedo variant did not)
+		bm.material = _glow(Color(1.0, 0.78, 0.48), 0.9)
+		band.mesh = bm
+		band.position = Vector3(wx, 2.4, -3.08)
+		band.name = "WindowBand"
+		front.add_child(band)
+		# the window CASING + mullion cross: dark framing that makes
+		# the pane read as a WINDOW (structure sells it, not glow -
+		# probe-caught); the bars sit PROUD of the pane (4 cm clear,
+		# no z-fight)
+		var frame := StandardMaterial3D.new()
+		frame.albedo_color = Color(0.05, 0.04, 0.05)
+		frame.roughness = 0.8
+		for mb in [[Vector3(2.26, 0.1, 0.16), Vector3(wx, 2.4, -3.14)],
+				[Vector3(0.1, 2.36, 0.16), Vector3(wx, 2.4, -3.14)],
+				[Vector3(2.1, 0.09, 0.15), Vector3(wx, 2.4, -3.15)],
+				[Vector3(0.09, 2.2, 0.15), Vector3(wx, 2.4, -3.15)]]:
+			var bar := MeshInstance3D.new()
+			var bmesh := BoxMesh.new()
+			bmesh.size = mb[0]
+			bmesh.material = frame
+			bar.mesh = bmesh
+			bar.position = mb[1]
+			bar.name = "Mullion"
+			front.add_child(bar)
+	# the LIT INTERIOR at the slot's back: the glow you see THROUGH
+	# the open door (the old single band's center section did this
+	# by accident - the split panes starved the doorway to a dark
+	# void, probe-caught; this panel is the noir storefront read)
+	var interior := MeshInstance3D.new()
+	var im := BoxMesh.new()
+	# the interior GLIMPSE (probe-caught balance: a full-slot pale
+	# slab at 1.2 outshone the panes and read as 'one flat glowing
+	# rectangle' - warm, dimmer, half-height: light at the door,
+	# darkness above it)
+	im.size = Vector3(2.4, 2.6, 0.1)
+	im.material = _glow(Color(0.95, 0.62, 0.35), 0.42)
+	interior.mesh = im
+	interior.position = Vector3(0, 1.5, 0.02)
+	interior.name = "DoorGlow"
+	front.add_child(interior)
+	for jx in [-1.55, 1.55]:
+		_solid(front, Vector3(0.34, 4.8, 0.7), Vector3(jx, 2.4, -2.85),
+				Color(0.07, 0.06, 0.08))
+	_solid(front, Vector3(3.7, 0.55, 0.7), Vector3(0, 4.9, -2.85),
+			Color(0.07, 0.06, 0.08))
+	var spill := MeshInstance3D.new()
+	var sp := QuadMesh.new()
+	sp.size = Vector2(3.0, 2.3)
+	sp.material = _glow(Color(1.0, 0.72, 0.45), 0.65)
+	spill.mesh = sp
+	spill.rotation.x = -PI / 2.0
+	spill.position = Vector3(0, 0.03, -3.7)
+	spill.name = "DoorSpill"
+	front.add_child(spill)
 	# the neon sign
 	_sign(front, label, glow, Vector3(0, 4.6, 0.2), 40)
 	# the interior dressing per kind + its warm light
@@ -652,6 +714,27 @@ func _solid(parent: Node, sz: Vector3, pos: Vector3, col: Color,
 		mat.roughness = rough
 		mat.metallic = metal
 	bm.material = mat
+	m.mesh = bm
+	m.position = pos
+	parent.add_child(m)
+
+
+## A textured BRICK solid (S5.2p3): _solid's mat path uses the
+## floor-tiling convention (one axis dominates); walls need the
+## box-aware per-axis scale or the courses come out giant.
+func _brick(parent: Node, sz: Vector3, pos: Vector3) -> void:
+	var body := StaticBody3D.new()
+	body.position = pos
+	var cshape := CollisionShape3D.new()
+	var s := BoxShape3D.new()
+	s.size = sz
+	cshape.shape = s
+	body.add_child(cshape)
+	parent.add_child(body)
+	var m := MeshInstance3D.new()
+	var bm := BoxMesh.new()
+	bm.size = sz
+	bm.material = CLS_MatLib.surface_box("brick", sz)
 	m.mesh = bm
 	m.position = pos
 	parent.add_child(m)

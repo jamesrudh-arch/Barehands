@@ -30,6 +30,20 @@ static var _base: Dictionary = {}
 ## A fresh material instance for a surface of the given world size
 ## (its uv1_scale tiles the texture at the def's density). `name`
 ## falls back to plain white if the texture set failed to load.
+## Box-aware surface: uv scaled PER AXIS so walls tile at true
+## world scale on every face (surface() assumes a ground plane -
+## one axis dominates and wall faces came out with giant bricks).
+static func surface_box(name: String, world_size: Vector3) -> StandardMaterial3D:
+	var mat := surface(name, world_size)
+	var def: Array = DEFS.get(name, [])
+	var tile: float = def[4] if def.size() > 4 else 0.0
+	if tile > 0.0:
+		mat.uv1_scale = Vector3(
+				maxf(world_size.x, 0.01) / tile,
+					maxf(world_size.y, 0.01) / tile,
+					maxf(world_size.z, 0.01) / tile)
+	return mat
+
 static func surface(name: String, world_size: Vector3) -> StandardMaterial3D:
 	var mat := StandardMaterial3D.new()
 	var def: Array = DEFS.get(name, [])
