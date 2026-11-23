@@ -356,16 +356,36 @@ func _yard() -> void:
 	]:
 		_solid_mesh_parent(yard, spec[0], spec[1],
 				PALETTE.wall.lightened(0.06))
-	# the gate: shut until the neighbourhood exists (step 6)
+	# THE GATE: the way out to the street (a real travel gate since
+	# step 6 - walk through, fade, the neighbourhood loads)
 	var gate := Node3D.new()
 	gate.name = "YardGate"
 	gate.position = Vector3(7.4, 0, 0)
 	yard.add_child(gate)
-	_solid_mesh_parent(gate, Vector3(0.24, 2.2, 2.2), Vector3(0, 1.1, 0),
+	for sz in [-1.4, 1.4]:
+		_solid_mesh_parent(gate, Vector3(0.24, 2.4, 0.3),
+				Vector3(0, 1.2, sz), Color(0.16, 0.17, 0.2))
+	_solid_mesh_parent(gate, Vector3(0.24, 0.5, 3.1), Vector3(0, 2.45, 0),
 			Color(0.16, 0.17, 0.2))
-	_sign(gate, Vector3(-0.4, 1.6, 0),
-			"THE NEIGHBOURHOOD - opens with the street build",
-			Color(1.0, 0.69, 0.13))
+	_sign(gate, Vector3(-0.6, 2.0, 0), "THE STREET",
+			Color(0.55, 0.95, 1.0))
+	var glow := OmniLight3D.new()
+	glow.light_color = Color(0.55, 0.95, 1.0)
+	glow.light_energy = 0.6
+	glow.omni_range = 4.0
+	glow.position = Vector3(-0.6, 2.6, 0)
+	gate.add_child(glow)
+	var zone := Area3D.new()
+	zone.name = "GateZone"
+	var zcol := CollisionShape3D.new()
+	var zs := BoxShape3D.new()
+	zs.size = Vector3(1.2, 2.6, 2.6)
+	zcol.shape = zs
+	zone.add_child(zcol)
+	gate.add_child(zone)
+	zone.body_entered.connect(func(b):
+		if b.is_in_group("player") and not Game._fading:
+			Game.travel("neighbourhood", "from_home"))
 	# bins + crates (Kenney)
 	_place(yard, "kenney_furniture/trashcan.glb", Vector3(-5.6, 0, -3.6))
 	_place(yard, "kenney_furniture/trashcan.glb", Vector3(-5.0, 0, -4.1), 0.7)

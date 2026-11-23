@@ -15,6 +15,7 @@ enum State { BOOT, SPLASH, TITLE, MENU, PLAY, PAUSE }
 ## The six-area registry (02_MASTER_DESIGN §3). Grows as areas land.
 const AREAS := {
 	"warehouse": "res://scenes/areas/warehouse_shell.tscn",
+	"neighbourhood": "res://scenes/areas/neighbourhood.tscn",
 }
 
 const CLS_CameraRig := preload("res://scripts/player/camera_rig.gd")
@@ -101,8 +102,10 @@ func _mount_player(spawn: String) -> void:
 		if old != null and is_instance_valid(old):
 			old.queue_free()
 	var hero: Node3D = load("res://scenes/entities/hero.tscn").instantiate()
-	var marker := area.get_node_or_null("Spawn" + (spawn.capitalize() \
-			if spawn != "" else "Start")) as Node3D
+	# "from_home" -> SpawnFromHome (capitalize() eats underscores)
+	var marker_name := "Spawn" + spawn.replace("_", " ").capitalize() \
+			.replace(" ", "") if spawn != "" else "SpawnStart"
+	var marker := area.get_node_or_null(marker_name) as Node3D
 	hero.global_position = marker.global_position \
 			if marker else Vector3(0, 0.05, 0)
 	area.add_child(hero)

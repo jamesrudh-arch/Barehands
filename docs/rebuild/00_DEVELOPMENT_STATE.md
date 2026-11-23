@@ -46,22 +46,47 @@ optimise → verify → deliver).
 
 ## In progress
 
-**STAGE 4 step 6 — the neighbourhood (03 §5 step 6, the big one)**:
-the area-2 street scene per 02_MASTER_DESIGN §3.2 (>=6 street
-segments, side streets, two alleys, a small plaza, >=12 distinct
-buildings from the city kits - ASSET BATCH 2 first: the Kenney city
-kit GLBs are already on disk in assets/kits/, verify breadth, fetch
-more CC0 if thin), the named fronts (noodle shop, THE RAIN GLASS
-bar, barber, pawn shop, convenience store, laundromat, clinic,
-subway entrance, bus stop, newsstand, vending machines), THE DOOR
-LAW (world/doors.gd: approach prompt, OPEN walk-in interiors, TRY,
-LOCKED with its reason, BREAK with progress + heat + stash - the
-proven old-game design, rebuilt on the new stack), WorldState
-persistence (broken doors + visited areas survive reload), the yard
-gate opens home<->street both ways, THEN the teardown: blocks.gd,
-block_builder.gd, main.tscn, street_arrival.gd, interior*.gd,
-doors.gd (old), map_data.gd + their suites die; input_bus.gd and
-the last old player cluster go with them. Suite: smoke_street.
+**STAGE 4 step 7 — missions M0–M1 (03 §5 step 7)**: the mission
+system (`missions/missions.gd` + mission data as .tres: stages,
+objectives, markers, briefing, pass/fail, rewards, consequences) and
+the first two chainable — M0 WAKE-UP CALL (the tutorial beats: move,
+camera, punch the bag, try the door, walk the street) and M1 THE
+COLLECTION (deliver to a street front; the objective marker + the
+guide line; a first locked-door beat that uses the door law).
+
+## Step 6 — DONE (the neighbourhood + THE TEARDOWN)
+
+**smoke_street 33/33 + the full battery GREEN after the teardown**
+(smoke_boot 42, pipeline_probe 23, smoke_hero 30, smoke_home 26,
+smoke_combat_r 28, smoke_street 33 = 182 checks):
+- The street (area 2): 12 registered fronts (3 OPEN with real
+  walk-in interiors: the noodle shop, THE RAIN GLASS, the corner
+  store - each dressed from the Kenney kit), housing south, two
+  alleys, the plaza, the subway mouth (honest sign), vending
+  machines, sodium-and-neon night on the mobile light budget (few
+  real lights + emissive practicals + pools).
+- THE DOOR LAW (scripts/world/doors.gd, the new one-authoritative
+  implementation): approach verb, TRY with the reason, B-shoulders +
+  A-kicks break (2 breakable fronts), the stash drops BESIDE the
+  doorway (lateral - dead-centre auto-collected at 0.1 m, the suite
+  caught it), steel refuses; broken doors persist through
+  WorldState flags across home<->street round trips.
+- Gates both ways: the yard gate is live (walk out, fade, the
+  street), the west street gate walks home.
+- **THE TEARDOWN**: the old world is GONE - 60+ old scripts
+  (blocks/block_builder/street/interiors/old doors/map, the old
+  player cluster, old enemy/crowd/traffic/weather/music/economy/
+  phone systems), the old scenes (main.tscn, warehouse.tscn,
+  player.tscn, enemy.tscn), 40+ old suites, and 32 dead autoloads
+  removed (InputBus, Heat, City, Music, ...). Retained infra:
+  BuildStamp, Tuning, Settings, Haptics, Log, Sound, Fx + the new
+  Game/WorldState/Doors. tools/battery.sh is the new runner.
+- Suite-caught bugs (all fixed, all worth remembering): Game's
+  spawn-name lookup vs underscored ids, the falling-velocity
+  teleport tunnel (zero it on every suite placement), THE ROAD HAD
+  NO COLLIDERS (mesh-only street = a hole; the DBG hero y=-5.35
+  line caught it), the gate posts standing IN the sidewalk lane,
+  the stash auto-collect, the chain cadence vs p2's cancel window.
 
 ## Step 5 — DONE (the combat core)
 
@@ -170,28 +195,27 @@ Four bugs found and fixed on the way to green, all worth remembering:
 
 ## NEXT ACTION (exact)
 
-1. Commit + push step 5 DONE (combat green, regressions green).
-2. STEP 6 order:
-   a. Asset check: `ls assets/kits/kenney_city` + breadth report;
-      fetch batch 2 (Quaternius modular city / Kenney city full)
-      only if the on-disk set cannot dress 12+ distinct fronts.
-   b. `scripts/world/doors.gd` (the door law, new implementation)
-      + `scripts/areas/neighbourhood.gd` + `scenes/areas/
-      neighbourhood.tscn`; register the area in Game.AREAS; open
-      the yard gate both ways (travel home<->street).
-   c. `tests/smoke_street.tscn`: area loads, the named fronts
-      exist, doors answer the law (open/try/locked/broken),
-      WorldState survives a reload, the hero walks home<->street.
-   d. THE TEARDOWN (same commit): delete the old street cluster
-      (blocks, block_builder, main.tscn, street_arrival, interiors,
-      old doors, map_data, their suites) + input_bus.gd + the old
-      player cluster (player.gd, touch_buttons, camera_follow,
-      cam_stick, input_strip, action_button) + now-dead autoloads;
-      fix whatever still references them; run the full new battery
-      (smoke_boot, pipeline_probe, smoke_hero, smoke_home,
-      smoke_combat_r, smoke_street) green.
-3. THEN step 7 — missions M0-M1 (the mission system + the first
-   two chainable).
+1. Commit + push step 6 (the street + door law + teardown, battery
+   green).
+2. STEP 7 — missions:
+   a. `scripts/data/mission_data.gd` (Resource: id, title, blurb,
+      stages[{objective, marker_pos, on_complete}], rewards,
+      consequences) + `data/missions/m0.tres`, `m1.tres` via a
+      builder; `scripts/missions/missions.gd` (autoload-free module
+      under Game? decision: a plain node the areas host, per the
+      architecture's "no new autoloads" spirit - missions live on
+      the Game flow).
+   b. M0 fires on first PLAY (WorldState flag first_play): the
+      beats walk the player through move/camera/punch/door/street,
+      each beat completes on its real condition.
+   c. M1 from M0's end: the delivery run with the objective marker
+      (a green pulse at the target) + completion + reward recorded
+      in WorldState.
+   d. `tests/smoke_missions.gd`: M0 beats fire in order and
+      complete on their conditions; M1 chains from M0; rewards land
+      in WorldState; the flow survives a save/load round trip.
+3. THEN step 8 — the HUD pass (health/meter/rank readouts, the
+   style wheel UI, the objective banner).
 
 
 ## Known blockers / watch items

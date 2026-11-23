@@ -137,8 +137,8 @@ func _doors() -> void:
 			"the side door glows open toward the yard")
 	var gate := _find_deep("YardGate")
 	var gate_sign := _sign_text(gate)
-	_check(gate != null and "NEIGHBOURHOOD" in gate_sign,
-			"the yard gate is signposted for the street build (%s)" % gate_sign)
+	_check(gate != null and gate_sign == "THE STREET",
+			"the yard gate is the live street gate (%s)" % gate_sign)
 
 
 func _sign_text(node: Node) -> String:

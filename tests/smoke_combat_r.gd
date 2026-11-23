@@ -187,11 +187,14 @@ func _chain_and_cancel() -> void:
 	# chain: three punches land as p1, p2, p3 (increasing damage)
 	var d := _dummy()
 	var hp0: float = d.get("hp")
+	# 0.45 s cadence: p2's cancel window runs to ~0.16 s into its
+	# recover - a 0.34 s cadence lands press 3 INSIDE it and the
+	# engine rightly rejects the input (caught by the 9.0 total)
 	for i in 3:
 		Input.action_press("punch")
 		await get_tree().process_frame
 		Input.action_release("punch")
-		await _wait_s(0.34)
+		await _wait_s(0.45)
 	var hp1: float = d.get("hp")
 	_check(hp0 - hp1 >= 4.0 + 5.0 + 8.0 - 0.1,
 			"the X X X chain lands p1+p2+p3 (%.1f total)" % (hp0 - hp1))
