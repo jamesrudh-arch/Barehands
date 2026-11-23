@@ -1179,6 +1179,20 @@ func _powerbomb(def: Dictionary) -> void:
 ## A kick (stage 5): the code-built Kick_Code clip. Reads as a mid-range
 ## poke; on a staggered enemy it launches instead (the pop-up juggle entry).
 func _try_kick() -> void:
+	# USER OVERRIDES R11: a kick at a tried, breakable locked door
+	# lands on the frame (the swing plays either way, so it reads as a
+	# kick at the door; inside a fight the kick belongs to the enemy)
+	if ((state == State.GROUND or (state == State.PUNCH
+			and _punch_stage in [1, 2])) and _t >= _hitstun_until):
+		var hostile := false
+		for e in get_tree().get_nodes_in_group("enemy"):
+			if e.get("state") != CLS_Enemy.State.DOWN \
+					and (e as Node3D).global_position.distance_to(
+					global_position) < 3.0:
+				hostile = true
+				break
+		if not hostile:
+			Doors.kick_door(self)
 	if state == State.GROUND and _t >= _hitstun_until:
 		_start_punch(5, false)
 	elif state == State.PUNCH and _punch_stage in [1, 2] and _t >= _hitstun_until:
@@ -1240,6 +1254,10 @@ func _try_grab_action() -> void:
 	for door in get_tree().get_nodes_in_group("safehouse"):
 		if door.has_method("try_use") and door.try_use(self):
 			return
+	# USER OVERRIDES R11: the street's shut fronts - a try reads the
+	# reason, further presses break the breakable ones
+	if Doors.try_nearest(self):
+		return
 	# B26 WHEELS EVERYWHERE: the vehicle grab moved to the END of the
 	# chain (see the last block) - the gun on a car's hood, a pickup at
 	# the feet, a person in reach all outvote boarding. Only within
@@ -1372,6 +1390,11 @@ func context_action() -> String:
 		if door is Node3D and global_position.distance_to(
 				(door as Node3D).global_position) < 2.4:
 			return "INTERACT"
+	# USER OVERRIDES R11: a registered street door answers the context
+	# verb - TRY a locked one, BREAK a tried-and-breakable one, OPEN
+	var dverb := Doors.context_verb(global_position)
+	if dverb != "":
+		return dverb
 	var target := _punch_target(-0.6, 0.35)
 	if target and target.state not in [CLS_Enemy.State.DOWN,
 			CLS_Enemy.State.GRABBED, CLS_Enemy.State.LAUNCHED]:
