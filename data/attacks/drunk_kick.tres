@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_dbvuf"]
+
+[resource]
+script = ExtResource("1_dbvuf")
+id = "drunk_kick"
+clip = &"combat/Melee_1H_Attack_Jump_Chop"
+damage = 11.0
+startup_s = 0.26
+active_s = 0.12
+recover_s = 0.3
+knockback = 4.0
+reach = 2.0
+haptic = "heavy"
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 11.0

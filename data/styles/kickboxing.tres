@@ -1,0 +1,100 @@
+[gd_resource type="Resource" script_class="StyleData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_bkucx"]
+[ext_resource type="Script" path="res://scripts/data/style_data.gd" id="2_e3rj3"]
+
+[sub_resource type="Resource" id="Resource_ofw61"]
+script = ExtResource("1_bkucx")
+id = "kick_finisher"
+clip = &"combat/Melee_1H_Attack_Jump_Chop"
+damage = 20.0
+startup_s = 0.34
+active_s = 0.16
+recover_s = 0.44
+knockback = 7.0
+reach = 2.2
+haptic = "super"
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 0.0
+posture_damage = 4.0
+
+[sub_resource type="Resource" id="Resource_43y4x"]
+script = ExtResource("1_bkucx")
+id = "kick_heavy"
+clip = &"combat/Melee_1H_Attack_Jump_Chop"
+damage = 14.0
+startup_s = 0.3
+active_s = 0.14
+recover_s = 0.36
+knockback = 5.0
+reach = 2.1
+haptic = "super"
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 14.0
+posture_damage = 3.0
+
+[sub_resource type="Resource" id="Resource_yuc8a"]
+script = ExtResource("1_bkucx")
+id = "kick_kick"
+clip = &"combat/Melee_Unarmed_Attack_Kick"
+damage = 13.0
+startup_s = 0.16
+active_s = 0.12
+recover_s = 0.24
+knockback = 4.6
+reach = 2.3
+haptic = "heavy"
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 13.0
+posture_damage = 2.5
+
+[sub_resource type="Resource" id="Resource_6i0dp"]
+script = ExtResource("1_bkucx")
+id = "kick_p1"
+clip = &"combat/Melee_Unarmed_Attack_Punch_A"
+damage = 3.0
+startup_s = 0.08
+active_s = 0.07
+recover_s = 0.12
+knockback = 0.8
+cancel_from_s = 0.1
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 5.0
+
+[sub_resource type="Resource" id="Resource_q0gpx"]
+script = ExtResource("1_bkucx")
+id = "kick_p2"
+clip = &"combat/Melee_Unarmed_Attack_Punch_A"
+damage = 4.0
+startup_s = 0.1
+active_s = 0.07
+recover_s = 0.13
+knockback = 1.0
+cancel_from_s = 0.11
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 6.0
+
+[sub_resource type="Resource" id="Resource_ih0t5"]
+script = ExtResource("1_bkucx")
+id = "kick_p3"
+clip = &"combat/Melee_1H_Attack_Stab"
+damage = 6.0
+active_s = 0.08
+recover_s = 0.16
+knockback = 1.4
+cancel_from_s = 0.14
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 7.0
+
+[resource]
+script = ExtResource("2_e3rj3")
+id = "kickboxing"
+display = "KICKBOXING"
+stance_clip = &"combat/Melee_Unarmed_Idle"
+blurb = "The legs carry it: the kick is the signature."
+punch_1 = SubResource("Resource_6i0dp")
+punch_2 = SubResource("Resource_q0gpx")
+punch_3 = SubResource("Resource_ih0t5")
+heavy = SubResource("Resource_43y4x")
+kick = SubResource("Resource_yuc8a")
+finisher = SubResource("Resource_ofw61")

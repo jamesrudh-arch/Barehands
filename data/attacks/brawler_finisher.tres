@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_v6cim"]
+
+[resource]
+script = ExtResource("1_v6cim")
+id = "brawler_finisher"
+clip = &"combat/Melee_2H_Attack_Chop"
+damage = 18.0
+startup_s = 0.3
+active_s = 0.14
+recover_s = 0.4
+knockback = 6.0
+haptic = "super"
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 0.0
+posture_damage = 4.0

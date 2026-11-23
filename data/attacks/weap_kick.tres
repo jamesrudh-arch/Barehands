@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_e3udi"]
+
+[resource]
+script = ExtResource("1_e3udi")
+id = "weap_kick"
+clip = &"combat/Melee_Unarmed_Attack_Kick"
+damage = 8.0
+startup_s = 0.18
+recover_s = 0.26
+knockback = 3.2
+reach = 2.0
+audio_layers = PackedStringArray("punch_med_0")

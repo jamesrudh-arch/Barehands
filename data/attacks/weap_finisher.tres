@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_cnaam"]
+
+[resource]
+script = ExtResource("1_cnaam")
+id = "weap_finisher"
+clip = &"combat/Melee_2H_Attack_Spinning"
+damage = 26.0
+startup_s = 0.38
+active_s = 0.18
+recover_s = 0.44
+knockback = 8.5
+reach = 2.4
+arc = 1.7
+haptic = "super"
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 0.0
+posture_damage = 5.0

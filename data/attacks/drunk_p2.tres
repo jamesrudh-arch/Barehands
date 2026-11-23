@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_fu47t"]
+
+[resource]
+script = ExtResource("1_fu47t")
+id = "drunk_p2"
+clip = &"combat/Melee_Dualwield_Attack_Chop"
+damage = 7.0
+startup_s = 0.22
+recover_s = 0.24
+knockback = 2.2
+cancel_from_s = 0.22
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 9.0

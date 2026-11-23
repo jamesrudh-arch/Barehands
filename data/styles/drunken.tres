@@ -1,0 +1,95 @@
+[gd_resource type="Resource" script_class="StyleData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_uhmgw"]
+[ext_resource type="Script" path="res://scripts/data/style_data.gd" id="2_jmnbw"]
+
+[sub_resource type="Resource" id="Resource_umesh"]
+script = ExtResource("1_uhmgw")
+id = "drunk_finisher"
+clip = &"combat/Melee_2H_Attack_Spinning"
+damage = 24.0
+startup_s = 0.4
+active_s = 0.2
+recover_s = 0.46
+knockback = 8.0
+arc = 1.8
+haptic = "super"
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 0.0
+posture_damage = 5.0
+
+[sub_resource type="Resource" id="Resource_6j4a6"]
+script = ExtResource("1_uhmgw")
+id = "drunk_heavy"
+clip = &"combat/Melee_2H_Attack_Spin"
+damage = 16.0
+startup_s = 0.34
+active_s = 0.18
+recover_s = 0.34
+knockback = 5.5
+arc = 1.6
+haptic = "super"
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 16.0
+posture_damage = 3.5
+
+[sub_resource type="Resource" id="Resource_8qk8m"]
+script = ExtResource("1_uhmgw")
+id = "drunk_kick"
+clip = &"combat/Melee_1H_Attack_Jump_Chop"
+damage = 11.0
+startup_s = 0.26
+active_s = 0.12
+recover_s = 0.3
+knockback = 4.0
+reach = 2.0
+haptic = "heavy"
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 11.0
+
+[sub_resource type="Resource" id="Resource_io0x8"]
+script = ExtResource("1_uhmgw")
+id = "drunk_p1"
+clip = &"combat/Melee_1H_Attack_Slice_Diagonal"
+damage = 6.0
+startup_s = 0.2
+cancel_from_s = 0.2
+audio_layers = PackedStringArray("punch_med_0")
+
+[sub_resource type="Resource" id="Resource_t6pvg"]
+script = ExtResource("1_uhmgw")
+id = "drunk_p2"
+clip = &"combat/Melee_Dualwield_Attack_Chop"
+damage = 7.0
+startup_s = 0.22
+recover_s = 0.24
+knockback = 2.2
+cancel_from_s = 0.22
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 9.0
+
+[sub_resource type="Resource" id="Resource_5gmvq"]
+script = ExtResource("1_uhmgw")
+id = "drunk_p3"
+clip = &"combat/Melee_Dualwield_Attack_Slice"
+damage = 9.0
+startup_s = 0.24
+active_s = 0.12
+recover_s = 0.26
+knockback = 2.8
+haptic = "heavy"
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 11.0
+
+[resource]
+script = ExtResource("2_jmnbw")
+id = "drunken"
+display = "DRUNKEN"
+stance_clip = &"ambient/Idle_B"
+blurb = "Looks like luck, lands like a piano."
+punch_1 = SubResource("Resource_io0x8")
+punch_2 = SubResource("Resource_t6pvg")
+punch_3 = SubResource("Resource_5gmvq")
+heavy = SubResource("Resource_6j4a6")
+kick = SubResource("Resource_8qk8m")
+finisher = SubResource("Resource_umesh")

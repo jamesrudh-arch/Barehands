@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_lt1h4"]
+
+[resource]
+script = ExtResource("1_lt1h4")
+id = "drunk_finisher"
+clip = &"combat/Melee_2H_Attack_Spinning"
+damage = 24.0
+startup_s = 0.4
+active_s = 0.2
+recover_s = 0.46
+knockback = 8.0
+arc = 1.8
+haptic = "super"
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 0.0
+posture_damage = 5.0

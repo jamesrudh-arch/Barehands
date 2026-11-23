@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_6fcqi"]
+
+[resource]
+script = ExtResource("1_6fcqi")
+id = "brawler_p3"
+clip = &"combat/Melee_1H_Attack_Slice_Horizontal"
+damage = 8.0
+startup_s = 0.16
+recover_s = 0.24
+knockback = 2.6
+cancel_from_s = 0.22
+haptic = "heavy"
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 10.0
+posture_damage = 2.0

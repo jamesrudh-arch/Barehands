@@ -13,6 +13,7 @@ extends CharacterBody3D
 ## states at step 5 - recorded in 00_DEVELOPMENT_STATE).
 
 const CLS_KayKitLib := preload("res://scripts/player/kaykit_lib.gd")
+const CLS_Combat := preload("res://scripts/player/combat.gd")
 const RIG := "res://assets/native/hero_kaykit_rogue.tscn"
 
 const WALK_SPEED := 3.1
@@ -37,6 +38,7 @@ var _tree: AnimationTree = null
 var _yaw := 0.0
 var _vel_y := 0.0
 var _grounded := true
+var _combat: Node = null
 
 
 func _ready() -> void:
@@ -127,6 +129,11 @@ func _build_tree() -> void:
 	_set_param("b_walk/blend_amount", 0.0)
 	_set_param("b_run/blend_amount", 0.0)
 	_set_param("b_crouch/blend_amount", 0.0)
+	# the combat core rides the same player + tree
+	_combat = CLS_Combat.new()
+	add_child(_combat)
+	_combat.mount(_anim, _tree)
+	face_action.connect(func(a): _combat.on_action(a))
 
 
 func _clip(lib: String, keys: Array) -> StringName:
@@ -159,6 +166,12 @@ func _physics_process(delta: float) -> void:
 		stick = Input.get_vector("move_left", "move_right",
 				"move_up", "move_down")
 	_actions()
+	# combat owns the body during a swing; guard releases on let-go
+	if _combat:
+		if _combat.swinging():
+			stick = Vector2.ZERO
+		if _combat.guarding() and not Input.is_action_pressed("guard"):
+			_combat.release_guard()
 	var sprint := Input.is_action_pressed("sprint") \
 			or stick.length() > 0.97  # full push = auto-sprint (the map)
 	crouching = _crouch_held()
@@ -225,7 +238,10 @@ func _actions() -> void:
 			"sprint", "jump", "lock", "style", "super", "phone"]:
 		if Input.is_action_just_pressed(action):
 			last_action = action
-			face_action.emit(action)
+			if action == "style" and _combat:
+				_cycle_style()
+			else:
+				face_action.emit(action)
 			break
 
 
@@ -245,3 +261,12 @@ func _find(root: Node, what) -> Node:
 		if found:
 			return found
 	return null
+
+
+## The style cycle (the hold-flick wheel lands with the HUD step;
+## until then the STYLE action walks the five in order).
+func _cycle_style() -> void:
+	var order := ["brawler", "kickboxing", "grappling", "drunken", "weapon"]
+	var i := order.find(_combat.style_id)
+	_combat.set_style(order[(i + 1) % order.size()])
+	Log.info("Hero: style -> %s" % _combat.style_id)

@@ -13,6 +13,7 @@ extends Node3D
 ## in the art-direction palette.
 
 const CLS_Kit := preload("res://scripts/kit.gd")
+const CLS_TrainTarget := preload("res://scripts/world/train_target.gd")
 
 const PALETTE := {
 	"ink": Color(0.02, 0.023, 0.06),
@@ -236,7 +237,8 @@ func _training_corner() -> void:
 	corner.position = Vector3(6.4, 0, 4.6)
 	add_child(corner)
 	# the punching bag: chain + a heavy cylinder that can sway
-	var bag := Node3D.new()
+	# (a TRAIN TARGET - the combat core hits it)
+	var bag := CLS_TrainTarget.new()
 	bag.name = "PunchingBag"
 	bag.position = Vector3(2.4, 0, 1.2)
 	corner.add_child(bag)
@@ -266,7 +268,8 @@ func _training_corner() -> void:
 			Vector3(0, 3.95, 0), Color(0.05, 0.05, 0.06))
 	anchor.name = "Anchor"
 	# the sparring dummy: a pole + capsule torso + head, padded arms
-	var dummy := Node3D.new()
+	# (a TRAIN TARGET with posture that breaks)
+	var dummy := CLS_TrainTarget.new()
 	dummy.name = "SparringDummy"
 	dummy.position = Vector3(0.4, 0, 1.6)
 	corner.add_child(dummy)

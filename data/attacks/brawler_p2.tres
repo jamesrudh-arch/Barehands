@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_j3p0l"]
+
+[resource]
+script = ExtResource("1_j3p0l")
+id = "brawler_p2"
+clip = &"combat/Melee_Unarmed_Attack_Punch_A"
+active_s = 0.08
+recover_s = 0.18
+knockback = 1.6
+cancel_from_s = 0.16
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 7.0

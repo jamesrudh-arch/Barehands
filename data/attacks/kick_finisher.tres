@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_8n4xc"]
+
+[resource]
+script = ExtResource("1_8n4xc")
+id = "kick_finisher"
+clip = &"combat/Melee_1H_Attack_Jump_Chop"
+damage = 20.0
+startup_s = 0.34
+active_s = 0.16
+recover_s = 0.44
+knockback = 7.0
+reach = 2.2
+haptic = "super"
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 0.0
+posture_damage = 4.0

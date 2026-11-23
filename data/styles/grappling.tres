@@ -1,0 +1,96 @@
+[gd_resource type="Resource" script_class="StyleData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_7m7xa"]
+[ext_resource type="Script" path="res://scripts/data/style_data.gd" id="2_c8eu2"]
+
+[sub_resource type="Resource" id="Resource_2tu6v"]
+script = ExtResource("1_7m7xa")
+id = "grap_finisher"
+clip = &"combat/Melee_2H_Attack_Stab"
+damage = 22.0
+startup_s = 0.32
+active_s = 0.15
+recover_s = 0.42
+reach = 1.6
+haptic = "super"
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 0.0
+posture_damage = 6.0
+
+[sub_resource type="Resource" id="Resource_gvvhk"]
+script = ExtResource("1_7m7xa")
+id = "grap_heavy"
+clip = &"ambient/Throw"
+damage = 15.0
+startup_s = 0.26
+active_s = 0.12
+recover_s = 0.34
+knockback = 3.0
+reach = 1.5
+haptic = "super"
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 15.0
+posture_damage = 5.0
+
+[sub_resource type="Resource" id="Resource_c0k8i"]
+script = ExtResource("1_7m7xa")
+id = "grap_kick"
+clip = &"combat/Melee_Unarmed_Attack_Kick"
+damage = 7.0
+startup_s = 0.2
+active_s = 0.09
+recover_s = 0.28
+knockback = 1.8
+reach = 1.9
+audio_layers = PackedStringArray("punch_med_0")
+
+[sub_resource type="Resource" id="Resource_vxk42"]
+script = ExtResource("1_7m7xa")
+id = "grap_p1"
+clip = &"combat/Melee_Block_Attack"
+damage = 3.0
+active_s = 0.08
+recover_s = 0.18
+knockback = 0.4
+reach = 1.4
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 6.0
+posture_damage = 2.0
+
+[sub_resource type="Resource" id="Resource_nfgl4"]
+script = ExtResource("1_7m7xa")
+id = "grap_p2"
+clip = &"combat/Melee_Dualwield_Attack_Stab"
+damage = 4.0
+startup_s = 0.14
+active_s = 0.08
+recover_s = 0.2
+knockback = 0.5
+reach = 1.4
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 7.0
+posture_damage = 2.2
+
+[sub_resource type="Resource" id="Resource_v7b4j"]
+script = ExtResource("1_7m7xa")
+id = "grap_p3"
+clip = &"combat/Melee_Dualwield_Attack_Slice"
+startup_s = 0.16
+active_s = 0.09
+knockback = 0.6
+reach = 1.5
+audio_layers = PackedStringArray("punch_med_0")
+posture_damage = 2.5
+
+[resource]
+script = ExtResource("2_c8eu2")
+id = "grappling"
+display = "GRAPPLING"
+stance_clip = &"combat/Melee_Blocking"
+blurb = "Clinch and grind: short strikes that chew posture, the throw ends it."
+punch_1 = SubResource("Resource_vxk42")
+punch_2 = SubResource("Resource_nfgl4")
+punch_3 = SubResource("Resource_v7b4j")
+heavy = SubResource("Resource_gvvhk")
+kick = SubResource("Resource_c0k8i")
+finisher = SubResource("Resource_2tu6v")

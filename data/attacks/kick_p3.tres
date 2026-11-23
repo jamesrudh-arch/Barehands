@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_ftp12"]
+
+[resource]
+script = ExtResource("1_ftp12")
+id = "kick_p3"
+clip = &"combat/Melee_1H_Attack_Stab"
+damage = 6.0
+active_s = 0.08
+recover_s = 0.16
+knockback = 1.4
+cancel_from_s = 0.14
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 7.0

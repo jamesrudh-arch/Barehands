@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_0v6ts"]
+
+[resource]
+script = ExtResource("1_0v6ts")
+id = "kick_kick"
+clip = &"combat/Melee_Unarmed_Attack_Kick"
+damage = 13.0
+startup_s = 0.16
+active_s = 0.12
+recover_s = 0.24
+knockback = 4.6
+reach = 2.3
+haptic = "heavy"
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 13.0
+posture_damage = 2.5

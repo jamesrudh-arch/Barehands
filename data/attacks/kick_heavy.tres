@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_hioqp"]
+
+[resource]
+script = ExtResource("1_hioqp")
+id = "kick_heavy"
+clip = &"combat/Melee_1H_Attack_Jump_Chop"
+damage = 14.0
+startup_s = 0.3
+active_s = 0.14
+recover_s = 0.36
+knockback = 5.0
+reach = 2.1
+haptic = "super"
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 14.0
+posture_damage = 3.0

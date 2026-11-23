@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_44r06"]
+
+[resource]
+script = ExtResource("1_44r06")
+id = "grap_heavy"
+clip = &"ambient/Throw"
+damage = 15.0
+startup_s = 0.26
+active_s = 0.12
+recover_s = 0.34
+knockback = 3.0
+reach = 1.5
+haptic = "super"
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 15.0
+posture_damage = 5.0

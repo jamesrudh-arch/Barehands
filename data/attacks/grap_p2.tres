@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_s25uo"]
+
+[resource]
+script = ExtResource("1_s25uo")
+id = "grap_p2"
+clip = &"combat/Melee_Dualwield_Attack_Stab"
+damage = 4.0
+startup_s = 0.14
+active_s = 0.08
+recover_s = 0.2
+knockback = 0.5
+reach = 1.4
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 7.0
+posture_damage = 2.2

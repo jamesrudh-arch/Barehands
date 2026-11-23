@@ -46,13 +46,32 @@ optimise → verify → deliver).
 
 ## In progress
 
-**STAGE 4 step 5 — combat core (03 §5 step 5)**: the five styles'
-first pass on the dummy + the bag — `player/combat.gd` +
-`data/styles/*` + `data/attacks/*` (AttackData: damage, hitstop
-frames, knockback, cancel window, haptic, audio layers), hit
-reactions on the dummy, the Leverage Strike meter, the Style Rank.
-X punch / Y heavy / A kick / B dodge behind the style tables; the
-KayKit CombatMelee clips drive the swings.
+**STAGE 4 step 5 — combat core, 18/24 checks green, ONE bug left**:
+the data layer is DONE and proven (30 AttackData + 5 StyleData .tres
+via scripts/player/build_style_data.gd; the clip inventory found the
+real unarmed clips: Melee_Unarmed_Attack_Punch_A/Kick, block set,
+4-direction dodges, Hit_A/B reactions). combat.gd (state machine,
+cancels, dodge i-frames, selective hitstop, Leverage meter, Style
+Rank), train_target.gd (bag sway, dummy posture-break + recovery)
+and the hero integration are in. smoke_combat_r proves: mount,
+default style, X starts the punch, dodge window + movement + return
+to IDLE, the 5-style cycle, WEAPON reach, posture break + recovery,
+finisher spending meter (18 ok).
+
+**THE OPEN BUG: hits never land on the dummy** (hp unchanged in
+every damage check). Verified on paper: hero 1.4 m south of the
+dummy, `_yaw` = PI, combat fwd convention corrected to +Z-at-yaw-0
+(D13 convention), reach 1.7 > 1.4, arc 1.25 > 0. NEXT SESSION's
+first action: instrument `_try_hit()` in scripts/player/combat.gd
+with one Log.info per phase transition (STARTUP->ACTIVE timing) and
+per candidate target (distance, angle, has_method) - the likely
+suspects: (a) the phase never reaches ACTIVE inside the suite's
+wait window (the _t clock vs phase transitions under ~10 fps
+headless), (b) take_hit's group query returns the dummy under a
+stale reference, (c) the hero's lunge pushes it past the arc during
+STARTUP. The suite's timing waits may also need widening (0.35 s
+was tuned for 60 fps). The data + reaction layers are NOT the
+problem (posture break + recovery checks pass by direct set).
 
 ## Step 4 — DONE (the warehouse home)
 
@@ -137,25 +156,14 @@ Four bugs found and fixed on the way to green, all worth remembering:
 
 ## NEXT ACTION (exact)
 
-1. Commit step 4 (the home + suite + docs).
-2. STEP 5 — combat core:
-   a. `data/attacks/*.tres` AttackData resources (damage, frames,
-      knockback, cancel window, haptic pattern, audio layers) — the
-      old repo's proven .tres pattern, rebuilt; five styles first:
-      BRAWLER (X X X, X X Y, X A), KICKBOXING, GRAPPLING, DRUNKEN,
-      WEAPON each with its own stance idle + strings.
-   b. `scripts/player/combat.gd`: the attack state machine on the
-      hero (tokens, cancels, hitstop on attacker+target only),
-      dodge with i-frames, the dummy/bag take hits (hit reactions,
-      the bag sways, the dummy's posture breaks).
-   c. The Leverage Strike meter + Style Rank (the HUD pass is step
-      8; the values live on the combat system now).
-   d. `tests/smoke_combat_r.gd`: face buttons fire the right
-      attacks per style, hits land on the dummy (damage + reaction
-      + meter), dodge avoids, combos cancel correctly, the style
-      wheel swaps styles.
+1. Commit step 5 as IN PROGRESS (data layer done, combat wired,
+   18/24; the hit-landing bug open with the suspect list above).
+2. Instrument _try_hit (one-line logs), re-run
+   tests/smoke_combat_r.tscn under Xvfb, read the numbers, fix the
+   landing bug, re-run to green, THEN commit step 5 DONE.
 3. THEN step 6 — the neighbourhood area + the door law + WorldState
-   persistence (the big teardown: blocks/block_builder/main.tscn).
+   persistence (the big teardown: blocks/block_builder/main.tscn +
+   their suites; asset batch 2: city kits).
 
 
 ## Known blockers / watch items

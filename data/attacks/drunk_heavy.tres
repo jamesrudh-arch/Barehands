@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_celn5"]
+
+[resource]
+script = ExtResource("1_celn5")
+id = "drunk_heavy"
+clip = &"combat/Melee_2H_Attack_Spin"
+damage = 16.0
+startup_s = 0.34
+active_s = 0.18
+recover_s = 0.34
+knockback = 5.5
+arc = 1.6
+haptic = "super"
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 16.0
+posture_damage = 3.5

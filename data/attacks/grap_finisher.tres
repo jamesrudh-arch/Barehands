@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_t2bhm"]
+
+[resource]
+script = ExtResource("1_t2bhm")
+id = "grap_finisher"
+clip = &"combat/Melee_2H_Attack_Stab"
+damage = 22.0
+startup_s = 0.32
+active_s = 0.15
+recover_s = 0.42
+reach = 1.6
+haptic = "super"
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 0.0
+posture_damage = 6.0

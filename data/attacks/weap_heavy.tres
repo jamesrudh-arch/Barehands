@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_grfgj"]
+
+[resource]
+script = ExtResource("1_grfgj")
+id = "weap_heavy"
+clip = &"combat/Melee_2H_Attack_Chop"
+damage = 17.0
+startup_s = 0.3
+active_s = 0.14
+recover_s = 0.36
+knockback = 5.0
+reach = 2.2
+haptic = "super"
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 15.0
+posture_damage = 3.5

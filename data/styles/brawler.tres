@@ -1,0 +1,97 @@
+[gd_resource type="Resource" script_class="StyleData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_r04be"]
+[ext_resource type="Script" path="res://scripts/data/style_data.gd" id="2_ux13g"]
+
+[sub_resource type="Resource" id="Resource_jo1hq"]
+script = ExtResource("1_r04be")
+id = "brawler_finisher"
+clip = &"combat/Melee_2H_Attack_Chop"
+damage = 18.0
+startup_s = 0.3
+active_s = 0.14
+recover_s = 0.4
+knockback = 6.0
+haptic = "super"
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 0.0
+posture_damage = 4.0
+
+[sub_resource type="Resource" id="Resource_e8w57"]
+script = ExtResource("1_r04be")
+id = "brawler_heavy"
+clip = &"combat/Melee_1H_Attack_Chop"
+damage = 12.0
+startup_s = 0.24
+active_s = 0.12
+recover_s = 0.3
+knockback = 4.0
+haptic = "heavy"
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 12.0
+posture_damage = 2.5
+
+[sub_resource type="Resource" id="Resource_msb4u"]
+script = ExtResource("1_r04be")
+id = "brawler_kick"
+clip = &"combat/Melee_Unarmed_Attack_Kick"
+damage = 9.0
+startup_s = 0.18
+recover_s = 0.26
+knockback = 3.4
+reach = 2.0
+haptic = "heavy"
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 10.0
+posture_damage = 2.0
+
+[sub_resource type="Resource" id="Resource_luusi"]
+script = ExtResource("1_r04be")
+id = "brawler_p1"
+clip = &"combat/Melee_Unarmed_Attack_Punch_A"
+damage = 4.0
+startup_s = 0.1
+active_s = 0.08
+recover_s = 0.16
+knockback = 1.2
+cancel_from_s = 0.14
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 6.0
+
+[sub_resource type="Resource" id="Resource_id07o"]
+script = ExtResource("1_r04be")
+id = "brawler_p2"
+clip = &"combat/Melee_Unarmed_Attack_Punch_A"
+active_s = 0.08
+recover_s = 0.18
+knockback = 1.6
+cancel_from_s = 0.16
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 7.0
+
+[sub_resource type="Resource" id="Resource_ehbn8"]
+script = ExtResource("1_r04be")
+id = "brawler_p3"
+clip = &"combat/Melee_1H_Attack_Slice_Horizontal"
+damage = 8.0
+startup_s = 0.16
+recover_s = 0.24
+knockback = 2.6
+cancel_from_s = 0.22
+haptic = "heavy"
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 10.0
+posture_damage = 2.0
+
+[resource]
+script = ExtResource("2_ux13g")
+id = "brawler"
+display = "BRAWLER"
+stance_clip = &"combat/Melee_Unarmed_Idle"
+blurb = "The street basics: honest hands, fast recovery."
+punch_1 = SubResource("Resource_luusi")
+punch_2 = SubResource("Resource_id07o")
+punch_3 = SubResource("Resource_ehbn8")
+heavy = SubResource("Resource_e8w57")
+kick = SubResource("Resource_msb4u")
+finisher = SubResource("Resource_jo1hq")

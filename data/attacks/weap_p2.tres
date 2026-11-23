@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_jr5bs"]
+
+[resource]
+script = ExtResource("1_jr5bs")
+id = "weap_p2"
+clip = &"combat/Melee_1H_Attack_Slice_Diagonal"
+damage = 8.0
+startup_s = 0.18
+recover_s = 0.26
+knockback = 2.6
+cancel_from_s = 0.24
+reach = 2.1
+haptic = "heavy"
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 9.0

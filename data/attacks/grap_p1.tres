@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="AttackData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/attack_data.gd" id="1_d1vpu"]
+
+[resource]
+script = ExtResource("1_d1vpu")
+id = "grap_p1"
+clip = &"combat/Melee_Block_Attack"
+damage = 3.0
+active_s = 0.08
+recover_s = 0.18
+knockback = 0.4
+reach = 1.4
+audio_layers = PackedStringArray("punch_med_0")
+meter_gain = 6.0
+posture_damage = 2.0
