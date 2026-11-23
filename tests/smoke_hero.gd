@@ -76,12 +76,15 @@ func _hero_block() -> void:
 	if hero == null:
 		return
 	var skel := _find(hero, Skeleton3D) as Skeleton3D
-	_check(skel != null and skel.get_bone_count() == 23,
-			"the KayKit rig is live (%d bones)" % (
+	# S5.1: the hero is the RPM avatar (the Mixamo skeleton family)
+	_check(skel != null and skel.get_bone_count() >= 60,
+			"the RPM hero rig is live (%d bones)" % (
 			skel.get_bone_count() if skel else -1))
 	var anim := _find(hero, AnimationPlayer) as AnimationPlayer
 	var clips := anim.get_animation_list().size() if anim else 0
-	_check(clips >= 30, "the shared library is installed (%d clips)" % clips)
+	# the Mixamo-family share: locomotion + posture clips (the UAL
+	# combat retarget grows this - S5.1b)
+	_check(clips >= 8, "the Mixamo library is installed (%d clips)" % clips)
 	var tree := _find(hero, AnimationTree) as AnimationTree
 	_check(tree != null and tree.active,
 			"the locomotion tree is active")
@@ -137,9 +140,20 @@ func _pose_hash(skel: Skeleton3D) -> int:
 		return 0
 	var h := 0
 	for i in skel.get_bone_count():
-		var p := skel.get_bone_pose(i).origin
+		var pose := skel.get_bone_pose(i)
+		var p := pose.origin
+		# S5.1: cross-rig clips are ROTATION-ONLY (the bone-position
+		# law), so the hash must carry the rotation basis or every
+		# pose reads identical
+		var bx := pose.basis.x
+		var by := pose.basis.y
+		var bz := pose.basis.z
 		h = hash([h, snappedf(p.x, 0.001), snappedf(p.y, 0.001),
-				snappedf(p.z, 0.001)])
+				snappedf(p.z, 0.001), snappedf(bx.x, 0.001),
+				snappedf(bx.y, 0.001), snappedf(bx.z, 0.001),
+				snappedf(by.x, 0.001), snappedf(by.y, 0.001),
+				snappedf(by.z, 0.001), snappedf(bz.x, 0.001),
+				snappedf(bz.y, 0.001), snappedf(bz.z, 0.001)])
 	return h
 
 

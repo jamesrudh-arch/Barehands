@@ -1,0 +1,5 @@
+Cast rigs (Michelle.glb, Soldier.glb): Mixamo characters
+redistributed inside the three.js examples collection
+(https://github.com/mrdoob/three.js, MIT repo licence; character
+content by Adobe Mixamo - free to use in games under Mixamo's
+terms of use).

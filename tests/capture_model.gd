@@ -49,11 +49,20 @@ func _ready() -> void:
 	bg.mesh = bm
 	bg.position = Vector3(0, 10, -6.0)
 	world.add_child(bg)
-	# the hero rig, facing camera
+	# S5.1 diagnosis: the bundled hero vs the raw GLB, side by side
 	var hero: Node3D = load(
-			"res://assets/native/hero_kaykit_rogue.tscn").instantiate()
-	hero.name = "Hero"
+			"res://assets/native/hero_rpm.tscn").instantiate()
+	hero.name = "HeroBundle"
+	hero.position = Vector3(-0.9, 0, 0)
 	world.add_child(hero)
+	var raw: Node3D = load(
+			"res://assets/v2/cast/readyplayer.me.glb").instantiate()
+	raw.name = "HeroRaw"
+	raw.position = Vector3(0.9, 0, 0)
+	world.add_child(raw)
+	print("MODEL mesh instances: bundle=%d raw=%d" % [
+			hero.find_children("*", "MeshInstance3D", true, false).size(),
+			raw.find_children("*", "MeshInstance3D", true, false).size()])
 	# the thug beside it
 	var thug: Node3D = load(
 			"res://assets/native/thug_kaykit_barbarian.tscn").instantiate()

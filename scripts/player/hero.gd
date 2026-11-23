@@ -1,20 +1,23 @@
 extends CharacterBody3D
 
-## THE HERO (rebuild step 3): a real rigged, animated protagonist on
-## the proven KayKit pipeline. The visual rig is the native bundled
-## character (assets/native/hero_kaykit_rogue.tscn, no import cache
-## needed); this script owns movement, the locomotion AnimationTree,
-## and the action surface (the InputMap is the single input truth —
+## THE HERO (overhaul S5.1): a realistic, rigged, animated
+## protagonist on the Ready Player Me rig (the Mixamo skeleton
+## family). The visual rig is the native bundled character
+## (assets/native/hero_rpm.tscn, no import cache needed); this
+## script owns movement, the locomotion AnimationTree, and the
+## action surface (the InputMap is the single input truth —
 ## keyboard/controller actions, with the touch UI feeding analog
 ## sticks in directly).
 ##
 ## Locomotion: idle <-> walk <-> run blended by speed; crouch blend;
-## jump physics (the airborne clip pass lands with the combat anim
-## states at step 5 - recorded in 00_DEVELOPMENT_STATE).
+## jump physics. Combat SWING clips ride the KayKit family through
+## kaykit_lib on the training rigs; on this rig the bespoke combat
+## clips land with the UAL retarget (S5.1b) - attacks fire, hit and
+## land meanwhile (combat._play_clip no-ops missing clips).
 
-const CLS_KayKitLib := preload("res://scripts/player/kaykit_lib.gd")
+const CLS_MixamoLib := preload("res://scripts/player/mixamo_lib.gd")
 const CLS_Combat := preload("res://scripts/player/combat.gd")
-const RIG := "res://assets/native/hero_kaykit_rogue.tscn"
+const RIG := "res://assets/native/hero_rpm.tscn"
 
 const WALK_SPEED := 3.1
 const RUN_SPEED := 5.6
@@ -85,9 +88,9 @@ func _build_rig() -> void:
 		# fatal for every animation track after a re-instantiate
 		_anim.root_node = _anim.get_path_to(_rig)
 	if _anim and _skel:
-		var shared: int = CLS_KayKitLib.install(_anim, _skel)
+		var shared: int = CLS_MixamoLib.install(_anim, _skel)
 		if shared < 4:
-			push_error("Hero: the KayKit share failed (%d clips)" % shared)
+			push_error("Hero: the Mixamo share failed (%d clips)" % shared)
 
 
 ## The locomotion tree: idle --speed--> walk --speed--> run, chained

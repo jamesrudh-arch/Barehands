@@ -55,7 +55,7 @@ func _ready() -> void:
 ## its texture - the missing-import-cache failure ships magenta
 ## placeholders (the overhaul audit's root cause #1).
 func _texture_guard() -> void:
-	for rig_file in ["res://assets/native/hero_kaykit_rogue.tscn",
+	for rig_file in ["res://assets/native/hero_rpm.tscn",
 			"res://assets/native/thug_kaykit_barbarian.tscn"]:
 		var packed: PackedScene = load(rig_file)
 		var rig: Node3D = packed.instantiate()

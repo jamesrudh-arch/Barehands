@@ -43,27 +43,12 @@ func _ready() -> void:
 	await _wait_s(1.5)
 	await _snap("02_home_warehouse")
 
-	# 3-6 the neighbourhood at night: establishing, hero close-up,
-	#   the thug at the alley mouth, the parked sedan
+	# 3-4 the neighbourhood at night: establishing + the new hero
 	await Game.travel("neighbourhood", "start")
 	await _wait_s(1.5)
 	await _snap("03_street_night")
-	await _aim_at_player(Vector3(0.9, 1.66, 1.9), 62.0)
+	await _aim_at_player(Vector3(0.9, 1.5, 1.6), 50.0)
 	await _snap("04_hero_closeup")
-	await _aim_at_world(Vector3(-18.6, 1.55, 2.0), Vector3(-20.0, 1.35, 3.4), 45.0)
-	await _snap("05_enemy_closeup")
-	await _aim_at_world(Vector3(43.2, 0.9, -1.4), Vector3(40.0, 0.7, -3.2), 50.0)
-	await _snap("06_car_closeup")
-
-	# 7 the club avenue
-	await Game.travel("club_district", "from_neighbourhood")
-	await _wait_s(1.5)
-	await _snap("07_club_avenue")
-
-	# 8 the docks
-	await Game.travel("docks", "start")
-	await _wait_s(1.5)
-	await _snap("08_docks")
 
 	print("AUDIT CAPTURE DONE (%d shots)" % _shots)
 	get_tree().quit(0)

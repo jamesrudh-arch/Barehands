@@ -7,7 +7,43 @@
 
 ## Current stage
 
-**STAGE 4 — REBUILD KICKOFF** (of the lifecycle: inspect ✅ →
+**STAGE 5 — THE OVERHAUL** (the owner's directive after on-phone
+testing: cinematic realism, the complete game - the audit + plan:
+`07_OVERHAUL_AUDIT.md`).
+
+## S5.1 progress (the cast) - hero LIVE
+
+The hero is now the Ready Player Me avatar (Mixamo skeleton family,
+realistic proportions, 9 textured materials, bundled native
+`assets/native/hero_rpm.tscn`). smoke_hero 30/30, smoke_home 26/26
+on the new rig. TWO probe-caught laws banked in mixamo_lib.gd:
+1. Mixamo clips drive bone POSITION tracks (not just the hips) -
+   replayed on another rig they teleport the skeleton (head z=104 m
+   probe-caught); cross-rig share is ROTATION-ONLY.
+2. Pose-hash suites must hash the rotation BASIS (positions never
+   change under rotation-only clips).
+The VLM gate confirms the hero reads as a visible, animated human
+(marginal on realism - the dim void lighting is S5.2's job). Combat
+swings still fire without bespoke clips (combat._play_clip no-ops
+missing clips); the UAL retarget (S5.1b) brings Punch_Cross/Jab,
+Hit_Chest/Head, Death01, Roll + the full pistol set (43 CC0 clips
+on Unreal naming - the retarget math is the next session's opener).
+The enemy cast is still KayKit Barbarian (S5.1b too).
+
+## NEXT ACTION (exact)
+
+1. S5.1b: retarget UAL1_Standard.glb (Unreal bone names, 43 clips
+   incl. combat + pistol) onto the RPM rig - either via Godot's
+   import-time BoneMap retarget (.import options + SkeletonProfile-
+   Humanoid) or the GDScript rest-delta math. Then combat swings
+   visual on the hero, and swap the enemy to a second RPM avatar
+   (hunt more mirrored RPM avatars; three.js has one more?).
+2. S5.2 THE MATERIAL CITY (Polyhaven PBR: asphalt API confirmed -
+   20 hits; brick/concrete/concrete_pbr sets; normal maps + the wet
+   night sheen; lift the near-black voids to cinematic exposure;
+   street detail). Re-run the capture + VLM gate after.
+3. Then S5.3+ per 07_OVERHAUL_AUDIT.md's order. The battery now
+   imports first (S5.0); pipeline_probe guards textures (21). (of the lifecycle: inspect ✅ →
 research ✅ → architecture ✅ → asset sourcing (rolling) → BUILD the
 systems in the 03_TECH_ARCHITECTURE.md §5 order → integrate → test →
 optimise → verify → deliver).
