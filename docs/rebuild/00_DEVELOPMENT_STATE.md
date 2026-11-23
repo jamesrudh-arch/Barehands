@@ -46,7 +46,26 @@ optimise → verify → deliver).
 
 ## In progress
 
-**STAGE 4 step 11 — the systems pass: 28/29, ONE bug open.** DONE +
+**STAGE 4 step 12 — title 3D** (the real key-art title scene over
+the drifting street: the 3D city drift + the title lockup + menu,
+replacing the plain boot menu backdrop; the menu's logic stays).
+
+## Step 11 — DONE (the systems pass, 29/29)
+
+smoke_systems 29/29. Everything in the earlier 28/29 record stands,
+plus the phone-open bug is SOLVED. The full stack of what it was
+(three layers, each fixed):
+1. the signal was wired once per hero re-mount (a stacked lambda
+   double-toggled open+shut after CONTINUE) -> one tracked,
+   disconnectable connection;
+2. the poll's release closed signal-opened phones -> open/close
+   ownership split (only the poll's own opens are its closes);
+3. THE LAST LAYER (the probe caught it live): the poll "adopted"
+   the signal's open - it ran its own open() on the next tick
+   (never checking visibility), which SET the hold flag, and the
+   release then closed the phone. The poll may not open an
+   already-open phone. Probe pattern banked: replay the suite's
+   exact context with prints at every hop. DONE +
 PROVEN by smoke_systems: the enemy AI's full honest loop (SPOT ->
 APPROACH -> TELEGRAPH (the readable wind-up) -> SWING -> the hero
 TAKES DAMAGE with the HUD health bar tracking it -> RECOVER; one
@@ -344,14 +363,20 @@ Four bugs found and fixed on the way to green, all worth remembering:
 
 ## NEXT ACTION (exact)
 
-1. Commit + push step 11 as 28/29 (the phone-open bug recorded
-   above with its diagnosis plan).
-2. Fix the phone-open trigger (the (a)/(b)/(c) plan), re-run
-   smoke_systems to 29/29, commit.
-3. THEN step 12 — title 3D (the real key-art title scene over the
-   drifting street), step 13 — perf (frame budget audit per area),
-   step 14 — the final full battery + the V3-format device report
-   (VERIFIED vs PHONE-ONLY rows) + the zip.
+1. Commit + push step 11 complete (smoke_systems 29/29 + the
+   battery).
+2. STEP 12 — title 3D:
+   a. scenes/boot/title.tscn: a 3D backdrop (the club avenue's
+      geometry drifting past a slow camera, the neon doing the
+      work), the title lockup + the menu over it.
+   b. The menu buttons/logic port as-is (PLAY/CONTINUE/settings/
+      credits + the honest notes).
+   c. smoke_title: the scene loads, the camera drifts, the buttons
+      all work, CONTINUE's note logic intact; render check.
+3. THEN step 13 — perf (frame budget audit per area under
+   llvmpipe: draw calls, lights per area, the fill on the phone
+   form factor); step 14 — the final full battery + the V3-format
+   device report (VERIFIED vs PHONE-ONLY rows) + the zip.
 
 
 ## Known blockers / watch items

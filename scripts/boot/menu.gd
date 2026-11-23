@@ -20,6 +20,10 @@ var _continue: Button
 var _has_save := false
 
 
+func _process(_delta: float) -> void:
+	pass  # the backdrop's camera drifts in its own _process
+
+
 func _ready() -> void:
 	Game.set_state(Game.State.MENU)
 	set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -27,9 +31,13 @@ func _ready() -> void:
 	bg.color = Color(0.02, 0.024, 0.06)
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
-	var sky := Skyline.new()
-	sky.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(sky)
+	bg.color = Color(0.02, 0.024, 0.06, 0.42)  # a scrim, not a wall
+	# THE TITLE BACKDROP (step 12): the drifting 3D avenue under the
+	# menu - the camera slides, the neon does the work
+	var backdrop: Node3D = load(
+			"res://scripts/boot/title_backdrop.gd").new()
+	backdrop.name = "TitleBackdrop"
+	add_child(backdrop)
 	var f := SystemFont.new()
 	f.font_names = ["Arial Black", "Arial", "sans-serif"]
 	# the small title mark, top-left, out of the button zone

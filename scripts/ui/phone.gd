@@ -57,7 +57,8 @@ func _process(_delta: float) -> void:
 	# state-based edge (the pause menu lesson: single-frame synthetic
 	# presses can fall between ticks)
 	var p := Input.is_action_pressed("phone")
-	if p and not _was_open and Game.state == Game.State.PLAY:
+	if p and not _was_open and not _root.visible \
+			and Game.state == Game.State.PLAY:
 		open()
 	elif not p and _was_open and _was_hold:
 		close()
