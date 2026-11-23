@@ -95,14 +95,14 @@ func _process(_delta: float) -> void:
 	for label in stale:
 		_doors.erase(label)
 	for law in _doors.values():
-		var n: Node3D = law["node"]
+		var n = law["node"]
 		if n == null or not is_instance_valid(n):
 			continue
-		var prompt: Label3D = law.get("prompt")
+		var prompt = law.get("prompt")
 		if prompt == null or not is_instance_valid(prompt):
 			continue
-		var near := n.global_position.distance_to(hero.global_position) \
-				< APPROACH_R
+		var near: bool = (n as Node3D).global_position.distance_to(
+				hero.global_position) < APPROACH_R
 		var saying := Time.get_ticks_msec() < int(_say_until.get(
 				law["label"], 0))
 		if near and not saying:
@@ -254,8 +254,8 @@ func _leaf_set_open(law: Dictionary, _animate: bool) -> void:
 
 
 func _say(law: Dictionary, text: String) -> void:
-	var prompt: Label3D = law.get("prompt")
-	if prompt == null:
+	var prompt = law.get("prompt")
+	if prompt == null or not is_instance_valid(prompt):
 		return
 	prompt.text = text
 	prompt.visible = true
@@ -266,10 +266,10 @@ func _nearest(hero_pos: Vector3, radius: float) -> Dictionary:
 	var best := {}
 	var best_d := radius
 	for law in _doors.values():
-		var n: Node3D = law["node"]
+		var n = law["node"]  # untyped: freed instances fail typed assignment
 		if n == null or not is_instance_valid(n):
 			continue
-		var d := n.global_position.distance_to(hero_pos)
+		var d: float = (n as Node3D).global_position.distance_to(hero_pos)
 		if d < best_d:
 			best_d = d
 			best = law

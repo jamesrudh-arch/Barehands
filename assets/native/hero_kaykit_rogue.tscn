@@ -224,7 +224,7 @@ _surfaces = [{
 blend_shape_mode = 0
 
 [node name="Rogue" type="Node3D" unique_id=1325744839]
-transform = Transform3D(1, -7.4830587e-07, 4.738215e-07, 6.1297004e-07, 0.19855893, -0.98008895, 6.3932475e-07, 0.98008895, 0.19855893, 0, 0, 0)
+transform = Transform3D(1, -7.46315e-07, 4.643064e-07, 6.113386e-07, 0.21102032, -0.97748166, 6.3153107e-07, 0.97748166, 0.21102032, 0, 0, 0)
 
 [node name="Rig_Medium" type="Node3D" parent="." unique_id=454311672]
 
@@ -240,7 +240,7 @@ bones/1/name = "hips"
 bones/1/parent = 0
 bones/1/rest = Transform3D(1, 0, -2.3841855e-07, 0, 1, 0, 2.3841855e-07, 0, 1, 0, 0.40566343, 0)
 bones/1/enabled = true
-bones/1/position = Vector3(1.2028941e-18, 0.32655856, 2.867923e-25)
+bones/1/position = Vector3(3.5679654e-18, 0.32876834, 8.506692e-25)
 bones/1/rotation = Quaternion(0, -1.19209275e-07, 0, 1)
 bones/1/scale = Vector3(1, 1, 1)
 bones/2/name = "upperleg.l"
@@ -304,14 +304,14 @@ bones/10/parent = 1
 bones/10/rest = Transform3D(1, 0, 1.4210855e-14, 0, 1, 0, -1.4210855e-14, 0, 1, 0, 0.1919775, 0)
 bones/10/enabled = true
 bones/10/position = Vector3(0, 0.1919775, 0)
-bones/10/rotation = Quaternion(1.1356795e-10, -8.464408e-09, 0.031543378, 0.9995024)
+bones/10/rotation = Quaternion(1.13556574e-10, -8.463559e-09, 0.03457101, 0.9994023)
 bones/10/scale = Vector3(1, 1, 1)
 bones/11/name = "chest"
 bones/11/parent = 10
 bones/11/rest = Transform3D(1, 0, -1.6940659e-21, 0, 0.99999994, 0, 1.6940659e-21, 0, 1, 0, 0.37498796, 0)
 bones/11/enabled = true
 bones/11/position = Vector3(0, 0.37498796, 0)
-bones/11/rotation = Quaternion(1.1270151e-10, 8.444619e-09, -0.031543374, 0.9995024)
+bones/11/rotation = Quaternion(1.1269016e-10, 8.443771e-09, -0.034570996, 0.9994023)
 bones/11/scale = Vector3(1, 0.99999994, 1)
 bones/12/name = "upperarm.r"
 bones/12/parent = 11

@@ -477,10 +477,10 @@ func _gates() -> void:
 	add_child(home)
 	_gate(Vector3(-STREET_X - 1.0, 1.0, 4.4), "warehouse", "from_street",
 			"← THE WAREHOUSE", Color(0.55, 0.95, 1.0))
-	# east end: another pocket of the city (locked off until the club
-	# district arrives at its step - the sign says so honestly)
-	_gate(Vector3(STREET_X + 1.0, 1.0, 4.4), "", "",
-			"THE CLUB QUARTER - opens with the club build",
+	# east end: THE CLUB DISTRICT - the main avenue's gate (real
+	# travel since step 9)
+	_gate(Vector3(STREET_X + 1.0, 1.0, 4.4), "club_district",
+			"from_neighbourhood", "THE CLUB QUARTER →",
 			Color(1.0, 0.69, 0.13))
 	_spawn_marker("SpawnFromStreet", Vector3(-STREET_X + 4.0, 0.05, 0.0))
 

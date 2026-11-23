@@ -46,16 +46,39 @@ optimise → verify → deliver).
 
 ## In progress
 
-**STAGE 4 step 9 — areas 3-4: the CLUB DISTRICT and THE DOCKS**
-(03 §5 step 9): two new area scenes on the proven area pattern
-(Game.travel + AREAS registry + spawn markers + per-area lighting
-and ambience), gated travel from the neighbourhood (the main street
-gate east / the underpass), asset batch 2 for their dressing (the
-Kenney city/commercial/industrial kits are already on disk; check
-05_ASSET_REGISTER for gaps before sourcing more). The club district
-carries THE VELVET ROOM's queue + IRON PALM GYM + the Mechanic's
-garage; the docks carry the piers, cranes, container maze and
-DOCK WAREHOUSE 9 (locked until the kidnap arc).
+**STAGE 4 step 10 — VEHICLES (03 §5 step 10)**: VehicleBody3D + the
+arcade handling profiles as data (D4), enter/exit through the B
+context ("B: ENTER" at a car), the GAS/BRAKE/HANDBRAKE/HORN pills +
+steer on the move stick (06_CONTROL_MAP driving table), engine
+audio, traffic lanes on the avenue (the club district was built
+dense for it). Asset: a proper vehicle model (batch 2 - Kenney cars
+are on disk; pick + convert per D3).
+
+## Step 9 — DONE (areas 3-4: the club district + the docks)
+
+**smoke_areas 32/32** — four live areas with a full travel chain:
+- THE CLUB DISTRICT: the neon avenue - THE VELVET ROOM (walk-in
+  club interior: booths, bar, stage glow), HOTEL AURORA (lobby),
+  IRON PALM GYM (walk-in), NEON 9 (locked, breakable) and THE
+  MECHANIC (steel) + the PARKING STRUCTURE (locked for the systems
+  pass); the Velvet queue; the crossing; two side streets with
+  silhouette massing; magenta/cyan lighting + the district haze.
+- THE DOCKS: four piers over the harbour plane, two cranes (one
+  floodlit), the deterministic container maze (seeded rng - same
+  maze every visit), the FISH MARKET (walk-in stalls), DOCK
+  WAREHOUSE 9 (story-sealed, unbreakable, Corporation tape), the
+  empty lot; cold fog + sodium - the area's own air.
+- The neighbourhood's east gate is now REAL travel to the club
+  district; the underpass chains club <-> docks; the walk home
+  verified end to end (docks -> club -> neighbourhood -> warehouse).
+
+Suite-caught + fixed: **freed-instance typed assignments** - during
+area swaps, Doors' law dicts briefly hold freed fronts; assigning
+them into TYPED variables (`var n: Node3D = law["node"]`) is itself
+the error ("Trying to assign invalid previously freed instance") -
+read untyped, validate, then cast. All law-field reads in doors.gd
+made freed-safe.
+
 
 ## Step 8 — DONE (the HUD pass)
 
@@ -248,23 +271,24 @@ Four bugs found and fixed on the way to green, all worth remembering:
 
 ## NEXT ACTION (exact)
 
-1. Commit + push step 8 (HUD green, battery 8 suites / 223 checks).
-2. STEP 9 — areas 3-4 (the CLUB DISTRICT + THE DOCKS):
-   a. scenes/areas/club_district.tscn + docks.tscn on the warehouse/
-      neighbourhood pattern: a builder script each, spawn markers,
-      per-area lighting profile + fog, honest signposted gates back.
-   b. Game.AREAS grows both; the neighbourhood's east gate + the
-      underpass mouth travel to them (Doors-registered, signposted).
-   c. Dress from the on-disk Kenney kits (commercial/industrial);
-      THE VELVET ROOM's queue, IRON PALM GYM, the Mechanic's garage,
-      the piers/cranes/containers, DOCK WAREHOUSE 9 (locked, story).
-   d. tests/smoke_areas.gd: travel chains work both ways, each
-      area's landmarks exist, the gates are signposted, renders
-      alive per area, battery regression.
-3. THEN step 10 — vehicles (VehicleBody3D + the arcade profiles);
-   step 11 — the systems pass (phone, ledger/economy, heat, trust);
-   step 12 — title 3D + polish; step 13 — perf; step 14 — final
-   regression + the device report.
+1. Commit + push step 9 (smoke_areas 32/32 + the battery).
+2. STEP 10 — vehicles:
+   a. Pick the car model from assets/kits/kenney_cars (or fetch a
+      better CC0 pack if the kit reads poorly), convert native per
+      D3 (FLAG_BUNDLE_RESOURCES), register in the asset register.
+   b. `scripts/world/vehicle.gd`: VehicleBody3D + VehicleWheel3D x4,
+      the arcade profile (engine force, steering speed, brake
+      curves) from data/vehicles/*.tres.
+   c. Enter/exit: the B context at a car ("B: ENTER"), the driving
+      control swap (steer on move stick, GAS/BRAKE/HANDBRAKE/HORN
+      pills per 06_CONTROL_MAP), camera behaviour, engine audio.
+   d. Park 2-3 drivable cars on the club avenue + the neighbourhood
+      street; traffic AI lanes come with the systems pass.
+   e. `tests/smoke_vehicle.gd`: enter, drive (input-driven physics),
+      handbrake slide, horn, exit; render check; battery regression.
+3. THEN step 11 — the systems pass (phone, ledger/economy, heat,
+   trust); step 12 — title 3D + polish; step 13 — perf; step 14 —
+   final regression + the device report.
 
 
 ## Known blockers / watch items

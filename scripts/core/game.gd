@@ -16,6 +16,8 @@ enum State { BOOT, SPLASH, TITLE, MENU, PLAY, PAUSE }
 const AREAS := {
 	"warehouse": "res://scenes/areas/warehouse_shell.tscn",
 	"neighbourhood": "res://scenes/areas/neighbourhood.tscn",
+	"club_district": "res://scenes/areas/club_district.tscn",
+	"docks": "res://scenes/areas/docks.tscn",
 }
 
 const CLS_CameraRig := preload("res://scripts/player/camera_rig.gd")
