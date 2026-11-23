@@ -92,9 +92,9 @@ func _build_rig() -> void:
 		var shared: int = CLS_MixamoLib.install(_anim, _skel)
 		if shared < 4:
 			push_error("Hero: the Mixamo share failed (%d clips)" % shared)
-		# S5.1b: the UAL library (43 mocap clips, rest-delta
-		# retargeted - combat/ambient stay gated off until the
-		# reference-pose fix passes the visual punch gate)
+		# S5.1b: the UAL library (43 mocap clips, world-frame
+		# transferred via the one-time bake - the punch gate is
+		# GREEN: guard/extension/recovery all read as a real jab)
 		var ual: int = CLS_UALLib.install(_anim, _skel)
 		if ual < 40:
 			push_error("Hero: the UAL retarget failed (%d clips)" % ual)

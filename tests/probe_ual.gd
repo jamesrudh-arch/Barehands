@@ -18,8 +18,6 @@ func _arm_hash(skel: Skeleton3D) -> int:
 	return h
 
 func _ready() -> void:
-	var lib_u0 := load("res://scripts/player/ual_lib.gd")
-	lib_u0.MODE = 1  # parent-frame carry this run
 	Settings.set_value("first_run_done", true)
 	WorldState.reset()
 	for i in 4:
@@ -77,15 +75,7 @@ func _ready() -> void:
 	await _wait_s(0.45)
 	var punch_hash := _arm_hash(skel)
 	print("UAL pose-delta idle->punch: %s" % (idle_hash != punch_hash))
-	# three frames across the jab - REAL playback (the seek+pause
-	# sampling probe-caught a mid-blend artifact: numbers said
-	# upright, screenshots said bent - trust real time)
-	for t in [0.15, 0.42, 0.7]:
-		ap.play("combat/Melee_Unarmed_Attack_Punch_A")
-		await _wait_s(t)
-		get_viewport().get_texture().get_image().save_png(
-				"/tmp/shots/ual_punch_%02d.png" % int(t * 100))
-	# the mid-swing frame (silence the rig first - its law)
+	# the capture camera (silence the rig first - its law)
 	for r in get_tree().get_nodes_in_group("camera_rig"):
 		r.set_process(false)
 	var old := get_viewport().get_camera_3d()
@@ -94,10 +84,26 @@ func _ready() -> void:
 	var cam := Camera3D.new()
 	get_tree().current_scene.add_child(cam)
 	await get_tree().process_frame
-	cam.global_position = hero.global_position + Vector3(2.0, 1.9, 3.4)
-	cam.look_at(hero.global_position + Vector3(0, 1.35, 0))
 	cam.fov = 45.0
 	cam.current = true
+	# the jab's frames at REAL playback, sampled at the numeric
+	# gate's landmarks (guard 0.10 / extension peak 0.26 / recover
+	# 0.45) - angle A, then the peak from angle B
+	cam.global_position = hero.global_position + Vector3(2.0, 1.9, 3.4)
+	cam.look_at(hero.global_position + Vector3(0, 1.35, 0))
+	await get_tree().process_frame
+	for t in [0.10, 0.26, 0.45]:
+		ap.play("combat/Melee_Unarmed_Attack_Punch_A")
+		await _wait_s(t)
+		get_viewport().get_texture().get_image().save_png(
+				"/tmp/shots/ual_punch_%02d.png" % int(t * 100))
+	ap.play("combat/Melee_Unarmed_Attack_Punch_A")
+	await _wait_s(0.26)
+	cam.global_position = hero.global_position + Vector3(-2.4, 1.7, 2.8)
+	cam.look_at(hero.global_position + Vector3(0, 1.4, 0))
+	await _wait_s(0.06)
+	get_viewport().get_texture().get_image().save_png(
+			"/tmp/shots/ual_punch_peak_b.png")
 	await _wait_s(0.1)
 	get_viewport().get_texture().get_image().save_png("/tmp/shots/ual_punch.png")
 	print("UAL shot saved")
