@@ -22,6 +22,10 @@ const VENDORS := {
 			"pos": Vector3(-35.5, 0.05, 5.0), "who": "TONY"},
 	"laundry": {"area": "club_district",
 			"pos": Vector3(-41.5, 0.05, -5.0), "who": "VESPER"},
+	"pawn_book": {"area": "neighbourhood",
+			"pos": Vector3(-18.0, 0.05, 5.4), "who": "THE OWNER"},
+	"stall": {"area": "neighbourhood",
+			"pos": Vector3(6.0, 0.05, 5.4), "who": "THE STALL"},
 }
 
 var _beat_wired := false
@@ -106,6 +110,10 @@ func try_grab(hero: Node3D) -> bool:
 				return _ammo(hero)
 			"laundry":
 				return _laundry()
+			"pawn_book":
+				return _pawn_book()
+			"stall":
+				return _stall(hero)
 	return false
 
 
@@ -197,6 +205,44 @@ func pay_debt(amount: float) -> bool:
 			"left": debt - amount})
 	Log.info("Market: debt paid $%d, $%d stands" % [int(amount),
 			int(debt - amount)])
+	return true
+
+
+## M4'S THIRD ANSWER: clear the owner's book with them, clean
+## only (the Corporation doesn't take alley money) - and the
+## grille opens for good.
+func _pawn_book() -> bool:
+	if WorldState.flag("pawn_paid"):
+		WorldState.push_event("vendor_no", {"who": "THE OWNER",
+				"msg": "My book's clear. You did that."})
+		return true
+	if float(WorldState.get_value("clean_cash", 0.0)) 			< Tuning.v("pawn_book_cost"):
+		WorldState.push_event("vendor_no", {"who": "THE OWNER",
+				"msg": "Three hundred, clean. Their rules."})
+		return true
+	WorldState.set_value("clean_cash",
+			float(WorldState.get_value("clean_cash", 0.0))
+			- Tuning.v("pawn_book_cost"))
+	WorldState.set_flag("pawn_paid")
+	WorldState.set_flag("door_open:THE PAWN DESK")
+	Doors.open_door("THE PAWN DESK")
+	WorldState.push_event("vendor_yes", {"who": "THE OWNER",
+			"msg": "Cleared. The grille's open - tell the street."})
+	Log.info("Market: the pawn book cleared ($300 clean)")
+	return true
+
+
+## THE STALL: jackets, cycled one GRAB at a time
+func _stall(hero: Node3D) -> bool:
+	var res := pay(Tuning.v("outfit_price"))
+	if not res["ok"]:
+		WorldState.push_event("vendor_no", {"who": "THE STALL",
+				"msg": "Forty, or walk in what you wore."})
+		return true
+	var idx := (int(float(WorldState.get_value("outfit", 0))) + 1) 			% 4
+	var nm: String = hero.set_outfit(idx)
+	WorldState.push_event("vendor_yes", {"who": "THE STALL",
+			"msg": "%s. It's you." % nm})
 	return true
 
 

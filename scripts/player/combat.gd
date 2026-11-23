@@ -60,6 +60,10 @@ func _ready() -> void:
 func set_style(id: String) -> void:
 	if not STYLES.has(id):
 		return
+	# learned, never given (S5.10): a locked discipline is a
+	# teacher you haven't met
+	if not _style_unlocked(id):
+		return
 	style = load(STYLES[id])
 	if style == null:
 		return
@@ -73,6 +77,24 @@ func set_style(id: String) -> void:
 		var idle_node: AnimationNode = _tree.tree_root.get_node("idle")
 		if idle_node is AnimationNodeAnimation:
 			idle_node.animation = style.stance_clip
+
+
+func _style_unlocked(id: String) -> bool:
+	var unlocked: Array = WorldState.get_value("unlocked_styles",
+			["brawler"])
+	return unlocked.has(id)
+
+
+func unlock_style(id: String) -> bool:
+	if not STYLES.has(id) or _style_unlocked(id):
+		return false
+	var unlocked: Array = WorldState.get_value("unlocked_styles",
+			["brawler"])
+	unlocked.append(id)
+	WorldState.set_value("unlocked_styles", unlocked)
+	style_changed.emit(id)
+	Log.info("Combat: LEARNED %s (the stance is yours)" % id)
+	return true
 
 
 func mount(anim: AnimationPlayer, tree: AnimationTree) -> void:

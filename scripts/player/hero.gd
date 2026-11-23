@@ -341,12 +341,60 @@ func _find(root: Node, what) -> Node:
 
 
 ## The style cycle (the hold-flick wheel lands with the HUD step;
-## until then the STYLE action walks the five in order).
+## until then the STYLE action walks the LEARNED ones in order).
 func _cycle_style() -> void:
-	var order := ["brawler", "kickboxing", "grappling", "drunken", "weapon"]
-	var i := order.find(_combat.style_id)
+	var order: Array = WorldState.get_value("unlocked_styles",
+			["brawler"])
+	if order.size() < 2:
+		return  # one stance is not a cycle
+	var i: int = order.find(_combat.style_id)
+	if i < 0:
+		i = 0
 	_combat.set_style(order[(i + 1) % order.size()])
 	Log.info("Hero: style -> %s" % _combat.style_id)
+
+
+## a teacher hands over a discipline (missions call this at the
+## teach spot); it lands already worn
+func unlock_style(id: String) -> bool:
+	if _combat == null or not is_instance_valid(_combat):
+		return false
+	var got: bool = _combat.unlock_style(id)
+	if got:
+		_combat.set_style(id)
+	return got
+
+
+## THE OUTFIT (the stall's jackets): the real jacket material tint
+const OUTFITS := [["THE WORK JACKET", Color(1.0, 1.0, 1.0)],
+	["THE CRIMSON", Color(1.0, 0.32, 0.3)],
+	["THE SLATE", Color(0.42, 0.48, 0.62)],
+	["THE GOLD", Color(0.95, 0.78, 0.3)]]
+
+func set_outfit(idx: int) -> String:
+	var mesh := _find_mesh("Wolf3D_Outfit_Top")
+	if mesh == null:
+		return ""
+	var mat := (mesh as MeshInstance3D).get_active_material(0)
+	if mat == null:
+		return ""
+	var pick: Array = OUTFITS[idx % OUTFITS.size()]
+	mat.albedo_color = pick[1]
+	WorldState.set_value("outfit", idx)
+	Log.info("Hero: outfit -> %s" % pick[0])
+	return pick[0]
+
+
+func _find_mesh(nm: String) -> Node:
+	for c in find_children("*", "MeshInstance3D", true, false):
+		if str((c as Node).name).contains(nm):
+			return c
+	return null
+
+
+func outfit_name() -> String:
+	var idx := int(float(WorldState.get_value("outfit", 0)))
+	return OUTFITS[idx % OUTFITS.size()][0]
 
 
 ## B at a car: enter it (the car's try_use mounts the hero).

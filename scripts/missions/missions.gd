@@ -336,6 +336,9 @@ func try_grab(hero: Node3D) -> bool:
 		return false
 	WorldState.set_flag(str(st["grab_flag"]))
 	WorldState.push_event("choice", {"what": str(st["grab_flag"])})
+	# a teach stage hands over the discipline, already worn
+	if st.has("teach"):
+		hero.unlock_style(str(st["teach"]))
 	Log.info("Mission: the grab answers (%s)" % st["grab_flag"])
 	return true
 

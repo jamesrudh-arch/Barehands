@@ -80,6 +80,10 @@ func start_new_game() -> void:
 	WorldState.set_value("debt", Tuning.v("starting_debt"))
 	WorldState.set_value("debt_family", Tuning.v("debt_start_family"))
 	WorldState.set_value("debt_corp", Tuning.v("debt_start_corp"))
+	# the disciplines are LEARNED from people: you start with your
+	# fists (and the pistol you already carry); the teachers hand
+	# over the rest (M2 Kickboxing, M3 Drunken, the Collector later)
+	WorldState.set_value("unlocked_styles", ["brawler", "weapon"])
 	await travel("warehouse", "start")
 
 

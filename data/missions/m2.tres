@@ -25,6 +25,14 @@ stages = [{
 }],
 "marker": Vector3(-35.5, 1.2, 8.4),
 "objective": "Tony's way: put his two muscle men down"
+}, {
+"area": "club_district",
+"check": "any_flag",
+"flags": ["skill_kickboxing"],
+"grab_flag": "skill_kickboxing",
+"teach": "kickboxing",
+"marker": Vector3(-35.5, 1.2, 5.0),
+"objective": "Tony pays in lessons - take the KICKBOXING stance (GRAB at the counter)"
 }]
 reward_cash = 180
 reward_xp = 40.0

@@ -72,8 +72,22 @@ func _ready() -> void:
 	_check(_alive_enemies() >= 2, "the muscle spawns (2 men)")
 	_down_all()
 	await _wait_s(0.5)
+	# S5.10: the fight ends at Tony's counter - the lesson
+	for i in 12:
+		if ms.stage_index >= 2 \
+				or WorldState.flag("mission_done:m2"):
+			break
+		_down_all()
+		await _wait_s(0.4)
+	var hero2 := _hero()
+	if hero2 and is_instance_valid(hero2):
+		hero2.global_position = Vector3(-35.5, 0.05, 5.0)
+		hero2.set("hp", 100.0)
+	await _wait_s(0.3)
+	ms.try_grab(hero2)
+	await _wait_s(0.5)
 	_check(WorldState.flag("mission_done:m2"),
-			"M2 done - first blood paid")
+			"M2 done - first blood paid, the lesson taken")
 	_check(is_equal_approx(float(WorldState.get_value(
 			"stash_cash", 0.0)), 180.0),
 			"M2 pays $180 dirty")
@@ -94,7 +108,14 @@ func _ready() -> void:
 	_check(ms.stage_index >= 2, "the bottle is taken by walking")
 	hero.global_position = Vector3(-4.6, 0.05, 5.4)
 	await _wait_s(0.8)
-	_check(WorldState.flag("mission_done:m3"), "M3 done - delivered")
+	# S5.10: Dee pays in secrets - the Drunken hint
+	hero = _hero()
+	hero.global_position = Vector3(-40.4, 0.05, 5.4)
+	await _wait_s(0.3)
+	ms.try_grab(hero)
+	await _wait_s(0.5)
+	_check(WorldState.flag("mission_done:m3"),
+			"M3 done - delivered, the hint taken")
 	# --- M4 SHAKEDOWN (the grille choice - both answers)
 	ms.start("res://data/missions/m4.tres")
 	await _wait_s(0.4)

@@ -37,6 +37,9 @@ func register(front: Node3D, label: String, law: Dictionary) -> void:
 	if WorldState.flag("door_broken:" + label):
 		law["state"] = "broken"
 		law["hits_left"] = 0
+	# the paid book opens the grille (M4's third answer)
+	if law["state"] == "locked" 			and WorldState.flag("door_open:" + label):
+		law["state"] = "open"
 	if law["state"] == "locked":
 		_build_leaf(front, law)
 	if law.get("state", "") == "broken":
@@ -46,6 +49,19 @@ func register(front: Node3D, label: String, law: Dictionary) -> void:
 
 
 ## The plank leaf on a shut front + the line that talks.
+## a gratitude open at runtime (the current scene's leaf swings)
+func open_door(label: String) -> void:
+	if not _doors.has(label):
+		return
+	var law: Dictionary = _doors[label]
+	if str(law.get("state", "")) != "locked":
+		return
+	law["state"] = "open"
+	_leaf_set_open(law, false)
+	_say(law, "OPEN - for you")
+	Log.info("Doors: %s opens (the book was cleared)" % label)
+
+
 func _build_leaf(front: Node3D, law: Dictionary) -> void:
 	var side := -signf(front.global_position.z) \
 			if absf(front.global_position.z) > 1.0 else 1.0

@@ -24,6 +24,14 @@ stages = [{
 "check": "delivered",
 "marker": Vector3(-4.6, 1.2, 5.4),
 "objective": "Bring the bottle back to Marla"
+}, {
+"area": "neighbourhood",
+"check": "any_flag",
+"flags": ["skill_drunken"],
+"grab_flag": "skill_drunken",
+"teach": "drunken",
+"marker": Vector3(-40.4, 1.2, 5.4),
+"objective": "Old Dee's payment is a secret - the DRUNKEN hint (GRAB at his counter)"
 }]
 reward_cash = 90
 reward_xp = 25.0
