@@ -1,9 +1,9 @@
 LEVERAGE (Bare Hands 3D) - BUILD VERSION
 =======================================
-batch:  B26
-code commit: 2df5b9e  (the game code this build runs)
-built:  2026-11-23 00:37 UTC
-stamp:  B26 2df5b9e (2026-11-23 00:37 UTC)
+batch:  B27
+code commit: 66ec292  (the game code this build runs)
+built:  2026-11-23 01:15 UTC
+stamp:  B27 66ec292 (2026-11-23 01:15 UTC)
 
 Which folder to import: the unzipped folder itself (it contains
 project.godot). The build stamp is visible in-game at the top-right
