@@ -14,7 +14,8 @@ export_credentials.cfg
 # Godot import sidecars for owner uploads (the photos are tracked, their .import files are generated)
 upload/*.import
 upload/
-download/
+# ignore the CONTENTS, not the dir itself - a ! exception can't
+# reach inside an excluded directory (git never descends into it)
+download/*
 !download/overhaul_audit/
-!download/overhaul_audit/**
 .cache/
