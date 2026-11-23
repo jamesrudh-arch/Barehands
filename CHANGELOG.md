@@ -1,5 +1,35 @@
 # CHANGELOG.md — batch history (newest first)
 
+## B28 — THE RECORDED CAST (2026-11-23, the production mandate Section 12)
+
+- **VOICE (Section 12 - complete audio)**: the empty voice hook that
+  shipped since Series-2 Phase 7 (`dialogue.gd` plays
+  `assets/voice/<voice_id>_<n>.wav` "if the recording exists")
+  finally has its recordings. `scripts/gen_voice.py` (new, persisted
+  generator) records every line WORD-FOR-WORD to its subtitle with
+  the z-ai TTS, one distinct voice per speaker: 28 cast recordings
+  (14 named characters x their two standing lines - Velvet, Pilsner,
+  Marrow, the Duchess, Mama Sun, Little Ash, Tam, Raz, the Drunk,
+  Coach Okafor, Officer Kessler, the Mechanic, the Club Owner, Yuen)
+  plus the narrator's three spoken calls (the BROTHER's five-hundred
+  demand, the CLUB OWNER's private-floor invite, the LIEUTENANT's
+  voicemail). narrator.gd grows the real-clip ladder: a RECORDED line
+  outranks platform TTS, which outranks the radio babble - a partial
+  bank never breaks a boot. `smoke_voice` NEW 11/11: the bank carries
+  all 31 files as real takes (shortest 5.1 s), the brother's call
+  PLAYS as a recording with its matching subtitle, Velvet's line
+  plays HER file through the untouched hook, stop() silences, and an
+  unrecorded line still falls back cleanly.
+- **One stale expectation repaired**: smoke_cast asserted the hook
+  was EMPTY ("no recording yet") - a B23-era placeholder check; it
+  now asserts the hook plays the speaker's own take, and smoke_cast
+  is green with real audio flowing.
+- **REGRESSION AT FINAL CODE**: voice 11/11, cast, audio, music,
+  smoke, phone 40/40, kidnap 62/62, guide 23/23, live_boot 15/15
+  (the opening's narrator lines play through the new ladder),
+  smoke_safe 16/16 (the audio bank audit unaffected - the voice
+  bank lives in its own directory).
+
 ## B27 — THE STREET HAPPENS TO ITSELF (2026-11-23, the production mandate Sections 16, 6.2/6.3, 2)
 
 - **DYNAMIC WORLD EVENTS (Section 16)**: `scripts/events.gd` (new

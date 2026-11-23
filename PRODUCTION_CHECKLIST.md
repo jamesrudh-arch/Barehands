@@ -32,7 +32,7 @@ runs — it waits on a real device report.
 | 9 | Combat (5 styles, crime) | VERIFIED | brawler+chains+stamina+knockdown+weapons; smoke_combat/combos; drunken style PARTIAL (chain subset) |
 | 10 | Police, emergency, consequences | VERIFIED | heat ladder, witnesses, fixer, radio reaction; smoke_reactive |
 | 11 | Story & cinematic presentation | VERIFIED | studio card, title+tagline, 16+ notice, menu, opening, apartment wake; live_boot |
-| 12 | Complete audio | PARTIAL | layered music, hits, steps, rain, ambient traffic hum; VOICE ACTING MISSING — B26 candidates |
+| 12 | Complete audio | VERIFIED (B28) | layered music, hits, steps, rain, ambient hum + THE RECORDED CAST: 31 real voice takes (14 characters x lines + the 3 narrator calls) wired to the existing hook with subtitle sync; recorded > TTS > babble ladder; smoke_voice 11/11 |
 | 13 | Economy & progression | VERIFIED | $0 start, shops, jobs, style value, debt ledger; smoke_economy/jobs/ledger |
 | 14 | Factions, relationships | VERIFIED | trust/family-corp-crew hooks via ledger+radio; smoke_friends |
 | 15 | Phone & information hub | VERIFIED | contacts/calls/messages/jobs/map/notes; smoke_phone |

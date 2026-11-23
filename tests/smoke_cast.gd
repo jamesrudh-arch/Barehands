@@ -194,7 +194,12 @@ func _voice_hooks() -> void:
 			and _voice_hooked.index >= 0, "voice hook fires (speaker %s, id %s, line %d)" % [
 			_voice_hooked.speaker, _voice_hooked.id, _voice_hooked.index])
 	var vp: AudioStreamPlayer = Dialogue.get("_voice")
-	_check(vp.bus == "Voice" and vp.stream == null, "voice hook is clean (Voice bus, no recording yet)")
+	# B28: the recordings ARRIVED - the hook plays the speaker's own
+	# take (Velvet line 1) instead of sitting empty
+	_check(vp.bus == "Voice" and vp.stream != null
+			and str(vp.stream.resource_path).contains("velvet_01.wav"),
+			"voice hook plays the speaker's recording (%s)"
+			% str(vp.stream.resource_path if vp.stream else "none"))
 	Dialogue._advance()
 	Dialogue._advance()
 	await _wait(0.1)

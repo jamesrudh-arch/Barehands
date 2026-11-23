@@ -35,6 +35,10 @@ var _speaker: Label
 var _hide_t := 0.0
 var _babble_player: AudioStreamPlayer
 var _babble_by_key: Dictionary = {}
+# B28 VOICE: the recorded lines (assets/voice/narrator_XX.wav) - the
+# real delivery outranks platform TTS and the radio babble
+var _clip_player: AudioStreamPlayer
+var _clip_now := ""
 var narration_used := false
 var fallback_used := false
 
@@ -80,15 +84,18 @@ func _process(delta: float) -> void:
 
 
 ## Speak + subtitle. speaker "" = the narrator. The subtitle ALWAYS
-## shows; TTS only when the setting allows and a voice exists.
-func say(text: String, speaker := "") -> void:
+## shows; a RECORDED line (B28) plays when one exists for the key;
+## then platform TTS; the babble only when nothing real is available.
+func say(text: String, speaker := "", key := "") -> void:
 	narration_used = true
 	_speaker.text = speaker.to_upper() if speaker != "" else ""
 	_speaker.visible = speaker != ""
 	_label.text = text
 	_layer.visible = true
 	_hide_t = clampf(float(text.length()) * 0.055, 2.4, 6.5)
-	if _tts_ok():
+	if _play_clip(key):
+		pass  # the recorded voice is the line
+	elif _tts_ok():
 		var pitch := 1.0
 		var rate := 1.0
 		match speaker.to_lower():
@@ -121,7 +128,47 @@ func say(text: String, speaker := "") -> void:
 func say_key(key: String) -> void:
 	var l: Array = LINES.get(key, [])
 	if l.size() == 2:
-		say(l[1], l[0])
+		say(l[1], l[0], key)
+
+
+## B28 VOICE: the recorded narrator lines, keyed by LINES key. The
+## bank lives beside the cast recordings; a missing file degrades to
+## the old ladder (TTS, then babble) so a partial bank never breaks
+## a boot.
+const CLIP_BY_KEY := {
+	"call_demand": "res://assets/voice/narrator_01.wav",
+	"call_invite": "res://assets/voice/narrator_02.wav",
+	"voicemail": "res://assets/voice/narrator_03.wav",
+}
+
+
+func has_clip(key: String) -> bool:
+	return CLIP_BY_KEY.has(key) \
+			and ResourceLoader.exists(CLIP_BY_KEY[key])
+
+
+## Plays the recorded clip for a key. True when one actually played.
+func _play_clip(key: String) -> bool:
+	if key == "" or not CLIP_BY_KEY.has(key):
+		return false
+	var path: String = CLIP_BY_KEY[key]
+	if not ResourceLoader.exists(path):
+		return false
+	if _clip_player == null:
+		_clip_player = AudioStreamPlayer.new()
+		_clip_player.bus = "Voice"
+		add_child(_clip_player)
+	_clip_player.stream = load(path)
+	_clip_player.play()
+	_clip_now = key
+	Log.info("Narrator: recorded line plays (%s)" % key)
+	return true
+
+
+func clip_playing() -> String:
+	if _clip_player and _clip_player.playing:
+		return _clip_now
+	return ""
 
 
 func stop() -> void:
@@ -130,6 +177,9 @@ func stop() -> void:
 		DisplayServer.tts_stop()
 	if _babble_player and _babble_player.playing:
 		_babble_player.stop()
+	if _clip_player and _clip_player.playing:
+		_clip_player.stop()
+	_clip_now = ""
 
 
 func _hide() -> void:
