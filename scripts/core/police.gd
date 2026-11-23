@@ -112,7 +112,7 @@ func try_fence(hero: Node3D) -> bool:
 	if heat <= 0.0:
 		return false
 	var price := fence_price(heat)
-	var cash := float(WorldState.get_value("cash", 0.0))
+	var cash := float(WorldState.get_value("stash_cash", 0.0))
 	if cash < price:
 		WorldState.push_event("fixer_text", {
 				"from": "SAL",
@@ -120,7 +120,7 @@ func try_fence(hero: Node3D) -> bool:
 						+ "charity." % price})
 		Log.info("Police: the fence declines ($%d < price)" % price)
 		return true  # the verb consumed - he answered
-	WorldState.set_value("cash", cash - price)
+	WorldState.set_value("stash_cash", cash - price)
 	WorldState.set_value("heat", 0.0)
 	WorldState.push_event("fixer_text", {
 			"from": "SAL",

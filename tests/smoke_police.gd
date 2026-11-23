@@ -91,8 +91,6 @@ func _ready() -> void:
 		# 5) the kill opens the cooldown window
 		_kill(copy)
 		await _wait_s(0.3)
-		print("POLICE debug copy.state=%d police._copy=%s" % [
-				copy.state, str(police._copy)])
 		_check(police and police._copy == null,
 				"the copy is down")
 		_check(police and police._copy_cd_until
@@ -109,13 +107,13 @@ func _ready() -> void:
 	await _wait_s(1.2)
 	hero = get_tree().get_first_node_in_group("player") as Node3D
 	WorldState.set_value("heat", 3.0)
-	WorldState.set_value("cash", 10000.0)
+	WorldState.set_value("stash_cash", 10000.0)
 	var price: int = 0
 	hero.global_position = Vector3(30.0, 0.05, -0.5)
 	await _wait_s(0.2)
 	# snapshot AFTER the settle (a mission beat pays +$2 on arrival
 	# - the economy is live; the fence check wants the delta)
-	WorldState.set_value("cash", 10000.0)
+	WorldState.set_value("stash_cash", 10000.0)
 	# price the LIVE heat (the fence reads it at pay time - the
 	# decay nibbles between frames; same frame = exact)
 	price = police.fence_price(
@@ -124,8 +122,8 @@ func _ready() -> void:
 	_check(paid, "the fence takes the grab")
 	_check(float(WorldState.get_value("heat", 0.0)) == 0.0,
 			"heat scrubbed to zero")
-	_check(is_equal_approx(float(WorldState.get_value("cash", 0.0)),
-			10000.0 - price),
+	_check(is_equal_approx(float(WorldState.get_value(
+			"stash_cash", 0.0)), 10000.0 - price),
 			"cash pays the price (%d)" % price)
 	_check(not police.try_fence(hero),
 			"nothing left to scrub")

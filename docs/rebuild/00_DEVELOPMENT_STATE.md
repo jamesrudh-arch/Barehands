@@ -207,15 +207,54 @@ Open nits: the localized muzzle-burst read (bloom), the enemy
 flinch capture timing (the reaction itself is the proven take_hit
 chain), no aim reticle yet, no holster-slot UI.
 
+## S5.5 — THE ECONOMY (dirty money has a route and a price)
+
+market.gd rides Game: the pools (stash_cash = DIRTY from crime and
+missions; clean_cash = laundered), THE VENDORS on the cast that
+already stands at its doors (GRAB at Old Dee's = the bowl that
+heals, Tony's gym counter = a box of twelve for the pistol,
+Vesper's curb = LAUNDERING: 20% cut, capped at the drifting rate
+per window - a timer stand-in for the day until the cycle lands),
+THE SURCHARGE (any shop's dirty portion costs +25%), THE DEBT
+(starts at the bible's tuned five grand, split family 3500 /
+corp 1500) which EATS CLEAN ONLY - the phone LEDGER's quick-pay
+chip (pay_chip 100) is the exit, and that is the loop's teeth:
+you cannot hand the Corporation alley money. THE OVERNIGHT
+PRESSURE (timer stand-in): interest ticks 0.5%, and a pocket
+over the burn minimum gets noticed (+heat). Also fixed: the
+fence now pays from the DIRTY pool it always meant to (it read a
+nonexistent "cash" key - probe-caught by its own suite's
+regression). HUD: DIRTY/CLEAN at a glance top-right; phone
+LEDGER: the full split + the PAY chip. smoke_economy 27/27;
+smoke_police 14/14 (the pool fix); VLM: the LEDGER reads DIRTY
+$850 / CLEAN $480 / THE DEBT $4900 / PAY DEBT $100 all YES (nit
+fixed: the launder hint's contrast). Regressions combat_r 28,
+hero 30, pistol 10/10, areas 32, life 21 green. LAWS: the club's
+area id is "club_district" (the suite's "club" travel silently
+no-oped - a wrong id in travel() fails QUIET, always print the
+arrival); when a system's pool key changes, its SUITE's set AND
+check reads must both move (the police suite set stash but read
+the dead "cash" key - the check failed while the log showed the
+right numbers).
+Open nits: laundering cap is the base "drifting" rate (no trust
+system yet), the overnight pressure is a timer not the day/night
+beat, the hi-lo back-room minigame (palm/sleight/suspicion keys
+wait in the tuning table), no clothing stall, no price
+variation by district.
+
 ## NEXT ACTION (exact)
 
-1. S5.4 continued: police heat (take_hit on DOWNED bumps heat
-   already - build the cop response + decay), phone 2.0 +
-   missions M2-M6 (M1's RAIN GLASS delivery exists), vehicles
-   (the sedan is drivable), map/GPS, rain, audio, progression.
-2. Open nits: Soldier's jab twist, walk counter-arm swing,
+1. Phone 2.0 + missions M2-M6: the venues and the whole cast
+   exist (Marla, Vesper, Tony, Sal, Old Dee) and the economy
+   gives the story prices; one active mission at a time on the
+   existing spine.
+2. The world sim: day/night cycle + rain (the signature), then
+   the beat system the economy's stand-ins are waiting for
+   (laundering windows, overnight interest, dirty burn).
+3. Open nits: Soldier's jab twist, walk counter-arm swing,
    swing-to-hero contact frame, doorway interior depth, traffic
-   headlight sweep, pistol reticle.
+   headlight sweep, pistol reticle, localized muzzle burst,
+   copy style-mirroring, witness LOS.
 
 ## Known blockers / watch items
 

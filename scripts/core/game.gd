@@ -36,6 +36,7 @@ var _touch_ui: CanvasLayer = null
 var _missions: Node = null
 var _hud: CanvasLayer = null
 var _police: Node = null
+var _market: Node = null
 var _phone: CanvasLayer = null
 var _pause_menu: CanvasLayer = null
 
@@ -74,7 +75,10 @@ func go_menu() -> void:
 func start_new_game() -> void:
 	WorldState.reset()
 	# THE DEBT: the story's spine (the brother's $2,000 - 02 §2)
-	WorldState.set_value("debt", 2000.0)
+	# the bible's five grand, split the way the story owes it
+	WorldState.set_value("debt", Tuning.v("starting_debt"))
+	WorldState.set_value("debt_family", Tuning.v("debt_start_family"))
+	WorldState.set_value("debt_corp", Tuning.v("debt_start_corp"))
 	await travel("warehouse", "start")
 
 
@@ -150,6 +154,9 @@ func _mount_player(spawn: String) -> void:
 	if _police == null or not is_instance_valid(_police):
 		_police = load("res://scripts/core/police.gd").new()
 		add_child(_police)
+	if _market == null or not is_instance_valid(_market):
+		_market = load("res://scripts/core/market.gd").new()
+		add_child(_market)
 	if _hud == null or not is_instance_valid(_hud):
 		_hud = load("res://scripts/ui/hud.gd").new()
 		add_child(_hud)

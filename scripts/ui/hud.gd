@@ -206,8 +206,12 @@ func _process(_delta: float) -> void:
 		_style.text = str(combat.get("style_id")).to_upper()
 		var combo := int(combat.get("combo_count"))
 		_combo.text = "%d HIT" % combo if combo > 0 else ""
-	_cash.text = "$%d" % int(float(WorldState.get_value(
+	# the pools at a glance: dirty always, clean when it exists
+	var clean := int(float(WorldState.get_value("clean_cash", 0.0)))
+	_cash.text = "DIRTY $%d" % int(float(WorldState.get_value(
 			"stash_cash", 0.0)))
+	if clean > 0:
+		_cash.text += "  ·  CLEAN $%d" % clean
 	var hero := get_tree().get_first_node_in_group("player")
 	var verb := ""
 	if hero and is_instance_valid(hero) and hero.has_method("context_verb"):

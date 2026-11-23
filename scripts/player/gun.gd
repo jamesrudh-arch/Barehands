@@ -12,6 +12,11 @@ extends Node
 ## against a live tree.
 
 signal ammo_changed(in_clip: int, reserve: int)
+
+## the market sells boxes; the HUD rides the signal
+func add_reserve(n: int) -> void:
+	reserve = mini(reserve + n, 72)  # three boxes: pocket limit
+	ammo_changed.emit(ammo, reserve)
 signal shot_landed(target: Node, damage: float)
 
 const CLIP := 12

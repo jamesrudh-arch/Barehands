@@ -108,14 +108,29 @@ func _fill() -> void:
 		c.queue_free()
 	match _tab:
 		"LEDGER":
-			_line("CASH  $%d" % int(float(WorldState.get_value(
+			_line("DIRTY  $%d" % int(float(WorldState.get_value(
 					"stash_cash", 0.0))), Color(0.5, 1.0, 0.7))
+			_line("CLEAN  $%d" % int(float(WorldState.get_value(
+					"clean_cash", 0.0))), Color(0.55, 0.9, 1.0))
 			_line("THE DEBT  $%d" % int(float(WorldState.get_value(
 					"debt", 0.0))), Color(1.0, 0.55, 0.3))
 			_line("HEAT  %d" % int(float(WorldState.get_value(
 					"heat", 0.0))), Color(1.0, 0.45, 0.2))
-			_line("every landing is a checkpoint - dying costs $50",
-					Color(0.45, 0.47, 0.58), 13)
+			# the quick-pay chip (bible: pay_chip on the Ledger)
+			var chip := Button.new()
+			chip.text = "PAY DEBT  $%d" % int(Tuning.v("pay_chip"))
+			chip.custom_minimum_size = Vector2(0, 40)
+			chip.mouse_filter = Control.MOUSE_FILTER_STOP
+			var pay := func() -> void:
+				var mkt: Node = null
+				for m in get_tree().get_nodes_in_group("market"):
+					mkt = m
+				if mkt and mkt.pay_debt(Tuning.v("pay_chip")):
+					_fill()
+			chip.pressed.connect(pay)
+			_col.add_child(chip)
+			_line("the debt eats CLEAN only - launder at the club",
+					Color(0.72, 0.75, 0.85), 14)
 		"MESSAGES":
 			var log: Array = WorldState.event_log()
 			if log.is_empty():

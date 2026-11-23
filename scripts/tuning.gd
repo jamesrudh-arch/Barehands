@@ -62,6 +62,12 @@ const DEFAULTS := {
 	"alley_mult": 0.6,  # nobody watching: it slides
 	"hollow_wary_markup": 0.08,  # wary shelves are thin
 	"launder_daily_drifting": 600,  # at trust "drifting" he moves this a day
+	"launder_window_s": 300,  # the "day" stand-in until the cycle lands
+	"noodles_price": 8,  # Old Dee's bowl (street price, dirty OK)
+	"ammo_box_price": 25,  # Tony's box of twelve
+	"ammo_box_rounds": 12,
+	"economy_tick_s": 240,  # the overnight pressure's stand-in clock
+	"debt_interest_tick": 0.005,  # ...what the debt grows per tick
 	# (launder_cut 0.20 already lives below - kept from the B6 economy pass)
 	"palm_perfect_shift": 2,  # a clean palm bends the die this much
 	"palm_good_shift": 1,  # a sloppy palm, half the bend
