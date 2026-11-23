@@ -73,12 +73,53 @@ S5.0's law: import before ANY suite run, not just the battery).
 The gate's remaining wants (per-front lit doorway geometry, facade
 depth, club sign scale) are later content passes.
 
+## S5.1b — the UAL retarget: framework landed, visual gate pending
+
+ual_lib.gd retargets the UAL pack's 43 CC0 mocap clips (Unreal bone
+names, 65 bones) onto the RPM hero: full bone map incl. finger
+chains, rotation-only, clips renamed to the Melee_* names
+build_style_data expects. FOUR probe-caught laws banked:
+(1) Godot's glTF importer STRIPS a trailing "_Loop" from looping
+clips (Pistol_Idle_Loop imports as Pistol_Idle) - compare through
+trim_suffix("_Loop");
+(2) 4.x Animation key API is the generic track_get/set_key_value
+(no track_get_key_rotation / track_get_num_keys - those are 3.x);
+(3) UAL's rests are UE-axis-convention (pelvis rest 104 deg X off
+RPM's) - both naive local carries (rest*delta, delta*rest) are
+FALSIFIED: the first flips the body upside-down, the second bends
+it horizontal;
+(4) the global-rest conjugation (mode 2: q_dst = PRE * q * SUF
+with PRE/SUF from both skeletons' bone_global_rest) is
+NUMERICALLY correct - upright + stable through the clip (hips
+1.02 / head 1.59 / feet 0.21, matching the source's own-skeleton
+truth 0.83/1.46/0.10 scaled) - BUT the visual punch gate still
+fails: RPM's rest is A-pose while the UAL clips are authored from
+a guard stance, so arm/leg motion lands skewed (VLM: 'arms
+tucked, rear leg disjointed'). That is the classic
+reference-pose retargeting problem - no local formula fixes it.
+INSTALL_COMBAT=false gates the combat/ambient installs off (the
+raw ual(43) library stays for probes); smoke_hero 30/30.
+
+NEXT for S5.1b: EITHER Godot's native BoneMap retarget at import
+(SkeletonProfileHumanoid + the UAL .import options) OR a
+reference-pose alignment pass (UAL ships an A_TPose clip - build
+a per-bone correction from it). Then the visual punch gate, then
+wire Hit_Chest/Hit_Head/Death01/Roll into enemies + the enemy
+RPM swap.
+
 ## NEXT ACTION (exact)
 
-1. S5.1b: UAL retarget (below) — the GDScript rest-delta math.
+1. S5.1b finisher (above): the reference-pose fix, then the
+   enemy cast swap (second RPM avatar - hunt three.js mirrors +
+   other CC0 RPM sources).
 2. S5.2 part 3 when convenient: per-front lit doorway geometry
    (the club gate's 'pools float on a featureless street'), brick
    on any remaining code massing, club sign scale.
+3. S5.3 THE LIVING WORLD: pedestrians (pooled, waypoint walk,
+   phone idle, flee + call-police states) + spline traffic + the
+   named-NPC routine table (the fixer at the club, the fence at
+   the docks). THE gap between this build and the LEVERAGE
+   vision.
 
 ## Known blockers / watch items
 

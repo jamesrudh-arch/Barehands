@@ -16,6 +16,7 @@ extends CharacterBody3D
 ## land meanwhile (combat._play_clip no-ops missing clips).
 
 const CLS_MixamoLib := preload("res://scripts/player/mixamo_lib.gd")
+const CLS_UALLib := preload("res://scripts/player/ual_lib.gd")
 const CLS_Combat := preload("res://scripts/player/combat.gd")
 const RIG := "res://assets/native/hero_rpm.tscn"
 
@@ -91,6 +92,12 @@ func _build_rig() -> void:
 		var shared: int = CLS_MixamoLib.install(_anim, _skel)
 		if shared < 4:
 			push_error("Hero: the Mixamo share failed (%d clips)" % shared)
+		# S5.1b: the UAL library (43 mocap clips, rest-delta
+		# retargeted - combat/ambient stay gated off until the
+		# reference-pose fix passes the visual punch gate)
+		var ual: int = CLS_UALLib.install(_anim, _skel)
+		if ual < 40:
+			push_error("Hero: the UAL retarget failed (%d clips)" % ual)
 
 
 ## The locomotion tree: idle --speed--> walk --speed--> run, chained
