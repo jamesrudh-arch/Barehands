@@ -73,6 +73,10 @@ func pay(price: float, who := "") -> Dictionary:
 	var ws := get_tree().get_first_node_in_group("worldsim")
 	if ws and int(ws.beat()) % 3 == 1:
 		price *= 1.0 + Tuning.v("night_premium")
+	# and a hot block taxes everything (S5.12 - the street prices
+	# risk into every sale)
+	if float(WorldState.get_value("heat", 0.0)) >= 8.0:
+		price *= 1.1
 	var clean := _pool("clean_cash")
 	var dirty := _pool("stash_cash")
 	var clean_part := minf(clean, price)

@@ -211,6 +211,12 @@ func _radio_recap() -> void:
 		line += "%d incident(s) logged, nothing the rain can't wash." \
 				% _crimes_this_beat
 	WorldState.push_event("radio", {"line": line, "beat": beat()})
+	# the street's version: the count drifts with every retelling
+	if _crimes_this_beat > 0:
+		var drift: int = _crimes_this_beat + randi_range(0, 2)
+		WorldState.push_event("gossip", {"line":
+				"the street says it was %d men, and nobody saw a thing"
+				% drift, "beat": beat()})
 
 
 # --- the env plumbing -------------------------------------------------------
