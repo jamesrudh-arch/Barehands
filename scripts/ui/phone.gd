@@ -7,8 +7,8 @@ extends CanvasLayer
 ## event log: mission beats, door breaks, deaths - what happened),
 ## CONTACTS (the cast the story has introduced so far).
 
-const TABS := ["CALLS", "MAP", "LEDGER", "MESSAGES",
-	"NOTES", "CONTACTS", "SETTINGS"]
+const TABS := ["CALLS", "MAP", "LEDGER", "BOARD",
+	"MESSAGES", "NOTES", "CONTACTS", "SETTINGS"]
 
 ## the city as the MAP draws it (relative coords, connections).
 ## The airport + second city land with S5.14 - the map shows them
@@ -387,6 +387,46 @@ func _fill() -> void:
 				tb.disabled = Game.area_id == dest
 				tb.pressed.connect(_taxi.bind(dest))
 				row.add_child(tb)
+		"BOARD":
+			var lv := get_tree().get_first_node_in_group("leverage")
+			if lv == null:
+				_line("the board is dark", Color(0.45, 0.47, 0.58))
+			else:
+				var clues: Array = lv.clues()
+				if clues.is_empty():
+					_line("no clues - the street owes you nothing yet",
+							Color(0.45, 0.47, 0.58), 15)
+				var targets := {}
+				for c in clues:
+					var t := str(c.get("target", "?"))
+					if not targets.has(t):
+						targets[t] = []
+					(targets[t] as Array).append(c)
+				for t in targets:
+					var arr: Array = targets[t]
+					var fresh := 0
+					for c in arr:
+						if not lv.clue_stale(c):
+							fresh += 1
+					var status := "%d piece(s)" % arr.size()
+					if lv.linked(t):
+						status = "LINKED - the dirt is ready"
+					elif fresh == 0 and arr.size() >= 2:
+						status = "STALE - the trail went cold"
+					elif arr.size() >= 2:
+						status = "%d piece(s), %d fresh" % [arr.size(), fresh]
+					_line("%s  [%s]" % [t, status],
+							Color(0.55, 0.95, 1.0)
+							if lv.linked(t) else Color(0.75, 0.78, 0.9), 15)
+					for c in arr:
+						var stale_tag := " (stale)" if lv.clue_stale(c) else ""
+						_line("  - %s%s" % [str(c.get("text", "?")),
+								stale_tag],
+								Color(0.6, 0.63, 0.78)
+								if lv.clue_stale(c)
+								else Color(0.85, 0.88, 0.95), 13)
+				_line("two fresh pieces on one name unlock the squeeze",
+						Color(0.45, 0.47, 0.58), 12)
 		"NOTES":
 			var ms := get_tree().get_first_node_in_group("missions")
 			if ms and ms.active != null:

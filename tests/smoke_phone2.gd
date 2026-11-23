@@ -58,8 +58,8 @@ func _ready() -> void:
 	ph.open(false)
 	await _wait_s(0.3)
 	var grid := ph.get_node("Root/Slab/SlabCol/Tabs") as GridContainer
-	_check(grid != null and grid.get_child_count() == 7,
-			"seven apps on the tab grid")
+	_check(grid != null and grid.get_child_count() == 8,
+			"eight apps on the tab grid")
 	# --- THE MAP + THE TAXI
 	ph._set_tab("MAP")
 	await _wait_s(0.3)
