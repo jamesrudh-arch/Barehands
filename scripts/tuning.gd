@@ -68,6 +68,8 @@ const DEFAULTS := {
 	"ammo_box_rounds": 12,
 	"economy_tick_s": 240,  # the overnight pressure's stand-in clock
 	"debt_interest_tick": 0.005,  # ...what the debt grows per tick
+	"escalate_hp_mult": 1.25,  # refused the Corporation: harder men
+	"corp_ammo_mult": 0.5,  # accepted: their ammunition line, half
 	# (launder_cut 0.20 already lives below - kept from the B6 economy pass)
 	"palm_perfect_shift": 2,  # a clean palm bends the die this much
 	"palm_good_shift": 1,  # a sloppy palm, half the bend

@@ -296,6 +296,8 @@ func take_hit(damage: float, knockback: float, from_dir: Vector3,
 		WorldState.bump("heat", 4.0)  # the street saw it
 		WorldState.push_event("crime", {"pos": global_position,
 				"base": 4.0, "who": name})
+		# the story counts its own (M2/M5): a body is a body
+		WorldState.push_event("enemy_down", {"who": name})
 
 
 ## Per-instance clothing tint (probe law from the pedestrians).

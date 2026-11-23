@@ -1,0 +1,53 @@
+[gd_resource type="Resource" script_class="MissionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/mission_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "m5"
+title = "TURF"
+blurb = "The collectors are coming for MAMA SUN'S corner. Old Dee fed you for years. Stand there."
+stages = [{
+"area": "neighbourhood",
+"check": "reach",
+"marker": Vector3(-42.0, 1.2, 7.2),
+"objective": "Stand with Old Dee at MAMA SUN'S doorway"
+}, {
+"area": "neighbourhood",
+"check": "defeat",
+"need": 3,
+"spawn": [{
+"pos": Vector3(-38.5, 0.05, 2.0)
+}, {
+"pos": Vector3(-45.5, 0.05, 2.0)
+}, {
+"pos": Vector3(-42.0, 0.05, -1.5)
+}],
+"marker": Vector3(-42.0, 1.2, 7.2),
+"objective": "THE COLLECTORS - put all three down"
+}, {
+"area": "neighbourhood",
+"check": "defeat",
+"need": 3,
+"spawn": [{
+"pos": Vector3(-38.5, 0.05, 2.0),
+"hp": 120.0
+}, {
+"pos": Vector3(-45.5, 0.05, 2.0),
+"hp": 120.0
+}, {
+"pos": Vector3(-42.0, 0.05, -1.5),
+"hp": 90.0
+}],
+"marker": Vector3(-42.0, 1.2, 7.2),
+"objective": "The second wave - harder men. Hold the corner"
+}, {
+"area": "neighbourhood",
+"check": "area_clear",
+"marker": Vector3(-42.0, 1.2, 7.2),
+"objective": "Hold the corner until the street is clear"
+}]
+reward_cash = 200
+reward_clean = 150
+reward_xp = 50.0
+next = "m6"

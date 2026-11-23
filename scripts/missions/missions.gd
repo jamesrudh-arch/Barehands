@@ -25,6 +25,9 @@ var _marker: Node3D = null
 var _package: Node3D = null
 var _has_package := false
 var _last_area := ""
+var _defeat_count := 0
+var _pending_spawn: Array = []
+var _punch_wired := false
 
 
 func _ready() -> void:
@@ -61,6 +64,8 @@ func start(path: String) -> void:
 	if m == null:
 		push_error("Missions: cannot load %s" % path)
 		return
+	if active != null and active.id == m.id:
+		return  # already running - the chain or the player said so
 	active = m
 	stage_index = 0
 	_stage_t = 0.0
@@ -77,6 +82,23 @@ func _enter_stage() -> void:
 	stage_changed.emit(_banner.text)
 	_capture_condition_state(stage.get("check", ""))
 	_place_marker(stage)
+	_defeat_count = 0
+	_pending_spawn = stage.get("spawn", [])
+	# in-area stages spawn NOW; cross-area stages wait for the
+	# travel to land (the _process branch below)
+	if not _pending_spawn.is_empty() \
+			and Game.area_id == str(stage.get("area", "")) \
+			and _scene_landed():
+		_spawn_muscle()
+	if stage.get("check", "") == "package_taken" and not _has_package \
+			and Game.area_id == str(stage.get("area", "")) \
+			and _scene_landed():
+		_spawn_package(stage)
+	# THE CALL (M6): the stage's phone rings the moment it lands
+	if stage.has("ring"):
+		var ph := get_tree().get_first_node_in_group("phone")
+		if ph and is_instance_valid(ph):
+			ph.ring(stage.get("ring", {}))
 	_stage_t = 0.0
 	Log.info("Mission stage: %s (%s)" % [stage.get("objective", ""),
 			stage.get("check", "")])
@@ -89,9 +111,6 @@ func _capture_condition_state(check: String) -> void:
 	var rig := get_tree().get_first_node_in_group("camera_rig") as Node3D
 	_cam_yaw0 = float(rig.get("yaw")) \
 			if rig and is_instance_valid(rig) else 0.0
-	if check == "package_taken":
-		_spawn_package()
-
 
 ## The green objective marker: a pulsing ring at the stage position
 ## (only in the stage's own area).
@@ -139,14 +158,22 @@ func _drop_marker() -> void:
 
 
 ## The package prop on the workbench (M1).
-func _spawn_package() -> void:
+func _spawn_package(st: Dictionary = {}) -> void:
 	_drop_package()
 	var scene := get_tree().current_scene
-	if scene == null or Game.area_id != "warehouse":
+	if scene == null:
+		return
+	# M1's workbench box; any later stage names its own counter
+	var at := Vector3(-6.5, 1.05, 4.8)
+	var want_area := "warehouse"
+	if not st.is_empty():
+		at = st.get("marker", at)
+		want_area = str(st.get("area", want_area))
+	if Game.area_id != want_area:
 		return
 	_package = Node3D.new()
 	_package.name = "ThePackage"
-	_package.position = Vector3(-6.5, 1.05, 4.8)
+	_package.position = at
 	scene.add_child(_package)
 	var box := MeshInstance3D.new()
 	var bm := BoxMesh.new()
@@ -173,6 +200,14 @@ func _drop_package() -> void:
 	_package = null
 
 
+## the current scene really IS the area Game claims (the fade
+## gap: area_id flips before the swap lands)
+func _scene_landed() -> bool:
+	var scene := get_tree().current_scene
+	return scene != null and str(scene.scene_file_path) == str(
+			Game.AREAS.get(Game.area_id, ""))
+
+
 func _process(delta: float) -> void:
 	_stage_t += delta
 	# a travel frees the marker/package with the old scene. But
@@ -180,23 +215,30 @@ func _process(delta: float) -> void:
 	# placing then writes into the DYING scene. Wait until the
 	# current scene's file IS the new area's file, then re-place.
 	if Game.area_id != _last_area:
-		var scene := get_tree().current_scene
-		var landed: bool = scene != null \
-				and str(scene.scene_file_path) == str(Game.AREAS.get(
-						Game.area_id, ""))
-		if landed:
+		if _scene_landed():
 			_last_area = Game.area_id
 			if active != null and stage_index < active.stages.size():
 				var st: Dictionary = active.stages[stage_index]
 				_place_marker(st)
 				if st.get("check", "") == "package_taken" \
 						and not _has_package:
-					_spawn_package()
+					_spawn_package(st)
+				if not _pending_spawn.is_empty():
+					_spawn_muscle()
 	if _marker and is_instance_valid(_marker):
 		var ring := _marker.get_node_or_null("Ring") as MeshInstance3D
 		if ring:
 			ring.scale = Vector3.ONE * (1.0 + 0.12
 					* sin(_stage_t * 3.0))
+	# M4's other answer: a fist near the stage's door. The hero
+	# instance dies on travel - rewire when the stage wants it.
+	var hero_w := get_tree().get_first_node_in_group("player") as Node3D
+	if hero_w == null or not is_instance_valid(hero_w):
+		_punch_wired = false
+	elif not _punch_wired:
+		if not hero_w.face_action.is_connected(_on_hero_action):
+			hero_w.face_action.connect(_on_hero_action)
+		_punch_wired = true
 	if active == null:
 		return
 	var check: String = active.stages[stage_index].get("check", "")
@@ -233,8 +275,35 @@ func _check_condition(check: String) -> bool:
 			return WorldState.flag("m0_tried_the_gate")
 		"street_reached":
 			return Game.area_id == "neighbourhood"
+		"at_area":
+			var st_a: Dictionary = active.stages[stage_index]
+			return Game.area_id == str(st_a.get("area", ""))
+		"reach":
+			# stand at the marker (M5's corner, the boss's curb)
+			var st_r: Dictionary = active.stages[stage_index]
+			return hero != null and is_instance_valid(hero) \
+					and Game.area_id == str(st_r.get("area", "")) \
+					and hero.global_position.distance_to(
+					st_r.get("marker", Vector3.ZERO)) < 2.6
 		"package_taken":
 			return _has_package
+		"defeat":
+			# real bodies, counted by the enemy_down event
+			var st_d: Dictionary = active.stages[stage_index]
+			return _defeat_count >= int(st_d.get("need", 1))
+		"area_clear":
+			for e in get_tree().get_nodes_in_group("enemy"):
+				if is_instance_valid(e) \
+						and float(e.get("hp")) > 0.0:
+					return false
+			return true
+		"any_flag":
+			# the choice stages (M4's talk-or-break, M6's answer)
+			var st_f: Dictionary = active.stages[stage_index]
+			for f in st_f.get("flags", []):
+				if WorldState.flag(str(f)):
+					return true
+			return false
 		"delivered":
 			# markers live in their OWN area's coordinate space: a
 			# raw distance across scenes "delivered" M1 from the
@@ -252,7 +321,79 @@ func _check_condition(check: String) -> bool:
 	return false
 
 
+## GRAB at a choice spot (M4's grille, M3's ask): the street's
+## other verb. Runs after police + market in the hero's chain.
+func try_grab(hero: Node3D) -> bool:
+	if active == null or hero == null or not is_instance_valid(hero):
+		return false
+	if stage_index >= active.stages.size():
+		return false
+	var st: Dictionary = active.stages[stage_index]
+	if not st.has("grab_flag") or Game.area_id != str(st.get("area", "")):
+		return false
+	if hero.global_position.distance_to(
+			st.get("marker", Vector3.ZERO)) > 3.4:
+		return false
+	WorldState.set_flag(str(st["grab_flag"]))
+	WorldState.push_event("choice", {"what": str(st["grab_flag"])})
+	Log.info("Mission: the grab answers (%s)" % st["grab_flag"])
+	return true
+
+
+## a fist near the stage's marker (M4: the grille gives way)
+func _on_hero_action(action: String) -> void:
+	if active == null or stage_index >= active.stages.size():
+		return
+	var st: Dictionary = active.stages[stage_index]
+	if action != "punch" or not st.has("punch_flag"):
+		return
+	var hero := get_tree().get_first_node_in_group("player") as Node3D
+	if hero == null or not is_instance_valid(hero):
+		return
+	if hero.global_position.distance_to(
+			st.get("marker", Vector3.ZERO)) > 3.4:
+		return
+	WorldState.set_flag(str(st["punch_flag"]))
+	WorldState.bump("heat", 2.0)  # the street heard the steel
+	WorldState.set_flag("door_broken:" + str(st.get("door", "")))
+	WorldState.push_event("choice", {"what": str(st["punch_flag"])})
+	Log.info("Mission: the fist answers (%s)" % st["punch_flag"])
+
+
+## the stage's muscle (M2's gym, M5's collectors), spawned when
+## the area has landed. Refusing the Corporation sends harder men.
+func _spawn_muscle() -> void:
+	var scene := get_tree().current_scene
+	if scene == null:
+		return
+	var escalate := 1.0
+	if WorldState.flag("m6_declined"):
+		escalate = Tuning.v("escalate_hp_mult")
+	var script := load("res://scripts/npc/enemy.gd") as GDScript
+	for spec in _pending_spawn:
+		var e: CharacterBody3D = script.new()
+		e.position = spec.get("pos", Vector3.ZERO)
+		e.rotation.y = float(spec.get("rot", 0.0))
+		if spec.has("hp"):
+			e.set("hp", float(spec["hp"]) * escalate)
+		else:
+			e.set("hp", float(e.get("hp")) * escalate)
+		e.add_to_group("mission_spawn")
+		scene.add_child(e)
+		Log.info("Mission: muscle at %s (hp %.0f)" % [
+				str(spec.get("pos", Vector3.ZERO)),
+				float(e.get("hp"))])
+	_pending_spawn = []
+
+
+func _drop_spawned() -> void:
+	for e in get_tree().get_nodes_in_group("mission_spawn"):
+		if is_instance_valid(e) and float(e.get("hp")) > 0.0:
+			e.queue_free()
+
+
 func _advance() -> void:
+	_drop_spawned()
 	stage_index += 1
 	if stage_index >= active.stages.size():
 		_complete()
@@ -268,6 +409,10 @@ func _complete() -> void:
 	WorldState.set_value("mission_active:" + m.id, false)
 	if m.reward_cash > 0:
 		WorldState.bump("stash_cash", float(m.reward_cash))
+	if m.reward_clean > 0:
+		WorldState.bump("clean_cash", float(m.reward_clean))
+		WorldState.push_event("paid_clean", {"amount":
+				m.reward_clean})
 	if m.reward_xp > 0.0:
 		WorldState.bump("xp", m.reward_xp)
 	mission_completed.emit(m.id)
@@ -289,6 +434,9 @@ func _complete() -> void:
 
 ## World events feed the flag conditions.
 func _on_event(kind: String, data: Dictionary) -> void:
+	if str(kind) == "enemy_down":
+		_defeat_count += 1
+		return
 	if kind == "door_tried" and Game.area_id == "warehouse":
 		WorldState.set_flag("m0_tried_the_gate")
 	if kind == "ambush_woke":

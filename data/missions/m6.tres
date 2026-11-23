@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="MissionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/mission_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "m6"
+title = "THE CALL"
+blurb = "You held the corner. Somebody was watching, and they like what they saw."
+stages = [{
+"area": "neighbourhood",
+"check": "any_flag",
+"flags": ["m6_accepted", "m6_declined"],
+"ring": {
+"from": "THE CORPORATION",
+"duration": 14.0,
+"lines": ["A voice like a ledger closing: 'Your work at the corner was noticed.'", "'Our hardware line opens to you. Ammunition at half price. One thousand on the books.'", "'Answer now. This number does not ring twice.'"],
+"choices": [{
+"label": "TAKE THE OFFER\nhalf-price ammo, +$1000 debt",
+"flag": "m6_accepted",
+"debt": 1000.0
+}, {
+"label": "REFUSE\nthe Corporation does not forget",
+"flag": "m6_declined",
+"heat": 4.0
+}],
+"decline": {
+"flag": "m6_declined",
+"heat": 4.0
+}
+},
+"marker": Vector3(-42.0, 1.2, 7.2),
+"objective": "THE CORPORATION is calling - answer before it stops ringing"
+}]
+reward_cash = 0
+reward_xp = 30.0
+next = ""

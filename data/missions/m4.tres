@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="MissionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/mission_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "m4"
+title = "SHAKEDOWN"
+blurb = "The Corporation squeezes THE PAWN DESK. The owner is behind the grille - how this ends is yours."
+stages = [{
+"area": "neighbourhood",
+"check": "any_flag",
+"flags": ["m4_talked", "m4_broke"],
+"grab_flag": "m4_talked",
+"punch_flag": "m4_broke",
+"door": "THE PAWN DESK",
+"marker": Vector3(-18.0, 1.2, 7.2),
+"objective": "THE PAWN DESK: talk the owner down (GRAB) - or put a fist through the grille"
+}]
+reward_cash = 150
+reward_xp = 30.0
+next = "m5"

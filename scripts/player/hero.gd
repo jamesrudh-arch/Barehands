@@ -285,6 +285,11 @@ func _actions() -> void:
 							paid = true
 							break
 				if not paid:
+					for ms in get_tree().get_nodes_in_group("missions"):
+						if ms.try_grab(self):
+							paid = true
+							break
+				if not paid:
 					face_action.emit(action)
 			elif action == "punch" and _gun and _gun.drawn:
 				_gun.fire()

@@ -14,5 +14,7 @@ extends Resource
 ##              pulse); check says WHAT completes it.
 @export var stages: Array = []
 @export var reward_cash := 0
+## clean money (a grateful shopkeeper pays from the till)
+@export var reward_clean := 0
 @export var reward_xp := 0.0
 @export var next := ""   # the mission that chains from this one

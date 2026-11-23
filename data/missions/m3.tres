@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="MissionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/mission_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "m3"
+title = "THE OLD DRUNK"
+blurb = "Marla keeps a bottle behind her bar that isn't for sale. Tonight it's for you."
+stages = [{
+"area": "neighbourhood",
+"check": "any_flag",
+"flags": ["m3_talked"],
+"grab_flag": "m3_talked",
+"marker": Vector3(-4.6, 1.2, 5.4),
+"objective": "Ask Marla at THE RAIN GLASS about the old drunk"
+}, {
+"area": "neighbourhood",
+"check": "package_taken",
+"marker": Vector3(-40.4, 1.0, 5.4),
+"objective": "Take Old Dee's bottle from the counter at MAMA SUN'S"
+}, {
+"area": "neighbourhood",
+"check": "delivered",
+"marker": Vector3(-4.6, 1.2, 5.4),
+"objective": "Bring the bottle back to Marla"
+}]
+reward_cash = 90
+reward_xp = 25.0
+next = "m4"

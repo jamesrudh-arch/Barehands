@@ -116,7 +116,11 @@ func _ammo(hero: Node3D) -> bool:
 		WorldState.push_event("vendor_no", {"who": "TONY",
 				"msg": "You're carrying all I'd sell you."})
 		return true
-	var res := pay(Tuning.v("ammo_box_price"))
+	var price := Tuning.v("ammo_box_price")
+	# the Corporation's line: their man pays half (M6's offer)
+	if WorldState.flag("m6_accepted"):
+		price *= Tuning.v("corp_ammo_mult")
+	var res := pay(price)
 	if not res["ok"]:
 		WorldState.push_event("vendor_no", {"who": "TONY",
 				"msg": "Cash first. Gym rule."})
