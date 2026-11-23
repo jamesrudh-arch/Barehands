@@ -30,6 +30,9 @@ signal face_action(action: String)
 var move_stick := Vector2.ZERO   # set by the touch UI (analog)
 var crouching := false
 var last_action := ""            # the debug/test hook: the last fired action
+var hp := 100.0                  # the health the enemies chew (step 11)
+const MAX_HP := 100.0
+const DEATH_SERVICE := 50.0      # DEBT=DEATH: the clinic's price
 
 var _rig: Node3D = null
 var _skel: Skeleton3D = null
@@ -163,6 +166,14 @@ func _param(path: String) -> float:
 
 
 func _physics_process(delta: float) -> void:
+	# the water and the void: below the world is death, same as the
+	# harbour walk-off (the docks' water has no floor)
+	if global_position.y < -6.0:
+		die("the water")
+	_var_stick_processing(delta)
+
+
+func _var_stick_processing(delta: float) -> void:
 	var stick := move_stick
 	if stick == Vector2.ZERO:
 		stick = Input.get_vector("move_left", "move_right",
@@ -305,3 +316,38 @@ func _try_vehicle() -> bool:
 			v.call("try_use", self)
 			return true
 	return false
+
+
+## The enemy's swing lands (combat.gd calls this through the AI).
+func take_damage(damage: float, from_dir: Vector3) -> void:
+	hp = maxf(hp - damage, 0.0)
+	velocity += from_dir.normalized() * 3.0
+	Haptics.fire("down" if hp <= 0.0 else "heavy")
+	Sound.play("body_med_0", -6.0, 1.1)
+	if hp <= 0.0:
+		die("a beating")
+
+
+## DEBT=DEATH (the clinic's sign, the story's rule): dying costs
+## the service fee and puts you back on your feet at the area's
+## start spawn.
+func die(cause: String) -> void:
+	WorldState.bump("debt", DEATH_SERVICE)
+	WorldState.bump("heat", 6.0)
+	hp = MAX_HP
+	var area := get_tree().current_scene
+	var spawn: Node3D = null
+	if area:
+		spawn = area.get_node_or_null("SpawnStart") as Node3D
+		if spawn == null:
+			# any spawn marker: the area's first Spawn* node
+			for c in area.get_children():
+				if str(c.name).begins_with("Spawn"):
+					spawn = c as Node3D
+					break
+	if spawn:
+		global_position = spawn.global_position
+	velocity = Vector3.ZERO
+	_vel_y = 0.0
+	Fx.emit_hit("slip", global_position + Vector3.UP)
+	Log.info("Hero: down (%s) - the clinic's fee lands on the debt" % cause)

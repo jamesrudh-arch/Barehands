@@ -17,6 +17,7 @@ const BUTTONS := [
 var _panel: PanelContainer
 var _panel_title := ""
 var _continue: Button
+var _has_save := false
 
 
 func _ready() -> void:
@@ -62,16 +63,18 @@ func _ready() -> void:
 		box.add_child(b)
 		if entry[1] == "continue":
 			_continue = b
-			b.disabled = true
-			b.tooltip_text = "Saves arrive with the ledger build."
+			var sg := get_node_or_null("/root/SaveGame")
+			if sg:
+				_has_save = sg.call("exists")
+			b.disabled = not _has_save
 	# the reason line under CONTINUE, always visible and honest
 	var note := Label.new()
 	note.name = "ContinueNote"
-	note.text = "CONTINUE: saves arrive with the ledger build"
 	note.add_theme_font_size_override("font_size", 13)
 	note.add_theme_color_override("font_color", Color(0.45, 0.47, 0.58))
 	note.position = Vector2(50, size.y - 70)
 	add_child(note)
+	_refresh_continue_note(_has_save)
 	# the studio line + build stamp at the bottom edge
 	var prod := Label.new()
 	prod.text = "A D'YOUNGS GAMES production"
@@ -105,12 +108,27 @@ func _build_panel() -> void:
 	add_child(_panel)
 
 
+## CONTINUE's honest line: what a save is worth right now.
+func _refresh_continue_note(has_save: bool) -> void:
+	var n := get_node_or_null("ContinueNote") as Label
+	if n == null:
+		return
+	if has_save:
+		var d: Dictionary = get_node("/root/SaveGame").call("load_data")
+		var debt := float(d.get("world", {}).get("values", {}).get(
+				"debt", 0.0)) if not d.is_empty() else 0.0
+		n.text = "CONTINUE - the debt stands at $%d" % int(debt)
+	else:
+		n.text = "CONTINUE: no save yet - PLAY writes one at every landing"
+
+
 func _on_button(which: String) -> void:
 	match which:
 		"play":
 			Game.start_new_game()
 		"continue":
-			pass  # disabled; the note says why
+			if _has_save:
+				Game.continue_game()
 		"settings":
 			_open_settings()
 		"credits":

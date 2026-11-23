@@ -25,6 +25,7 @@ general/text_to_speech=true
 
 Game="*res://scripts/core/game.gd"
 WorldState="*res://scripts/core/world_state.gd"
+SaveGame="*res://scripts/core/save_game.gd"
 BuildStamp="*res://scripts/build_stamp.gd"
 Tuning="*res://scripts/tuning.gd"
 Settings="*res://scripts/settings.gd"

@@ -35,6 +35,7 @@ var _fade_layer: CanvasLayer
 var _touch_ui: CanvasLayer = null
 var _missions: Node = null
 var _hud: CanvasLayer = null
+var _phone: CanvasLayer = null
 var _pause_menu: CanvasLayer = null
 
 
@@ -71,7 +72,22 @@ func go_menu() -> void:
 
 func start_new_game() -> void:
 	WorldState.reset()
+	# THE DEBT: the story's spine (the brother's $2,000 - 02 §2)
+	WorldState.set_value("debt", 2000.0)
 	await travel("warehouse", "start")
+
+
+## CONTINUE: the last landing, loaded back.
+func continue_game() -> void:
+	var d: Dictionary = SaveGame.load_data()
+	if d.is_empty():
+		start_new_game()
+		return
+	WorldState.from_save(d.get("world", {}))
+	var area := str(d.get("area", "warehouse"))
+	if not AREAS.has(area):
+		area = "warehouse"
+	await travel(area, "start")
 
 
 ## The one way between areas: fade out, swap the scene, land the
@@ -93,6 +109,9 @@ func travel(id: String, spawn: String = "") -> void:
 	await get_tree().process_frame
 	_mount_player(spawn)
 	_fading = false
+	# the landing IS the checkpoint (and the menu's CONTINUE lights)
+	if SaveGame != null:
+		SaveGame.save_now()
 	await fade_in(FADE_S)
 
 
@@ -130,6 +149,15 @@ func _mount_player(spawn: String) -> void:
 	if _hud == null or not is_instance_valid(_hud):
 		_hud = load("res://scripts/ui/hud.gd").new()
 		add_child(_hud)
+	if _phone == null or not is_instance_valid(_phone):
+		_phone = load("res://scripts/ui/phone.gd").new()
+		add_child(_phone)
+	# the phone rides the hero's action signal (the proven pipe)
+	for sig in hero.get_signal_list():
+		if sig.name == "face_action":
+			hero.connect("face_action",
+					func(a): _phone.on_hero_action(a))
+			break
 	if _pause_menu == null or not is_instance_valid(_pause_menu):
 		_pause_menu = load("res://scripts/ui/pause_menu.gd").new()
 		add_child(_pause_menu)

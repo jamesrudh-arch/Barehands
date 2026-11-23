@@ -63,6 +63,7 @@ func _ready() -> void:
 	_vending()
 	_lamps()
 	_parked()
+	_muscle()
 	_gates()
 	Log.info("Neighbourhood ready (area=%s spawn=%s, %d fronts)" % [
 			Game.area_id, Game.spawn_id, Doors.door_list().size()])
@@ -72,6 +73,15 @@ func _ready() -> void:
 ## until the traffic pass fills the lanes).
 func _parked() -> void:
 	CLS_Vehicle.spawn(self, "sedan", Vector3(40.0, 0.05, -3.2), -PI / 2.0)
+
+
+## One watcher at the alley mouth (the quiet street's one problem).
+func _muscle() -> void:
+	var script := load("res://scripts/npc/enemy.gd") as GDScript
+	var e: CharacterBody3D = script.new()
+	e.position = Vector3(-20.0, 0.05, 3.4)
+	e.rotation.y = 2.2
+	add_child(e)
 
 
 # --- the ground: road + sidewalks -----------------------------------------

@@ -46,13 +46,34 @@ optimise → verify → deliver).
 
 ## In progress
 
-**STAGE 4 step 11 — THE SYSTEMS PASS (03 §5 step 11)**: the phone
-(calls/messages/contacts driving the story), the ledger/economy
-(cash, debt, purchases - CONTINUE unlocks), heat + trust + reputation
-(the city's memory of the hero), the enemy NPC combat layer on the
-KayKit rigs (damage to the hero, the HUD health bar grows), crowd
-traffic on the avenue. Then step 12 (title 3D), 13 (perf), 14
-(final regression + device report).
+**STAGE 4 step 11 — the systems pass: 28/29, ONE bug open.** DONE +
+PROVEN by smoke_systems: the enemy AI's full honest loop (SPOT ->
+APPROACH -> TELEGRAPH (the readable wind-up) -> SWING -> the hero
+TAKES DAMAGE with the HUD health bar tracking it -> RECOVER; one
+swing one hit after the hit-done flag), the B dodge i-frames beat
+the swing (a committed 0.56 s roll, 0.50 s i-frames - the window
+must outlast the telegraph read), the hero's hands put a thug DOWN
+(Death_A) -> heat rises -> it gets back up at quarter health,
+DEBT=DEATH (the clinic fee + respawn at the area's spawn marker,
+the harbour walk-off included), the save/continue flow (every
+landing writes user://leverage_save.json, CONTINUE enables with
+its debt note, the world round-trips), the phone UI is BUILT and
+mounted (LEDGER/MESSAGES/CONTACTS tabs reading live values).
+
+**THE OPEN BUG: the phone never OPENS on the PHONE action.** The
+suite's synthetic `Input.action_press("phone")` is never seen by
+ANY consumer: the phone's own _process polls `is_action_pressed`
+311 ticks and never reads true, and the hero's
+`is_action_just_pressed("phone")` in _actions never fires either -
+while the SAME synthetic mechanism works for punch/heavy/kick/
+dodge/style/pause in the very same suite. NEXT SESSION, in order:
+(a) print hero.last_action after a phone press (does _actions see
+it at all?), (b) check the "phone" action's InputMap events vs the
+working actions, (c) if the map entry is cursed, re-add the action
+fresh via InputMap at boot. The phone UI itself is proven (its tabs
+fill with live data when opened programmatically).
+
+## Step 10 — DONE (vehicles)
 
 ## Step 10 — DONE (vehicles)
 
@@ -318,23 +339,14 @@ Four bugs found and fixed on the way to green, all worth remembering:
 
 ## NEXT ACTION (exact)
 
-1. Commit + push step 10 (smoke_vehicle 20/20 + the battery).
-2. STEP 11 — the systems pass, in order:
-   a. The hero's health + damage (enemies hit back): health on the
-      hero, the HUD health bar, death -> respawn at the last area
-      spawn (no voids: the water needs the same respawn).
-   b. Enemy NPCs on the KayKit rigs (the proven pipeline): a thug
-      with AI (approach, telegraphed swings, hit reactions,
-      downed states), spawned by a probe/mission hook; combat
-      gains targeting + i-frame use.
-   c. The ledger: cash already flows (missions, stashes); DEBT (the
-      story's spine) + CONTINUE unlocking on the menu.
-   d. Heat + trust as WorldState-backed meters with real inputs
-      (crime -> heat, story choices -> trust).
-   e. The phone (apps: messages, contacts, map) as a real screen.
-   f. smoke_systems suite + battery.
-3. THEN steps 12-14: title 3D, perf, final regression + the device
-   report (the V3-format report with VERIFIED/PHONE-ONLY rows).
+1. Commit + push step 11 as 28/29 (the phone-open bug recorded
+   above with its diagnosis plan).
+2. Fix the phone-open trigger (the (a)/(b)/(c) plan), re-run
+   smoke_systems to 29/29, commit.
+3. THEN step 12 — title 3D (the real key-art title scene over the
+   drifting street), step 13 — perf (frame budget audit per area),
+   step 14 — the final full battery + the V3-format device report
+   (VERIFIED vs PHONE-ONLY rows) + the zip.
 
 
 ## Known blockers / watch items

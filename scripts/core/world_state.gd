@@ -90,4 +90,8 @@ func from_save(d: Dictionary) -> void:
 	if d.has("table"):
 		_table = d["table"]
 	if d.has("events"):
-		_event_log = d["events"]
+		# JSON hands back a plain Array; rebuild the typed log
+		# element-wise (a direct assign is a typed-array error)
+		for e in d["events"]:
+			if e is Dictionary:
+				_event_log.append(e)

@@ -20,8 +20,8 @@ const STYLES := {
 
 enum Phase { IDLE, STARTUP, ACTIVE, RECOVER, DODGE, GUARD }
 
-const DODGE_S := 0.34
-const DODGE_IFRAMES_S := 0.22
+const DODGE_S := 0.56
+const DODGE_IFRAMES_S := 0.50
 const DODGE_SPEED := 6.5
 const CHAIN_RESET_S := 0.9
 const METER_MAX := 100.0
@@ -178,6 +178,7 @@ func _start_attack(atk: Resource) -> void:
 	phase = Phase.STARTUP
 	_t = 0.0
 	_hit_done = false
+	_face_nearest_npc()
 	_play_clip(atk.clip)
 	# the lunge: a small push along the visual rig's facing
 	# (the KayKit model's authored forward is +Z at rig yaw 0)
@@ -274,7 +275,9 @@ func _try_hit() -> void:
 	var fwd := Vector3(0, 0, 1).rotated(Vector3.UP, yaw)
 	var from := _hero.global_position + Vector3.UP * 1.1
 	var landed := 0
-	for target in get_tree().get_nodes_in_group("train_target"):
+	var targets := get_tree().get_nodes_in_group("train_target") \
+			+ get_tree().get_nodes_in_group("npc")
+	for target in targets:
 		var n := target as Node3D
 		if n == null or not is_instance_valid(n):
 			continue
@@ -321,3 +324,31 @@ func swinging() -> bool:
 
 func guarding() -> bool:
 	return phase == Phase.GUARD
+
+
+## Attack assist: at swing start, snap the hero's visual yaw toward
+## the nearest npc inside the attack's reach + a step (standing
+## still, the hero would otherwise punch past a circling enemy).
+func _face_nearest_npc() -> void:
+	if _hero == null:
+		return
+	var rig := _hero.get_node_or_null("Rig") as Node3D
+	if rig == null or _attack == null:
+		return
+	var best: Node3D = null
+	var best_d := float(_attack.reach) + 1.2
+	for e in get_tree().get_nodes_in_group("npc"):
+		var n := e as Node3D
+		if n == null or not is_instance_valid(n):
+			continue
+		var d: float = n.global_position.distance_to(_hero.global_position)
+		if d < best_d:
+			best_d = d
+			best = n
+	if best:
+		var to := best.global_position - _hero.global_position
+		to.y = 0.0
+		if to.length() > 0.05:
+			var want := atan2(to.x, to.z)
+			rig.rotation.y = want
+			_hero.set("_yaw", want)

@@ -59,10 +59,22 @@ func _ready() -> void:
 	_crossing()
 	_queue_and_props()
 	_parked()
+	_muscle()
 	_lamps()
 	_gates()
 	Log.info("Club district ready (area=%s spawn=%s)" % [
 			Game.area_id, Game.spawn_id])
+
+
+## The street's muscle: two by the underpass (the docks' block is
+## contested ground - the story says someone is always watching it).
+func _muscle() -> void:
+	var script := load("res://scripts/npc/enemy.gd") as GDScript
+	for spec in [[Vector3(50.0, 0.05, -3.0), 0.6], [Vector3(54.0, 0.05, 2.0), -0.9]]:
+		var e: CharacterBody3D = script.new()
+		e.position = spec[0]
+		e.rotation.y = spec[1]
+		add_child(e)
 
 
 ## The avenue's parked cars: a sedan by the curb, the taxi at the
