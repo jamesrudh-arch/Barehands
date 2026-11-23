@@ -32,6 +32,7 @@ func _ready() -> void:
 	add_child(fill)
 	# the camera: third-person framing over the future spawn point
 	var cam := Camera3D.new()
+	cam.name = "Camera3D"  # runtime nodes get @Class@id names otherwise
 	cam.position = Vector3(0, 2.6, 7.5)
 	cam.rotation_degrees = Vector3(-14, 0, 0)
 	add_child(cam)

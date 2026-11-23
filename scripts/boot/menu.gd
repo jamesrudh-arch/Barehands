@@ -168,7 +168,9 @@ func _credit(col: VBoxContainer, title: String, sub: String) -> void:
 func _toggle(col: VBoxContainer, label: String, key: String) -> void:
 	var cb := CheckButton.new()
 	cb.text = label
-	cb.button_pressed = bool(Settings.value(key))
+	# Settings.value() answers null for a key nobody has set yet, and
+	# bool(null) is a constructor error in Godot 4 - compare, never cast
+	cb.button_pressed = Settings.value(key) == true
 	cb.toggled.connect(func(on): Settings.set_value(key, on))
 	col.add_child(cb)
 

@@ -12,7 +12,6 @@ var _label: Label
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	_cam_check_t = 0.0
 	var layer := CanvasLayer.new()
 	layer.layer = 50
 	layer.name = "BuildStamp"
@@ -37,46 +36,12 @@ func _ready() -> void:
 		get_window().title = "LEVERAGE %s" % CLS_BuildInfo.STAMP
 
 
-# --- the failsafe camera (B17): a 3D scene with meshes and no
-# current Camera3D gets one, ~2 s in, logged once. A grey screen
-# (default clear colour) means NOTHING is rendering - this makes
-# sure a camera at least exists in every 3D scene.
-
-var _cam_check_t := 0.0
-var _cam_added := false
-
-
-func _process(delta: float) -> void:
-	if _cam_added:
-		return
-	_cam_check_t += delta
-	if _cam_check_t < 2.0:
-		return
-	_cam_check_t = 0.0
-	if get_viewport().get_camera_3d() != null:
-		return  # a real camera is rendering - never interfere
-	var has_mesh := false
-	var root := get_tree().current_scene
-	if root:
-		var stack: Array = [root]
-		while stack:
-			var node = stack.pop_back()
-			if node is MeshInstance3D:
-				has_mesh = true
-				break
-			for c in node.get_children():
-				stack.append(c)
-	if not has_mesh:
-		return  # pure 2D scene (Stage0) - no camera needed
-	var cam := Camera3D.new()
-	cam.name = "FailsafeCamera"
-	cam.position = Vector3(4.0, 3.5, 4.0)
-	cam.look_at(Vector3.ZERO)
-	get_tree().current_scene.add_child(cam)
-	cam.make_current()
-	_cam_added = true
-	push_error("BuildStamp: no Camera3D was active - a FAILSAFE camera "
-			+ "was created. A real camera script failed somewhere.")
+# RETIRED (rebuild step 1): the B17 failsafe camera injected a camera
+# into any 3D-looking scene whose viewport camera read null — under
+# the new boot chain (and in headless, where get_camera_3d() can read
+# null while a scene's own camera is fine) it fought the area scenes
+# for ownership of `current`. The one-authoritative-implementation
+# law: every rebuilt scene owns its camera, and its suite proves it.
 
 
 ## The one-line stamp everything shows.

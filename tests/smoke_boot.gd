@@ -33,6 +33,15 @@ func _wait_s(seconds: float) -> void:
 		left -= step
 
 
+## Every Label's text under a node, at any depth (cards nest labels).
+func _all_label_text(n: Node, acc: String = "") -> String:
+	for c in n.get_children():
+		if c is Label:
+			acc += c.text + " "
+		acc = _all_label_text(c, acc)
+	return acc
+
+
 func _ready() -> void:
 	Settings.set_value("first_run_done", true)
 	Settings.set_value("skip_intro", false)
@@ -62,15 +71,20 @@ func _settings_block() -> void:
 
 
 func _splash_flow() -> void:
+	# let the tree finish its initial setup first: add_child to the root
+	# from inside _ready silently fails ("parent is busy setting up
+	# children") — the splash would never enter the tree at all
+	for i in 4:
+		await get_tree().process_frame
 	var splash: Node = load("res://scenes/boot/splash.tscn").instantiate()
 	get_tree().root.add_child(splash)
+	# go_menu() swaps the CURRENT scene: hand that role to the splash so
+	# the suite node (a root child) survives every scene change
+	get_tree().current_scene = splash
 	await _wait_s(0.7)
 	_check(splash.phase == 1, "the studio card shows first (phase %d)"
 			% splash.phase)
-	var texts := ""
-	for c in splash.get_children():
-		if c is Label:
-			texts += c.text + " "
+	var texts := _all_label_text(splash)
 	_check("D ' Y O U N G S" in texts or "D'YOUNGS" in texts,
 			"the studio wordmark reads D'YOUNGS")
 	await _wait_s(2.8)  # the studio card's full 3 s
@@ -91,11 +105,13 @@ func _splash_flow() -> void:
 
 func _menu_flow() -> void:
 	var menu := get_tree().current_scene
-	if menu == null or not menu.has_node("PlayBtn"):
+	var play := menu.find_child("PlayBtn", true, false) if menu else null
+	if menu == null or play == null:
 		_check(false, "the menu exists with its buttons")
 		return
 	_check(true, "the menu exists with its buttons")
-	_check(menu.has_node("ContinueBtn") and menu.get_node("ContinueBtn").disabled,
+	var cont := menu.find_child("ContinueBtn", true, false) as Button
+	_check(cont != null and cont.disabled,
 			"CONTINUE is disabled (no save system yet)")
 	var note: Label = menu.get_node_or_null("ContinueNote")
 	_check(note != null and "ledger build" in note.text,
@@ -134,10 +150,14 @@ func _menu_flow() -> void:
 			"PLAY lands in the warehouse shell (%s)" % path)
 	_check(Game.state == Game.State.PLAY and Game.area_id == "warehouse",
 			"Game is PLAY in the warehouse area")
-	var cam := get_tree().current_scene.get_node_or_null("Camera3D") \
-			as Camera3D
-	_check(cam != null and cam.is_current(),
-			"the shell has an active camera")
+	# the shell's camera is the one the viewport actually renders
+	# through (is_current() is unreliable in headless; the viewport's
+	# own answer is the rendering truth on device and here)
+	var shell := get_tree().current_scene
+	var vc := get_viewport().get_camera_3d()
+	_check(vc != null and shell != null and shell.is_ancestor_of(vc),
+			"the shell has the active camera (%s)" % [
+			vc.name if vc else "none"])
 	# unknown areas refuse travel
 	await Game.travel("atlantis")
 	_check(Game.area_id == "warehouse",

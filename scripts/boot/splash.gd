@@ -24,6 +24,7 @@ var _sweep: SweepBand
 func _ready() -> void:
 	Game.set_state(Game.State.SPLASH)
 	set_anchors_preset(Control.PRESET_FULL_RECT)
+	_build_black_card()
 	_build_studio_card()
 	_build_notice_card()
 	_build_title_card()
@@ -52,14 +53,16 @@ func _skip() -> void:
 	_advance = true
 
 
+## Wall-clock card timing: a 0.05 s poll timer under low fps takes
+## longer than 0.05 s real, and counting iterations would stretch every
+## card the same way (visible on a loaded phone). The clock is the truth.
 func _wait_card(seconds: float) -> void:
-	var left := seconds
-	while left > 0.0:
-		await get_tree().create_timer(minf(0.05, left)).timeout
-		left -= 0.05
+	var end := Time.get_ticks_msec() + int(seconds * 1000.0)
+	while Time.get_ticks_msec() < end:
 		if _advance:
 			_advance = false
 			return
+		await get_tree().create_timer(0.05).timeout
 
 
 func _run() -> void:
@@ -89,6 +92,19 @@ func _show(i: int) -> void:
 
 
 # --- card builders ------------------------------------------------------------
+
+
+## Cards align 1:1 with phases: [black, studio, notice, title]. The
+## black card is the half-second beat before the studio card.
+func _build_black_card() -> void:
+	var card := Control.new()
+	card.set_anchors_preset(Control.PRESET_FULL_RECT)
+	var bg := ColorRect.new()
+	bg.color = Color(0, 0, 0)
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	card.add_child(bg)
+	add_child(card)
+	_cards.append(card)
 
 
 func _serif(size: int) -> SystemFont:
