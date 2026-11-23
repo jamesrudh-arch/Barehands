@@ -60,18 +60,23 @@ landing writes user://leverage_save.json, CONTINUE enables with
 its debt note, the world round-trips), the phone UI is BUILT and
 mounted (LEDGER/MESSAGES/CONTACTS tabs reading live values).
 
-**THE OPEN BUG: the phone never OPENS on the PHONE action.** The
-suite's synthetic `Input.action_press("phone")` is never seen by
-ANY consumer: the phone's own _process polls `is_action_pressed`
-311 ticks and never reads true, and the hero's
-`is_action_just_pressed("phone")` in _actions never fires either -
-while the SAME synthetic mechanism works for punch/heavy/kick/
-dodge/style/pause in the very same suite. NEXT SESSION, in order:
-(a) print hero.last_action after a phone press (does _actions see
-it at all?), (b) check the "phone" action's InputMap events vs the
-working actions, (c) if the map entry is cursed, re-add the action
-fresh via InputMap at boot. The phone UI itself is proven (its tabs
-fill with live data when opened programmatically).
+**THE OPEN BUG: the phone never OPENS on the PHONE action in the
+suite context.** Sharpened by this session's probe + two fixes:
+the probe PROVED the press registers (pressed=true) and the hero's
+_actions fires it (hero_last=phone) - the signal path works in
+isolation. Two real bugs were found and fixed on the way (both
+committed): the signal was wired once per re-mount (a stacked
+lambda double-toggle: open+shut in one press after CONTINUE) and
+the poll's release closed what the signal opened. After both, the
+suite check STILL reads closed. REMAINING SUSPECTS, next session,
+in order: (a) instrument on_hero_action directly (does it receive
+"phone" in the suite's post-CONTINUE context at all?), (b) the
+suite's second phone press at the end (the close-test) may be
+arriving inside the same _process window and re-closing - print
+open/close timestamps, (c) as a fallback, drive the open from
+Input.is_action_just_pressed in the HERO's _physics_process (where
+every other action provably works). The phone UI itself is proven
+(its tabs fill with live data).
 
 ## Step 10 — DONE (vehicles)
 

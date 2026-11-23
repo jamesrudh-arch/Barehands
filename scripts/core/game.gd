@@ -152,12 +152,17 @@ func _mount_player(spawn: String) -> void:
 	if _phone == null or not is_instance_valid(_phone):
 		_phone = load("res://scripts/ui/phone.gd").new()
 		add_child(_phone)
-	# the phone rides the hero's action signal (the proven pipe)
-	for sig in hero.get_signal_list():
-		if sig.name == "face_action":
-			hero.connect("face_action",
-					func(a): _phone.on_hero_action(a))
-			break
+	# the phone rides the hero's action signal (the proven pipe).
+	# ONE connection per hero: every re-mount re-runs this - a bare
+	# connect would stack lambdas and one press would toggle the
+	# phone open+shut (the smoke_systems catch)
+	if _phone.get("_wired_hero") != hero:
+		var old = _phone.get("_wired_hero")
+		if old and is_instance_valid(old) \
+				and old.is_connected("face_action", _phone.on_hero_action):
+			old.disconnect("face_action", _phone.on_hero_action)
+		hero.connect("face_action", _phone.on_hero_action)
+		_phone.set("_wired_hero", hero)
 	if _pause_menu == null or not is_instance_valid(_pause_menu):
 		_pause_menu = load("res://scripts/ui/pause_menu.gd").new()
 		add_child(_pause_menu)

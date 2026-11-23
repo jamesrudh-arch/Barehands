@@ -68,6 +68,7 @@ func _process(_delta: float) -> void:
 
 var _was_open := false
 var _was_hold := false
+var _wired_hero: Node = null  # the one hero whose signal we ride
 
 
 ## The hero's action signal (the proven path - face_action fires
@@ -77,14 +78,14 @@ func on_hero_action(action: String) -> void:
 	if action != "phone" or Game.state != Game.State.PLAY:
 		return
 	if not _root.visible:
-		open()
+		open(false)  # signal-opened: the poll may not close it
 	else:
 		close()
 
 
-func open() -> void:
+func open(from_poll := true) -> void:
 	_root.visible = true
-	_was_hold = true
+	_was_hold = from_poll  # only the poll's own opens are its closes
 	_set_tab(_tab)
 	Log.info("Phone: open (%s)" % _tab)
 
