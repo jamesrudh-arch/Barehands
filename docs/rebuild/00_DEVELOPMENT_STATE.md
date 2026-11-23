@@ -46,11 +46,40 @@ optimise → verify → deliver).
 
 ## In progress
 
-**STAGE 4 step 8 — the HUD pass (03 §5 step 8)**: health/meter/
-rank readouts, the style wheel UI (hold-flick), the objective
-banner's real styling, the B-context verb label wiring, the pause
-menu (resume/settings/quit), safe-area polish - all reading the
-live systems (Combat.meter/rank, WorldState, Missions).
+**STAGE 4 step 9 — areas 3-4: the CLUB DISTRICT and THE DOCKS**
+(03 §5 step 9): two new area scenes on the proven area pattern
+(Game.travel + AREAS registry + spawn markers + per-area lighting
+and ambience), gated travel from the neighbourhood (the main street
+gate east / the underpass), asset batch 2 for their dressing (the
+Kenney city/commercial/industrial kits are already on disk; check
+05_ASSET_REGISTER for gaps before sourcing more). The club district
+carries THE VELVET ROOM's queue + IRON PALM GYM + the Mechanic's
+garage; the docks carry the piers, cranes, container maze and
+DOCK WAREHOUSE 9 (locked until the kidnap arc).
+
+## Step 8 — DONE (the HUD pass)
+
+**smoke_hud 21/21** — the play readouts are live: the Leverage
+meter, Style Rank, combo counter, style line and cash line all read
+their systems at 20 Hz (nothing decorative, nothing fake; there is
+no health bar yet because nothing damages the hero - it grows with
+enemies). The style wheel: hold STYLE, the world slows ~30%
+(Engine.time_scale), the radial list swaps styles live, release
+restores. The pause menu: PAUSE freezes the tree through
+Game.pause_game, RESUME/SETTINGS/QUIT all work, QUIT returns to the
+main menu. The B-context verb shows at doors (the HUD echo + the
+diamond's label) and B at a door TRIES it instead of dodging.
+
+Two fixes banked:
+1. **Fx owns only the slows it sets**: the old Fx autoload reset
+   Engine.time_scale to 1.0 every frame it did not own - the wheel's
+   slow was being cancelled instantly. Fx now tracks _owns_scale.
+2. **Synthetic single-frame presses can fall between _process
+   ticks**: is_action_just_pressed() in _process missed the suite's
+   one-frame pause press; the menu now uses a state-based press EDGE
+   (is_action_pressed + was-pressed), which sees real and synthetic
+   presses alike. Suites hold action presses ~0.2 s like real taps.
+
 
 ## Step 7 — DONE (the mission system + M0/M1)
 
@@ -219,23 +248,23 @@ Four bugs found and fixed on the way to green, all worth remembering:
 
 ## NEXT ACTION (exact)
 
-1. Commit + push step 7 (missions green, battery 7 suites).
-2. STEP 8 — the HUD pass:
-   a. `scripts/ui/hud.gd` (+ CanvasLayer mounted by Game at PLAY):
-      health bar, the Leverage meter, the Style Rank pips, the
-      combo counter, the cash line (stash_cash), all reading the
-      live systems; nothing decorative, nothing fake.
-   b. The style wheel: hold STYLE slows time ~30% (Engine
-      time_scale - carefully: pause-safe), a radial picker over the
-      five styles, flick/press to swap.
-   c. The pause menu (PAUSE action -> Game.pause_game, a real menu:
-      resume/settings/quit-to-menu), the B-context verb label on
-      the diamond (hero.context_verb wired through touch_ui).
-   d. `tests/smoke_hud.gd`: bars track real values (meter rises on
-      hits, cash updates, rank pips), the style wheel swaps styles
-      live, pause freezes the world and its buttons work.
-3. THEN step 9 — areas 3-4 (the club district, the docks) on the
-   area-scene pattern + asset batch 2/3 for their dressing.
+1. Commit + push step 8 (HUD green, battery 8 suites / 223 checks).
+2. STEP 9 — areas 3-4 (the CLUB DISTRICT + THE DOCKS):
+   a. scenes/areas/club_district.tscn + docks.tscn on the warehouse/
+      neighbourhood pattern: a builder script each, spawn markers,
+      per-area lighting profile + fog, honest signposted gates back.
+   b. Game.AREAS grows both; the neighbourhood's east gate + the
+      underpass mouth travel to them (Doors-registered, signposted).
+   c. Dress from the on-disk Kenney kits (commercial/industrial);
+      THE VELVET ROOM's queue, IRON PALM GYM, the Mechanic's garage,
+      the piers/cranes/containers, DOCK WAREHOUSE 9 (locked, story).
+   d. tests/smoke_areas.gd: travel chains work both ways, each
+      area's landmarks exist, the gates are signposted, renders
+      alive per area, battery regression.
+3. THEN step 10 — vehicles (VehicleBody3D + the arcade profiles);
+   step 11 — the systems pass (phone, ledger/economy, heat, trust);
+   step 12 — title 3D + polish; step 13 — perf; step 14 — final
+   regression + the device report.
 
 
 ## Known blockers / watch items

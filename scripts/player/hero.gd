@@ -240,15 +240,24 @@ func _actions() -> void:
 			last_action = action
 			if action == "style" and _combat:
 				_cycle_style()
+			elif action == "dodge":
+				# B at a door answers the door law instead of dodging
+				# (the combat-priority rule returns with enemies)
+				if Doors.context_verb(global_position) != "" \
+						and Doors.try_nearest(self):
+					return
+				face_action.emit(action)
 			else:
 				face_action.emit(action)
 			break
 
 
 func context_verb() -> String:
-	# the B-context law returns with the world steps (doors, pickups);
-	# out of combat with no context, B is DODGE
-	return ""
+	# THE B-CONTEXT LAW: near a registered door, B answers the door
+	# (OPEN/TRY/BREAK/LOOK); swinging or mid-fight it stays DODGE
+	if _combat and (_combat.swinging() or _combat.guarding()):
+		return ""
+	return Doors.context_verb(global_position)
 
 
 func _find(root: Node, what) -> Node:

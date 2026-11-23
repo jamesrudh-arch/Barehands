@@ -19,6 +19,7 @@ const STUCK_LIMIT_MSEC := 5000  # real time; a slow-mo never lasts this long
 var _frozen: Dictionary = {}  # node -> {"players": Array, "until": msec}
 
 var _scale_until := 0  # real-time msec when Engine.time_scale returns to 1.0
+var _owns_scale := false  # rebuild step 8: only slows FX set are FX's to reset
 var _scale_since := 0  # real-time msec when the current scale-down started
 var _mats: Dictionary = {}  # color -> ready-made burst material
 var _bursts_alive := 0  # for the debug panel / stress test leak check
@@ -94,11 +95,13 @@ func _apply_scale(duration: float, scale: float) -> void:
 		# that somebody is actively refreshing - it is a net for
 		# slow-mos nobody tends, not a hard 5 s lifespan.
 		Engine.time_scale = minf(Engine.time_scale, scale)
+		_owns_scale = true
 		_scale_since = Time.get_ticks_msec()
 		_scale_until = maxi(_scale_until,
 				Time.get_ticks_msec() + int(duration * 1000.0))
 		return
 	Engine.time_scale = scale
+	_owns_scale = true
 	_scale_since = Time.get_ticks_msec()
 	_scale_until = _scale_since + int(duration * 1000.0)
 
@@ -113,10 +116,11 @@ func _process(_delta: float) -> void:
 			continue
 		if Time.get_ticks_msec() >= f["until"]:
 			_unfreeze(n)
-	if Engine.time_scale != 1.0:
+	if _owns_scale and Engine.time_scale != 1.0:
 		var now := Time.get_ticks_msec()
 		if now >= _scale_until:
 			Engine.time_scale = 1.0
+			_owns_scale = false
 		elif now - _scale_since > STUCK_LIMIT_MSEC:
 			# Watchdog: never leave the game frozen in slow motion.
 			Engine.time_scale = 1.0

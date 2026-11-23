@@ -32,6 +32,8 @@ var _fade: ColorRect
 var _fade_layer: CanvasLayer
 var _touch_ui: CanvasLayer = null
 var _missions: Node = null
+var _hud: CanvasLayer = null
+var _pause_menu: CanvasLayer = null
 
 
 func _ready() -> void:
@@ -123,6 +125,12 @@ func _mount_player(spawn: String) -> void:
 	if _missions == null or not is_instance_valid(_missions):
 		_missions = CLS_Missions.new()
 		add_child(_missions)
+	if _hud == null or not is_instance_valid(_hud):
+		_hud = load("res://scripts/ui/hud.gd").new()
+		add_child(_hud)
+	if _pause_menu == null or not is_instance_valid(_pause_menu):
+		_pause_menu = load("res://scripts/ui/pause_menu.gd").new()
+		add_child(_pause_menu)
 	if not WorldState.flag("first_play_done"):
 		WorldState.set_flag("first_play_done")
 		_missions.start(M0_PATH)
