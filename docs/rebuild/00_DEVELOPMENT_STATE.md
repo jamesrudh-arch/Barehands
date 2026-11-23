@@ -122,22 +122,41 @@ moved to a SIDE view - fore/aft stride is invisible from the
 front), combat_r 28/28 + areas 32/32. Evidence:
 download/overhaul_audit/shots/s51c_*.jpg.
 
+## S5.3 — THE STREET IS ALIVE (part 1 of the living world)
+
+The neighbourhood street now breathes: 5 pooled pedestrians
+(Michelle + Soldier cast bundles, per-instance clothing tints via
+surface OVERRIDE - surface_set_material would tint the shared mesh
+- walking the sidewalks with idle beats), 2 passing sedans on the
+lanes (kinematic loop, noir light boxes), and 2 named locals at
+the venues (MARLA at THE RAIN GLASS, OLD DEE at MAMA SUN'S -
+Label3D names). smoke_life 9/9 (rigs, clips, motion, labels, lane
+driving); regressions green (areas 32, street 33, hero 30).
+Soldier's bake: idle/walk gates PASS, his JAB twists (49-bone
+convention defect at large spine rotations - documented; he is a
+walker, not a fighter). The composite VLM gate: walkers visibly
+walk + change position (with idle arm-raise transitions), a car
+passes, locals stand at their doors; the single everything-in-one-
+frame money shot is still camera luck. TWO REAL BUGS FIXED: the
+neighbourhood had NO 'SpawnStart' marker (travel 'start' - the
+DEFAULT spawn id - dropped the hero into the alley mouth between
+fronts; the spawn-name convention is Spawn + id.capitalize()), and
+probe composed cameras are a graveyard (five landed in walls - use
+the game's own rig view or set the hero position).
+
 ## NEXT ACTION (exact)
 
-1. S5.1c polish: frame-catch the 0.18s SWING window (the burst
-   probe timed out - poll state==SWING then capture 3 frames at
-   0.07s), capture the thug's Hit_A/Death_A reactions in-game, and
-   give the walk a counter-arm swing (the one open VLM nit).
-2. S5.3 THE LIVING WORLD: pooled pedestrians (waypoint walk,
-   phone idle, flee + call-police states) + spline traffic + the
-   named-NPC routine table (the fixer at the club, the fence at
-   the docks). THE gap between this build and the LEVERAGE
-   vision's 'city that feels alive'.
+1. S5.3 part 2: the club + docks get their life (locals + walkers
+   + the districts' own ambient), a pedestrian flee gate (thug
+   proximity -> sprint), traffic headlight sweep reads at night.
+2. S5.1c open nits: Soldier's jab twist (walker-only for now);
+   the walk's counter-arm swing; the swing-to-hero contact frame.
 3. S5.2 part 3 when convenient: per-front lit doorway geometry,
    brick on remaining code massing, club sign scale.
-4. S5.4+: police heat, phone 2.0 + missions M2-M6, weapons (the
-   UAL pistol set is already retargeted + baked), vehicles,
-   map/GPS, rain, audio, progression - the LEVERAGE roadmap.
+4. S5.4+ per the LEVERAGE roadmap: police heat, phone 2.0 +
+   missions M2-M6, weapons (the UAL pistol set is already
+   retargeted + baked), vehicles, map/GPS, rain, audio,
+   progression.
 
 ## Known blockers / watch items
 

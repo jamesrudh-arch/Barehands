@@ -28,7 +28,14 @@ func _apply(anim: Animation, skel: Skeleton3D, t: float) -> void:
 		skel.set_bone_pose_rotation(bi, q)
 
 func _ready() -> void:
-	var ps: PackedScene = load("res://assets/native/cast_michelle.tscn")
+	var cast_path := "res://assets/native/cast_michelle.tscn"
+	var bake_path := "res://assets/native/ual_baked_michelle.res"
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--cast="):
+			cast_path = a.substr(7)
+		elif a.begins_with("--bake="):
+			bake_path = a.substr(7)
+	var ps: PackedScene = load(cast_path)
 	var inst := ps.instantiate()
 	add_child(inst)
 	var skel: Skeleton3D = inst.find_children("*", "Skeleton3D",
@@ -37,8 +44,7 @@ func _ready() -> void:
 	var arm := skel.get_parent()
 	print("MVIS armature scale=%s rot=%s" % [arm.scale,
 			arm.rotation_degrees])
-	var baked: AnimationLibrary = load(
-			"res://assets/native/ual_baked_michelle.res")
+	var baked: AnimationLibrary = load(bake_path)
 	var cam := Camera3D.new()
 	cam.position = Vector3(3.0, 1.1, 0.6)
 	cam.fov = 40.0

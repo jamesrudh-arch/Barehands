@@ -65,6 +65,7 @@ func _ready() -> void:
 	_lamps()
 	_parked()
 	_muscle()
+	_life()
 	_gates()
 	Log.info("Neighbourhood ready (area=%s spawn=%s, %d fronts)" % [
 			Game.area_id, Game.spawn_id, Doors.door_list().size()])
@@ -83,6 +84,31 @@ func _muscle() -> void:
 	e.position = Vector3(-20.0, 0.05, 3.4)
 	e.rotation.y = 2.2
 	add_child(e)
+
+
+## THE LIVING WORLD (S5.3): the street breathes - walkers on the
+## sidewalks, the lane parade, named faces at the venues the
+## missions already send you to. Pooled walkers + 2 passing cars +
+## 2 locals; the whole street stays under a dozen skinned humans.
+func _life() -> void:
+	var peds := load("res://scripts/npc/pedestrian.gd") as GDScript
+	for i in 5:
+		var p: CharacterBody3D = peds.new()
+		# stagger along the walk, both sidewalks
+		var x := -46.0 + 18.0 * i + randf_range(-4.0, 4.0)
+		p.position = Vector3(x, 0.05,
+				4.9 if i % 2 == 0 else -4.9)
+		add_child(p)
+	var CLS_Traffic := load("res://scripts/world/traffic.gd")
+	CLS_Traffic.fill(self, 2)
+	# the named faces: the RAIN GLASS door and MAMA SUN's doorway
+	var CLS_Local := load("res://scripts/npc/local.gd")
+	CLS_Local.place(self, "res://assets/native/cast_michelle.tscn",
+			"res://assets/native/ual_baked_michelle.res",
+			Vector3(-4.6, 0.05, 5.4), PI, "MARLA - THE RAIN GLASS")
+	CLS_Local.place(self, "res://assets/native/cast_soldier.tscn",
+			"res://assets/native/ual_baked_soldier.res",
+			Vector3(-40.4, 0.05, 5.4), PI, "OLD DEE - MAMA SUN'S")
 
 
 # --- the ground: road + sidewalks -----------------------------------------
@@ -553,6 +579,11 @@ func _gates() -> void:
 			"from_neighbourhood", "THE CLUB QUARTER →",
 			Color(1.0, 0.69, 0.13))
 	_spawn_marker("SpawnFromStreet", Vector3(-STREET_X + 4.0, 0.05, 0.0))
+	# BUG FIX (probe-caught: travel 'start' - the DEFAULT spawn id -
+	# had no marker, so the hero materialized inside the alley
+	# mouth between fronts): the street's start is the lit stretch
+	# by the RAIN GLASS, facing down the lamps
+	_spawn_marker("SpawnStart", Vector3(-16.0, 0.05, 2.2))
 
 
 func _spawn_marker(id: String, pos: Vector3) -> void:

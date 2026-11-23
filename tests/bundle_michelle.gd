@@ -7,7 +7,16 @@ extends Node
 ## the mesh to a blob at the root; (2) pack the GLB's OWN root -
 ## re-parenting children drops the cm->m scale on the root.
 func _ready() -> void:
-	var ps: PackedScene = load("res://assets/v2/cast/Michelle.glb")
+	# parameterized: -- --src=res://...glb --out=res://...tscn
+	# (defaults = Michelle); any Mixamo-family cast bundles the same
+	var src_path := "res://assets/v2/cast/Michelle.glb"
+	var out_path := "res://assets/native/cast_michelle.tscn"
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--src="):
+			src_path = a.substr(6)
+		elif a.begins_with("--out="):
+			out_path = a.substr(6)
+	var ps: PackedScene = load(src_path)
 	var inst := ps.instantiate()
 	add_child(inst)
 	var skel: Skeleton3D = inst.find_children("*", "Skeleton3D",
@@ -53,7 +62,6 @@ func _ready() -> void:
 					albedo_tex.resource_path if albedo_tex else "-"])
 	var packed := PackedScene.new()
 	packed.pack(inst)
-	var err := ResourceSaver.save(packed,
-			"res://assets/native/cast_michelle.tscn")
+	var err := ResourceSaver.save(packed, out_path)
 	print("BUNDLE save err=%s" % err)
 	get_tree().quit(0)
