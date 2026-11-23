@@ -177,3 +177,47 @@ Full detail in the ART_DIRECTION section of 03_TECH_ARCHITECTURE.md.
   insufficient for six areas; source additional CC0 modular
   building/facade packs (Kenney city kit full set, Quaternius
   modular city) and dress them in the unified palette.
+
+## D12 — Character pipeline: PROVEN (2026-11-23, step 2)
+
+`tests/pipeline_probe.tscn` (22→23 checks GREEN) +
+`scripts/analyze_pipeline_renders.py` (PIXEL ANALYSIS PASS) prove the
+whole path against the real engine:
+
+- **KayKit rig**: Rogue.glb = 23 humanoid bones, lowercase Blender
+  convention (`root, hips, spine, chest, head, upperleg.l, ...` with
+  `.l/.r` suffixes — NOT Godot SkeletonProfileHumanoid CamelCase; a
+  BoneMap with profile-name→KayKit-name entries will be the UAL
+  retarget table when that proof runs).
+- **Library share, KayKit→KayKit**: 33 animations (MovementBasic +
+  CombatMelee) bind by rewriting track paths onto the character's
+  Skeleton3D — same bone family, the documented matched-names+RESTs
+  precondition; no retarget needed inside the KayKit family.
+- **AnimationTree**: BlendTree idle→walk blend driven live; a
+  CombatMelee clip installed from the shared combat library.
+- **Native delivery (D3)**: ResourceSaver with
+  **FLAG_BUNDLE_RESOURCES** → `assets/native/hero_kaykit_rogue.tscn`
+  (504 KB, meshes+skeleton+texture embedded, 0 external res:// refs,
+  loads headless with no import cache — the device-safe contract).
+  A bare `pack()+save()` leaves texture ext_resources pointing at
+  res:// and silently breaks the no-cache device load.
+- **Render**: under Xvfb/llvmpipe with key+face-fill lights: body
+  450 colours, face 548 colours / 26% warm skin tones / centre
+  stdev 53.8 — a lit, readable character with a face, not a blob.
+
+Engine facts learned (each cost a debugging round; keep them):
+1. GLB loads need the **`--headless --import` pass** in a fresh tree
+   (populates `.godot/imported/`); native .res/.tscn files do NOT.
+2. Godot 4.7 `AnimationNodeBlendTree.connect_node(input_node,
+   input_index, output_node)` — 3 args, ports are ints, blend inputs
+   fill in connection order, and the graph must end wired into the
+   special `output` node.
+3. `Image.convert()` mutates in place and returns void; there is no
+   `get_histogram()` on Image in Godot 4 — count bins by hand on a
+   downscaled copy.
+4. Skinned-mesh world AABBs must go through the node's global
+   transform (`xform(aabb)`), not `aabb.position = node.position`.
+
+**UAL retarget (D11)** stays open: UAL1_Standard uses Quaternius'
+own bone naming; the retarget will go through a BoneMap with the
+KayKit table above. Blocks nothing until the NPC/crowd variety step.

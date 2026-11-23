@@ -46,14 +46,35 @@ optimise → verify → deliver).
 
 ## In progress
 
-**STAGE 4 step 2 — the character pipeline proof (03 §5 step 2, the
-D3/D11 gate)**: import a KayKit rigged character + the CombatMelee
-animation GLB through Godot's retargeting (BoneMap/SkeletonProfileHuma
-noid per the opened docs), drive an AnimationTree, convert to native
-.res, and render a frame with a VISIBLE FACE. Everything character-
-shaped waits on this proof.
+**STAGE 4 step 3 — player + camera + touch UI (03 §5 step 3)**:
+`player/hero.gd` on the proven KayKit rig (locomotion blend from the
+shared library, jump/vault/crouch hooks), `player/camera_rig.gd`
+(spring-arm third-person, collision, face light), `player/touch_ui.gd`
+GENERATED from the InputMap (floating move stick, look stick, the
+X/Y/A/B diamond, pills). Delete on landing: input_bus.gd,
+touch_buttons.gd, action_button.gd, cam_stick.gd, input_strip.gd,
+camera_follow.gd, player.gd (+ their suites).
 
-## Step 1 — DONE (commit follows this note)
+## Step 2 — DONE (the character pipeline proof, D12)
+
+**pipeline_probe 23/23 + PIXEL ANALYSIS PASS** — the gate for
+everything character-shaped is open:
+- KayKit Rogue: 23 humanoid bones (lowercase `.l/.r` convention — the
+  BoneMap table for UAL is recorded in D12);
+- 33 KayKit animations shared onto the rig (no retarget needed
+  inside the KayKit family — matched names + RESTs);
+- AnimationTree blends idle→walk live; CombatMelee clips installed;
+- **native delivery proven**: `assets/native/hero_kaykit_rogue.tscn`
+  (504 KB, FLAG_BUNDLE_RESOURCES: meshes+skeleton+texture embedded,
+  0 external refs, loads headless with no import cache);
+- renders lit (key + warm face-fill): body 450 colours, face 548
+  colours / 26% warm skin tones.
+
+Engine facts banked in D12: the `--import` pass requirement for GLB
+trees, `connect_node`'s 3-arg 4.7 signature, `Image.convert()` void +
+no histogram (count by hand), skinned AABBs through global xform.
+
+## Step 1 — DONE (commit fb5265f)
 
 The skeleton + boot chain is GREEN: **smoke_boot 42/42**. Landed:
 `Game` + `WorldState` autoloads (scripts/core/), the full InputMap
@@ -82,21 +103,26 @@ Four bugs found and fixed on the way to green, all worth remembering:
 
 ## NEXT ACTION (exact)
 
-1. Commit step 1 (files: scripts/boot/*, scripts/core/*,
-   scripts/areas/warehouse_shell.gd, scripts/build_stamp.gd (failsafe
-   retired), tests/smoke_boot.*, project.godot InputMap, this doc).
-2. STEP 2 — the character pipeline proof, concretely:
-   a. `tests/pipeline_probe.tscn`: instantiate
-      `assets/v2/kaykit_adventurers/Rogue.glb` (has a face), confirm
-      the Skeleton3D + BoneMap; load one CombatMelee GLB's
-      AnimationPlayer, retarget its tracks onto the Rogue rig per the
-      docs.godotengine.org retargeting page (04_DECISION_LOG D1).
-   b. Drive an AnimationTree (idle/walk/run blend + one melee clip),
-      render a frame under Xvfb (60 dpi), assert non-blank + face
-      pixels present (VLM or histogram check).
-   c. ResourceSaver → native .res copies under assets/native/ (D3),
-      record sizes in 05_ASSET_REGISTER.md.
-3. THEN step 3 (player + camera + touch UI) per 03 §5.
+1. Commit step 2 (pipeline proof + native asset + docs).
+2. STEP 3 — player + camera + touch UI:
+   a. `scripts/player/hero.gd`: CharacterBody3D that instantiates
+      `assets/native/hero_kaykit_rogue.tscn`'s rig under itself, runs
+      the shared library through an AnimationTree (idle/walk/run by
+      stick magnitude), InputMap-driven (move/jump/sprint/crouch).
+   b. `scripts/player/camera_rig.gd`: SpringArm3D third-person with
+      collision + the `look` action; soft face light on the hero.
+   c. `scripts/player/touch_ui.gd`: generated FROM InputMap — move
+      stick, look stick, X/Y/A/B diamond (letters from the control
+      map), pills (GUARD/GRAB/SPRINT/JUMP/LOCK), context verb on B.
+   d. `tests/smoke_hero.gd`: boot the shell, move the hero via
+      Input.action_press, camera turns, animations actually change
+      (skeleton pose differs between idle and run), every diamond
+      button maps to its action; render check with the moving hero.
+   e. DELETE the replaced input/camera/player old files + suites
+      (input_bus, touch_buttons, action_button, cam_stick,
+      input_strip, camera_follow, player.gd) — one commit.
+3. THEN step 4 (the full warehouse home) per 03 §5.
+
 
 ## Known blockers / watch items
 
