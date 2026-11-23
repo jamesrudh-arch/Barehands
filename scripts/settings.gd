@@ -62,6 +62,9 @@ const DEFAULTS := {
 	"narrator_on": true,      # spoken lines when the platform TTS allows
 	"skip_intro": false,      # jump straight to the menu at launch
 	"play_start_sequence": false,  # armed by Stage 0 LAUNCH FULL GAME
+	# B27: the street happens to itself (disputes, benders, sweeps);
+	# quiet-street suites set this false and own that assumption
+	"dynamic_events": true,
 	# B18.3 6C.4: the green guide orb
 	"guide_on": true,         # the follow-me orb
 	"guide_colour": "green",  # "green" or the cyan accessibility alt

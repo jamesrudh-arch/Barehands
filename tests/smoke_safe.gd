@@ -22,6 +22,9 @@ func _check(ok: bool, what: String) -> void:
 
 func _ready() -> void:
 	Settings.set_value("first_run_done", true)
+	# B27: quiet street for the crowd-count checks (smoke_events
+	# runs the live street)
+	Settings.set_value("dynamic_events", false)
 	_main = (load("res://scenes/main.tscn") as PackedScene).instantiate()
 	add_child(_main)
 	var opening := get_tree().get_first_node_in_group("opening")

@@ -24,7 +24,7 @@ runs — it waits on a real device report.
 | 5.2 | Accessible interiors (5) | VERIFIED | apartment, shop, foundry office, gym, safehouse; smoke_interiors |
 | 5.3 | Environmental storytelling | VERIFIED | posters, signs, radio chatter, neighbourhood palettes |
 | 6.1 | NPC everyday behaviour | VERIFIED | walk/cross/wait/chat/phone/shop/browse; smoke_crowd |
-| 6.2 | Personality + emotional behaviour | VERIFIED (B25) | fear face on witnessed panic (mouth 3.4x, brows lift); smoke_reactive |
+| 6.2 | Personality + emotional behaviour | VERIFIED (B25/B27) | fear face on witnessed panic; observable ANGER on dispute pairs; gossip retelling, street-memory smalltalk, rain umbrellas; smoke_reactive + smoke_events |
 | 6.3 | Reactions & memory | VERIFIED | witness watch/record/flee + witness recall; smoke_reactive |
 | 6.4 | Named characters (16) | VERIFIED | cast with names/routines/dialogue; smoke_cast |
 | 7 | Player movement & interaction | VERIFIED | third-person, camera-relative, context verbs; smoke/smoke_controls |
@@ -36,7 +36,7 @@ runs — it waits on a real device report.
 | 13 | Economy & progression | VERIFIED | $0 start, shops, jobs, style value, debt ledger; smoke_economy/jobs/ledger |
 | 14 | Factions, relationships | VERIFIED | trust/family-corp-crew hooks via ledger+radio; smoke_friends |
 | 15 | Phone & information hub | VERIFIED | contacts/calls/messages/jobs/map/notes; smoke_phone |
-| 16 | World events & emergence | PARTIAL | traffic+crossing+chat+weather systems; scripted dynamic events (accidents, disputes) MISSING |
+| 16 | World events & emergence | VERIFIED (B27) | events.gd: dispute (angry faces, crowd, memory), fender-bender (hazards pulse, lane holds), police sweep (beacons, road clears); every event into the ONE memory the radio/gossip/smalltalk read; smoke_events 22/22 x2 |
 | 17 | Map, navigation, GPS | VERIFIED | live map with routes/markers; smoke_map; interior nav PARTIAL |
 | 18 | UI & presentation | VERIFIED | menus/HUD/dialogue/subtitles; DESIGN_SYSTEM.md tokens; smoke_safe |
 | 19 | Touch & controller support | VERIFIED | floating scheme, B-button law, drive cluster (B25); smoke_controls; gamepad PARTIAL |

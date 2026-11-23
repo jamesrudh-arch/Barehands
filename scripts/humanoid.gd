@@ -460,6 +460,17 @@ func face(mood: String) -> void:
 				if b:
 					b.position.y = 0.115
 					b.scale = Vector3(1.05, 1.6, 1)
+		"angry":
+			# B27: the other side of the emotion law - anger is
+			# observable or it does not exist. Brows drop LOW and pinch
+			# in, the mouth goes flat and tight: a face squaring up,
+			# readable across the street (the dispute pairs wear it)
+			mouth.scale = Vector3(1.55, 0.5, 1)
+			mouth.position.y = 0.008
+			for b in [brow_l, brow_r]:
+				if b:
+					b.position.y = 0.09
+					b.scale = Vector3(1.2, 0.75, 1)
 		_:
 			mouth.scale = Vector3.ONE
 			mouth.position.y = 0.012

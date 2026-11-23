@@ -41,7 +41,7 @@ const BODIES_M := [
 ]
 
 enum State { WALK, CROSS_WAIT, CROSSING, BROWSE, PHONE, QUEUE, WATCH,
-	FLEE, CHAT }
+	FLEE, CHAT, ARGUE }
 
 var block := "riverside"
 var home := Vector3.ZERO
@@ -57,6 +57,16 @@ var _chat_cooldown := 0.0
 var _chat_started := 0.0
 var _chat_lead := false
 var _chat_line := ""
+# B27: the argument state (events.gd picks the pair) - angry faces, an
+# alternating exchange and a shove pose; the street stops to watch
+var _dispute_with: Node3D = null
+var _dispute_line := 0
+var _dispute_next := 0.0
+# B27: gossip - a witness TELLS the calm street; the listener keeps
+# the story a minute and retells it as you pass
+var _told_event := ""
+var _told_until := 0.0
+var _umbrella: MeshInstance3D = null
 
 const CHAT_LINES := [
 	"You see the club queue last night? Round the block.",
@@ -67,6 +77,20 @@ const CHAT_LINES := [
 	"Somebody put the Vulture's name in the ledger. Bold.",
 	"I'm not paying the Duchess interest on interest. I'm not.",
 	"Rain again. My shoes have opinions about rain.",
+]
+# B27: what a squared-up pair shouts across the kerb
+const DISPUTE_LINES := [
+	"You parked ON my case, friend. On it.",
+	"Say it again. Say it to my face this time.",
+	"Who do you think signs for your boxes, huh?",
+	"The whole block heard you the first time. So did I.",
+	"Walk away. Last courtesy tonight.",
+]
+# B27: how the street retells what it was told
+const TOLD_PREFIX := [
+	"You hear about it? %s",
+	"Word is %s",
+	"It's all over the street - %s",
 ]
 var _target_side := 1.0
 var _side := 1.0
@@ -140,6 +164,93 @@ func _on_hit_landed(_kind: String, pos: Vector3) -> void:
 	else:
 		_state = State.FLEE
 		_pick_flee_target()
+	# B27 GOSSIP: the witness TELLS the calm street - a story travels
+	# two kerbs before the city's own memory does. The runner doesn't
+	# stop to chat; the watchers and the camera do.
+	if _react_kind <= 4:
+		var what := "somebody went down in the " + block
+		for w in get_tree().get_nodes_in_group("wanderer"):
+			var wn := w as Node3D
+			if wn == null or wn == self or not is_instance_valid(wn):
+				continue
+			if wn.global_position.distance_to(global_position) < 6.0:
+				wn.call("hear_gossip", what, pos)
+
+
+## B27: a listener takes a story from a witness - no panic, just the
+## retelling. The listener wasn't there; a minute later they still
+## talk like they almost were.
+func hear_gossip(event: String, _from: Vector3) -> void:
+	if event.is_empty() or _state == State.FLEE:
+		return
+	_told_event = event
+	_told_until = _now() + 75.0
+
+
+## B27: events.gd squares two citizens up. The pair wears the angry
+## face (the emotion law), trades lines across the kerb and shoves a
+## palm every few beats. The street collects.
+func enter_dispute(other: Node3D) -> void:
+	if other == null or other == self:
+		return
+	_dispute_with = other
+	_state = State.ARGUE
+	_dispute_line = randi() % DISPUTE_LINES.size()
+	_dispute_next = _now() + randf_range(0.9, 1.6)
+	_bubble.modulate.a = 0.0
+	_said = ""
+	_rig.play("Idle", 0.2)
+	_rig.face("angry")
+
+
+## B27: the argument resolves (or events.gd calls time) - cooldown so
+## the same pair doesn't snap straight back into it.
+func exit_dispute() -> void:
+	if _state == State.ARGUE:
+		_rig.face("")
+	_dispute_with = null
+	if _state == State.ARGUE:
+		_chat_cooldown = _now() + randf_range(14.0, 24.0)
+		_pick_target()
+
+
+## B27: a mild street alarm - a dispute across the way, a fender-bender,
+## a cruiser rolling past. The street LOOKS (every time - a turning
+## head is free), nobody runs, and no fear face: theatre is not a
+## threat, and the emotion law stays honest.
+func observe_mild(pos: Vector3) -> void:
+	if not is_inside_tree() or _entered:
+		return
+	if global_position.distance_to(pos) > 14.0:
+		return
+	if _state in [State.FLEE, State.ARGUE, State.WATCH, State.PHONE,
+			State.CHAT, State.QUEUE]:
+		return
+	_alarm_until = maxf(_alarm_until, _now() + 4.0)
+	_panic_from = pos
+	_react_kind = 6  # mild: no fear face (the gate keys on kinds 0-4)
+	_state = State.WATCH
+	_pause_until = _alarm_until
+
+
+## B27: the cruiser moves people - anyone on the ROAD gets off it,
+## the pavement just watches it pass.
+func shoo(pos: Vector3) -> void:
+	if not is_inside_tree() or _entered:
+		return
+	if _state in [State.FLEE, State.ARGUE]:
+		return
+	var d := global_position.distance_to(pos)
+	if d > 8.0:
+		return
+	if absf(global_position.z) < 4.0:
+		_alarm_until = maxf(_alarm_until, _now() + 3.0)
+		_panic_from = pos
+		_react_kind = 6
+		_state = State.FLEE
+		_pick_flee_target()
+	else:
+		observe_mild(pos)
 
 
 func _now() -> float:
@@ -154,7 +265,14 @@ func _physics_process(delta: float) -> void:
 	var d := global_position.distance_to(p.global_position)
 	if d < TALK_RANGE:
 		if _said.is_empty():
-			_said = City.rumor_line(block)
+			# B27: a told story outranks the canned rumor while it is
+			# fresh - the street retells what it was told
+			if _now() < _told_until and not _told_event.is_empty():
+				_said = TOLD_PREFIX[randi() % TOLD_PREFIX.size()] \
+						% _told_event
+				_said += "."
+			else:
+				_said = City.rumor_line(block)
 			_bubble.text = _said
 	else:
 		_said = ""
@@ -170,8 +288,11 @@ func _physics_process(delta: float) -> void:
 	# WEAR fear (brows up, mouth open); when the street settles, the
 	# face comes back down. The recorder filming it stays afraid - a
 	# witness holds the look longer than the runner.
-	if _alarm_until > _now() and _state in [State.WATCH, State.FLEE,
-			State.PHONE, State.BROWSE]:
+	# B27: _react_kind 6 is the MILD alarm (street theatre: a dispute,
+	# a bender, a cruiser) - theatre is not a threat, no fear face.
+	if _alarm_until > _now() and _react_kind != 6 \
+			and _state in [State.WATCH, State.FLEE,
+				State.PHONE, State.BROWSE]:
 		if not _fear_face:
 			_fear_face = true
 			_rig.face("fear")
@@ -210,6 +331,20 @@ func _physics_process(delta: float) -> void:
 					_said = _chat_line  # keep the player-pass fade logic
 				if _now() > _chat_until:
 					_pick_target()
+		State.ARGUE:
+			# B27: the dispute - angry face, alternating shouts, a palm
+			# shove every few beats. events.gd owns the clock.
+			if _dispute_with == null or not is_instance_valid(_dispute_with):
+				exit_dispute()
+			else:
+				_face(_dispute_with.global_position, step)
+				if _now() > _dispute_next:
+					_dispute_next = _now() + randf_range(1.6, 2.6)
+					_dispute_line = (_dispute_line + 1) % DISPUTE_LINES.size()
+					_rig.play("Push", 0.12, 0.9)  # the shove
+				if d < TALK_RANGE + 4.0:
+					_bubble.text = DISPUTE_LINES[_dispute_line]
+					_said = DISPUTE_LINES[_dispute_line]
 		State.BROWSE, State.PHONE, State.QUEUE, State.WATCH:
 			if _state == State.QUEUE:
 				_face(Vector3(queue_slot.x, 0.0, queue_slot.z - 2.0), step)
@@ -270,7 +405,7 @@ func _pick_target() -> void:
 		_chat_started = _now()
 		_chat_until = _now() + dur
 		_chat_cooldown = _chat_until + randf_range(18.0, 40.0)
-		_chat_line = CHAT_LINES[randi() % CHAT_LINES.size()]
+		_chat_line = _street_line()
 		_state = State.CHAT
 		partner.set("_chat_lead", false)
 		partner.set("_chat_started", _now())
@@ -366,6 +501,9 @@ func _settle_animations() -> void:
 	elif _state == State.FLEE:
 		if _rig.current() != "Walk":
 			_rig.play("Walk", 0.1, 2.0)
+	elif _state == State.ARGUE:
+		pass  # B27: the dispute owns the rig - Idle stance, angry face,
+		      # and the shove transients land and decay on their own
 	elif _rig.current() != "Idle":
 		_rig.play("Idle", 0.25)
 	# the phone in the hand while phoning or recording - a real prop
@@ -395,6 +533,49 @@ func _settle_animations() -> void:
 	elif not phone_up and _phone != null:
 		_phone.queue_free()
 		_phone = null
+	# B27: the street answers heavy rain - a dark canopy snaps open
+	# above the head and the walk hurries (the hurry is already the
+	# storm's; the canopy is the new umbrella law). Dry air folds it.
+	var canopy_ok := Weather != null and Weather.intensity > 0.75 \
+			and not _entered \
+			and _state in [State.WALK, State.CROSSING, State.CHAT,
+				State.QUEUE, State.CROSS_WAIT, State.BROWSE, State.ARGUE]
+	if canopy_ok and _umbrella == null:
+		_umbrella = MeshInstance3D.new()
+		_umbrella.name = "Umbrella"
+		_umbrella.add_to_group("umbrella")
+		var cone := CylinderMesh.new()
+		cone.top_radius = 0.03
+		cone.bottom_radius = 0.62
+		cone.height = 0.15
+		var m := StandardMaterial3D.new()
+		# deep vinyl tones - a colour per soul, night-readable
+		var picks := [Color(0.07, 0.08, 0.1), Color(0.16, 0.05, 0.06),
+				Color(0.05, 0.1, 0.12)]
+		m.albedo_color = picks[randi() % picks.size()]
+		m.roughness = 0.85
+		cone.material = m
+		_umbrella.mesh = cone
+		_umbrella.position = Vector3(0, 2.08, 0.06)
+		add_child(_umbrella)
+	elif not canopy_ok and _umbrella != null:
+		_umbrella.queue_free()
+		_umbrella = null
+
+
+## B27: smalltalk tastes like the street it stands on - four lines in
+## ten pull the newest thing the city actually remembers (a witnessed
+## fight, a dispute, whatever happened), so conversations reference
+## the real world instead of the canned eight.
+func _street_line() -> String:
+	var mem: Array = City.witnessed.get(block, [])
+	if not mem.is_empty() and randf() < 0.4:
+		var idx := maxi(0, mem.size() - 1 - randi() % mini(3, mem.size()))
+		var e: Dictionary = mem[idx]
+		var ev := str(e.get("event", ""))
+		if not ev.is_empty():
+			return "It's going around - %s." % ev
+	return CHAT_LINES[randi() % CHAT_LINES.size()]
 
 
 func _walk_z() -> float:

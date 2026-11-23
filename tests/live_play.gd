@@ -34,6 +34,9 @@ func _check(ok: bool, what: String) -> void:
 func _ready() -> void:
 	DirAccess.make_dir_recursive_absolute("/tmp/lp_shots")
 	Settings.set_value("first_run_done", true)
+	# B27: this suite asserts quiet-street behaviours - the director
+	# stands down (smoke_events runs the live street)
+	Settings.set_value("dynamic_events", false)
 	var main: Node = (load("res://scenes/main.tscn") as PackedScene).instantiate()
 	add_child(main)
 	# wait for the opening cinematic to EXIST, then skip it - calling

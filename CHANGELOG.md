@@ -1,5 +1,49 @@
 # CHANGELOG.md — batch history (newest first)
 
+## B27 — THE STREET HAPPENS TO ITSELF (2026-11-23, the production mandate Sections 16, 6.2/6.3, 2)
+
+- **DYNAMIC WORLD EVENTS (Section 16)**: `scripts/events.gd` (new
+  autoload "Events") - one event at a time on the hero's block, quiet
+  minutes between: the DISPUTE (two citizens square up in angry faces
+  the player can READ - brows drop, mouths go tight - alternating
+  shouts and palm shoves; the pavement collects, everyone calm within
+  earshot turns to look), the FENDER-BENDER (two traffic cars stand
+  nose-to-tail, both hazards PULSING at 2.5 Hz, the lane waits, then
+  drives on), and the POLICE SWEEP (heat >= 2 draws a slow cruiser
+  with red/blue beacons trading halves; anyone ON the road clears it,
+  the pavement watches it pass). Every event writes itself into
+  City.witnessed - the ONE memory the morning radio recap, the gossip
+  chain and the smalltalk all read. `smoke_events` NEW 22/22 (proven
+  twice): umbrellas, dispute chain incl. observable anger, bender
+  marks + pulse + resume, sweep shoo of a pinned crosser (FLEE asserted
+  in-window), memory trail.
+- **NPC UPGRADE (Sections 6.2/6.3)**: GOSSIP - witnesses TELL the
+  calm street (watchers/recorders pass the story within 6 m; the
+  listener retells it as you pass for a minute: "You hear about it?
+  somebody went down..."); SMALLTALK that tastes like the street -
+  four lines in ten pull the newest thing the city actually
+  remembers; THE UMBRELLA LAW - heavy rain snaps dark vinyl canopies
+  over the whole street (a colour per soul), dry air folds them; the
+  emotion law extended - humanoid face() gains "angry" (the dispute
+  pairs wear it) while the MILD alarm kind (6) honestly wears NO
+  fear: theatre is not a threat.
+- **SUITE HONESTY (Section 25)**: two false passes caught in review
+  and rebuilt - the sweep check originally passed on the crosser's
+  own walking pace (never proved the cruiser moved anyone; now the
+  crosser is held mid-zebra until the cruiser is inside the 8 m shoo
+  radius, released, and FLEE is asserted in the window), and the
+  bender asserted on planted cars while the director may pick its
+  own pair from the pool (now asserts the pair Events CHOSE). Long
+  suites that assert quiet-street behaviour (reactive, crowd,
+  live_boot, live_walk, live_play, safe) set "dynamic_events" false
+  and own that assumption; the default stays TRUE - the game ships
+  with the street live.
+- **REGRESSION AT FINAL CODE**: events 22/22 x2, crowd 12/12,
+  reactive 42/42 (flake from mid-suite disputes fixed by the gate),
+  worldsim 25, traffic 9, weather 10, face 31, drive 21/21,
+  null_watch 993 frames 0 fails, live_boot 15/15, live_walk 4,
+  live_play 12, final_audit 16.
+
 ## B26 — WHEELS EVERYWHERE + THE HONEST BATTERY (2026-11-23, the production mandate Sections 8, 21, 25, 27)
 
 - **BICYCLES (Section 8 - the last vehicle class)**: `scripts/bike.gd`

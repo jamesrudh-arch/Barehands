@@ -27,6 +27,9 @@ func _check(ok: bool, what: String) -> void:
 
 func _ready() -> void:
 	DirAccess.make_dir_recursive_absolute("/tmp/lp_shots")
+	# B27: the events director stands down for the boot battery (this
+	# suite asserts walker/watcher counts; smoke_events runs live)
+	Settings.set_value("dynamic_events", false)
 	# a FRESH user dir is provided by the battery (HOME isolation); the
 	# settings file inside it starts empty, so the picker must show
 	_main = (load("res://scenes/main.tscn") as PackedScene).instantiate()

@@ -35,6 +35,9 @@ func _ready() -> void:
 	get_window().size = Vector2i(1280, 720)
 	await get_tree().process_frame
 	Settings.set_value("first_run_done", true)
+	# B27: this suite asserts quiet-street behaviours - the director
+	# stands down (smoke_events runs the live street)
+	Settings.set_value("dynamic_events", false)
 	_main = load("res://scenes/main.tscn").instantiate()
 	add_child(_main)
 	var opening := get_tree().get_first_node_in_group("opening") as CLS_OpeningShot

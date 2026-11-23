@@ -397,13 +397,23 @@ func _drive_all(delta: float, block: String) -> void:
 		var want := 0.0 if hazard else cruise
 		if front:
 			want = mini(want, float(front.get_meta("speed")) * 0.9)
+		# B27: a fender-bender holds BOTH cars (events.gd marks the
+		# pair) - the lane stands still behind them
+		if car.has_meta("bender"):
+			want = 0.0
 		speed = move_toward(speed, want, (BRAKE if want < speed else ACCEL) * delta)
 		car.set_meta("speed", speed)
 		# brake lights read whenever the car is slow on the street
 		car.set_meta("braking", speed < CRUISE * 0.6)
 		car.position.x += (1.0 if east else -1.0) * speed * delta
 		_spin_wheels(car, speed, delta)
+		# B27: the bender's hazard pulse + the cruiser's beacon roll -
+		# AFTER _brake_lights so the pulse is the last word on the lamp
 		_brake_lights(car)
+		if car.has_meta("bender"):
+			_hazard_pulse(car, delta)
+		if car.has_meta("sweep"):
+			_sweep_pulse(car, delta)
 		_engine_pitch(car, speed)
 		# the far gate: gone
 		if (east and car.position.x > bx + EDGE + 2.0) \
@@ -427,6 +437,7 @@ func _drive_all(delta: float, block: String) -> void:
 ## The crossing signal, from the driver's seat: WALK (red) stops
 ## everyone before the zebra; AMBER stops the ones close enough to
 ## brake in time. Far cars ride the amber through - as they do.
+
 func _signal_stops(car: Node3D, east: bool, bx: float) -> bool:
 	if _sig_phase == "green":
 		return false
@@ -535,6 +546,64 @@ func _clock() -> float:
 
 func _now_tick() -> void:
 	pass  # hook kept for future beats (rush hour, story roadblocks)
+
+
+## B27: the fender-bender's hazard pulse - both tails flash together
+## at 2.5 Hz while the pair stands on the lane.
+func _hazard_pulse(car: Node3D, delta: float) -> void:
+	var t: float = car.get_meta("hz_t", 0.0) + delta
+	car.set_meta("hz_t", t)
+	var on := fmod(t, 0.4) < 0.2
+	var m: StandardMaterial3D = car.get_meta("tail_mat")
+	if m:
+		m.emission_energy_multiplier = 1.5 if on else 0.15
+
+
+## B27: the cruiser's beacons - red and blue take turns every half
+## beat while the sweep carrolls the block.
+func _sweep_pulse(car: Node3D, delta: float) -> void:
+	var t: float = car.get_meta("hz_t", 0.0) + delta
+	car.set_meta("hz_t", t)
+	var red_on := fmod(t, 0.7) < 0.35
+	for nm in ["BeaconL", "BeaconR"]:
+		var lamp := car.find_children(nm, "MeshInstance3D", true, false)
+		for l in lamp:
+			var m := (l as MeshInstance3D).get_active_material(0) as StandardMaterial3D
+			if m:
+				var is_red: bool = nm == "BeaconL"
+				m.emission_energy_multiplier = 1.7 \
+						if is_red == red_on else 0.15
+
+
+## B27 DYNAMIC WORLD EVENTS: the police sweep - a slow cruiser the
+## whole street sees coming (events.gd calls this when the district
+## runs hot). Police steel, half speed, beacons rolling; the pool
+## treats it exactly like any other car, and events.gd recycles it.
+func spawn_sweep(block: String) -> Node3D:
+	if not LANE_Z.has(block):
+		return null
+	var east := true
+	var lane_z: float = LANE_Z[block]["east"]
+	var bx: float = Blocks.BLOCK_X.get(block, 0.0)
+	var car := Node3D.new()
+	car.name = "SweepCar"
+	car.add_to_group("traffic")
+	var model := _code_car(car, "kenney_traffic/police.glb")
+	if model == null:
+		car.queue_free()
+		return null
+	car.position = Vector3(bx - EDGE + 4.0, 0.02, lane_z)
+	car.set_meta("east", east)
+	car.set_meta("speed", CRUISE * 0.55)
+	car.set_meta("braking", false)
+	car.set_meta("block", block)
+	car.set_meta("sweep", true)
+	_build_lights(car, east, "kenney_traffic/police.glb")
+	_build_engine(car)
+	get_tree().current_scene.add_child(car)
+	_pool.append(car)
+	Log.info("Traffic: the sweep cruiser rolls %s - beacons on" % block)
+	return car
 
 
 ## 1 s of low saw + a breath of noise, looped: an engine at idle-ish
