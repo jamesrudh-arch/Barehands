@@ -9,6 +9,7 @@ extends Node3D
 ## budget: one warm pier lamp + one crane flood + the fill + fog.
 
 const CLS_Kit := preload("res://scripts/kit.gd")
+const CLS_MatLib := preload("res://scripts/world/mat_lib.gd")
 
 const PALETTE := {
 	"ground": Color(0.075, 0.075, 0.08),
@@ -49,7 +50,7 @@ func _ready() -> void:
 func _ground() -> void:
 	_solid(self, Vector3(YARD_X * 2.0 + 12.0, 0.2, 22.0),
 			Vector3(0, -0.1, WATER_Z / 2.0 + 11.0), PALETTE.ground,
-			0.92)
+			0.92, 0.0, "concrete")
 	# the quay edge: a low lip so the yard reads against the water
 	_solid(self, Vector3(YARD_X * 2.0 + 12.0, 0.5, 0.6),
 			Vector3(0, 0.05, WATER_Z), PALETTE.steel.darkened(0.2),
@@ -174,11 +175,13 @@ func _container_maze() -> void:
 				continue  # the gaps that make it a maze
 			var sz := Vector3(6.0, 2.6, 2.5)
 			var pos := Vector3(-15.0 + i * 6.2, 1.3, -row * 3.4)
-			_solid(maze, sz, pos, cols[rng.randi() % 3], 0.75, 0.2)
+			_solid(maze, sz, pos, cols[rng.randi() % 3], 0.75, 0.2,
+					"container")
 			# some stacks double up (the climbable read)
 			if rng.randf() < 0.3:
 				_solid(maze, sz, pos + Vector3(0, 2.6, 0),
-						cols[rng.randi() % 3], 0.75, 0.2)
+						cols[rng.randi() % 3], 0.75, 0.2,
+						"container")
 	_sign(maze, "THE MAZE", Color(0.62, 0.66, 0.8),
 			Vector3(0, 3.6, 2.2), 26)
 
@@ -292,6 +295,43 @@ func _lamps() -> void:
 	lamp.light_energy = 1.2
 	lamp.omni_range = 24.0
 	add_child(lamp)
+	# S5.2: sodium lamps over the container maze (the gate read the
+	# containers as mid-grey mush - they had no light on them)
+	var m1 := OmniLight3D.new()
+	m1.name = "MazeLamp_West"
+	m1.position = Vector3(-14.0, 5.0, -2.0)
+	m1.light_color = PALETTE.sodium
+	m1.light_energy = 2.4
+	m1.omni_range = 16.0
+	add_child(m1)
+	var m2 := OmniLight3D.new()
+	m2.name = "MazeLamp_East"
+	m2.position = Vector3(2.0, 5.0, -7.0)
+	m2.light_color = PALETTE.sodium
+	m2.light_energy = 2.4
+	m2.omni_range = 16.0
+	add_child(m2)
+	# the visible sources (the gate: 'light feels sourceless') -
+	# poles + hot emissive heads at both maze lamps
+	for mp in [Vector3(-14.0, 0, -2.0), Vector3(2.0, 0, -7.0)]:
+		var pole := MeshInstance3D.new()
+		var polem := CylinderMesh.new()
+		polem.top_radius = 0.07
+		polem.bottom_radius = 0.09
+		polem.height = 5.0
+		polem.material = _mat(Color(0.08, 0.08, 0.09))
+		pole.mesh = polem
+		pole.position = mp + Vector3(0, 2.5, 0)
+		pole.name = "MazeLampPole_%d" % int(mp.x)
+		add_child(pole)
+		var head := MeshInstance3D.new()
+		var headm := BoxMesh.new()
+		headm.size = Vector3(0.5, 0.16, 0.24)
+		headm.material = _glow(PALETTE.sodium, 4.0)
+		head.mesh = headm
+		head.position = mp + Vector3(0, 5.05, 0)
+		head.name = "MazeLampHead_%d" % int(mp.x)
+		add_child(head)
 	var pole := MeshInstance3D.new()
 	var pm := CylinderMesh.new()
 	pm.top_radius = 0.08
@@ -315,11 +355,14 @@ func _lamps() -> void:
 	e.background_mode = Environment.BG_COLOR
 	e.background_color = Color(0.014, 0.02, 0.03)
 	e.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	e.ambient_light_color = Color(0.04, 0.05, 0.07)
+	e.ambient_light_color = Color(0.08, 0.09, 0.12)
 	e.ambient_light_energy = 1.0
 	e.fog_enabled = true
-	e.fog_light_color = Color(0.05, 0.07, 0.09)
-	e.fog_density = 0.028
+	e.fog_light_color = Color(0.06, 0.075, 0.10)
+	e.fog_density = 0.016
+	e.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	e.tonemap_exposure = 1.35
+	e.tonemap_white = 1.0
 	env.environment = e
 	add_child(env)
 
@@ -372,7 +415,7 @@ func _gate(pos: Vector3, to: String, spawn: String, text: String,
 
 
 func _solid(parent: Node, sz: Vector3, pos: Vector3, col: Color,
-		rough := 0.9, metal := 0.0) -> void:
+		rough := 0.9, metal := 0.0, mat_name := "") -> void:
 	var body := StaticBody3D.new()
 	body.position = pos
 	var cshape := CollisionShape3D.new()
@@ -384,10 +427,14 @@ func _solid(parent: Node, sz: Vector3, pos: Vector3, col: Color,
 	var m := MeshInstance3D.new()
 	var bm := BoxMesh.new()
 	bm.size = sz
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = col
-	mat.roughness = rough
-	mat.metallic = metal
+	var mat: StandardMaterial3D
+	if mat_name != "":
+		mat = CLS_MatLib.surface(mat_name, sz)
+	else:
+		mat = StandardMaterial3D.new()
+		mat.albedo_color = col
+		mat.roughness = rough
+		mat.metallic = metal
 	bm.material = mat
 	m.mesh = bm
 	m.position = pos

@@ -13,6 +13,7 @@ extends Node3D
 ## in the art-direction palette.
 
 const CLS_Kit := preload("res://scripts/kit.gd")
+const CLS_MatLib := preload("res://scripts/world/mat_lib.gd")
 const CLS_TrainTarget := preload("res://scripts/world/train_target.gd")
 
 const PALETTE := {
@@ -42,7 +43,8 @@ func _ready() -> void:
 
 
 func _shell() -> void:
-	_solid_mesh(Vector3(20.0, 0.2, 15.0), Vector3(0, -0.1, 0), PALETTE.floor)
+	_solid_mesh(Vector3(20.0, 0.2, 15.0), Vector3(0, -0.1, 0),
+			PALETTE.floor, "concrete")
 	# north wall carries the big LOCKED roller door; east wall the side
 	# door to the yard. West/south stay plain.
 	_wall_with(Vector3(20.6, 4.0, 0.3), Vector3(0, 2.0, -7.5), "south")
@@ -67,7 +69,7 @@ func _wall_with(sz: Vector3, pos: Vector3, kind: String) -> void:
 				PALETTE.wall)
 		_side_door(pos + Vector3(-0.25, 0, 0))
 		return
-	_solid_mesh(sz, pos, PALETTE.wall)
+	_solid_mesh(sz, pos, PALETTE.wall, "corrugated")
 	if kind == "north_roller":
 		_roller_door(pos + Vector3(0, -0.2, -0.25))
 
@@ -514,12 +516,18 @@ func _collider_for(n: Node3D, aabb: AABB) -> StaticBody3D:
 	return body
 
 
-func _solid_mesh(sz: Vector3, pos: Vector3, col: Color) -> void:
-	_solid_mesh_parent(self, sz, pos, col)
+func _solid_mesh(sz: Vector3, pos: Vector3, col: Color,
+		mat_name := "") -> void:
+	_solid_mesh_parent_mat(self, sz, pos, col, mat_name)
 
 
 func _solid_mesh_parent(parent: Node, sz: Vector3, pos: Vector3,
 		col: Color) -> MeshInstance3D:
+	return _solid_mesh_parent_mat(parent, sz, pos, col, "")
+
+
+func _solid_mesh_parent_mat(parent: Node, sz: Vector3, pos: Vector3,
+		col: Color, mat_name: String) -> MeshInstance3D:
 	var body := StaticBody3D.new()
 	body.position = pos
 	var shape := CollisionShape3D.new()
@@ -531,7 +539,10 @@ func _solid_mesh_parent(parent: Node, sz: Vector3, pos: Vector3,
 	var m := MeshInstance3D.new()
 	var bm := BoxMesh.new()
 	bm.size = sz
-	bm.material = _mat(col)
+	if mat_name != "":
+		bm.material = CLS_MatLib.surface(mat_name, sz)
+	else:
+		bm.material = _mat(col)
 	m.mesh = bm
 	m.position = pos
 	parent.add_child(m)

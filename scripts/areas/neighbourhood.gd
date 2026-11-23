@@ -485,6 +485,25 @@ func _lamps() -> void:
 				light.position = Vector3(x, 4.4, sz * 6.8)
 				light.name = "LampLight_%d" % i
 				add_child(light)
+				# THE WET SMEAR (S5.2): the vertical light streak wet
+				# asphalt throws - a faint elongated quad reaching
+				# from the lamp's foot across the road (the cheap
+				# mobile stand-in for a reflection probe)
+				var smear := MeshInstance3D.new()
+				var sm := QuadMesh.new()
+				sm.size = Vector2(2.2, 9.5)
+				var smat := StandardMaterial3D.new()
+				smat.albedo_color = Color(1.0, 0.72, 0.4, 0.16)
+				smat.emission_enabled = true
+				smat.emission = Color(1.0, 0.72, 0.4)
+				smat.emission_energy_multiplier = 0.85
+				smat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+				sm.material = smat
+				smear.mesh = sm
+				smear.rotation = Vector3(-PI / 2.0, 0, 0)
+				smear.position = Vector3(x, 0.02, 1.4)
+				smear.name = "WetSmear_%d" % i
+				add_child(smear)
 	# the city fill: the night sky's cold wash
 	var fill := DirectionalLight3D.new()
 	fill.name = "CityFill"

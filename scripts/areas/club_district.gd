@@ -232,7 +232,7 @@ func _shut_front(front: Node3D, label: String, glow: Color) -> void:
 	var band := MeshInstance3D.new()
 	var bm := BoxMesh.new()
 	bm.size = Vector3(7.0, 2.0, 0.12)
-	bm.material = _glow(glow, 0.4)
+	bm.material = _glow(glow, 1.6)
 	band.mesh = bm
 	band.position = Vector3(0, 2.4, 0.02)
 	band.name = "WindowBand"
@@ -351,21 +351,73 @@ func _lamps() -> void:
 	a.name = "AvenueLight_West"
 	a.position = Vector3(-20.0, 5.4, 0.0)
 	a.light_color = Color(0.9, 0.45, 0.75)
-	a.light_energy = 1.1
-	a.omni_range = 22.0
+	a.light_energy = 2.6
+	a.omni_range = 26.0
 	add_child(a)
 	var b := OmniLight3D.new()
 	b.name = "AvenueLight_East"
 	b.position = Vector3(20.0, 5.4, 0.0)
 	b.light_color = Color(0.35, 0.8, 0.9)
-	b.light_energy = 1.1
-	b.omni_range = 22.0
+	b.light_energy = 2.6
+	b.omni_range = 26.0
+	# S5.2: two more down the avenue - a receding lit line (the gate
+	# read 'too dark, nothing anchors the lift')
+	var c2 := OmniLight3D.new()
+	c2.name = "AvenueLight_FarWest"
+	c2.position = Vector3(-48.0, 5.4, 0.0)
+	c2.light_color = Color(0.9, 0.45, 0.75)
+	c2.light_energy = 2.2
+	c2.omni_range = 24.0
+	add_child(c2)
+	var d2 := OmniLight3D.new()
+	d2.name = "AvenueLight_FarEast"
+	d2.position = Vector3(48.0, 5.4, 0.0)
+	d2.light_color = Color(0.35, 0.8, 0.9)
+	d2.light_energy = 2.2
+	d2.omni_range = 24.0
+	add_child(d2)
 	add_child(b)
+	# the avenue's wet pools + smears (S5.2: the gate read 'no light
+	# pooling on the street') - one pool + one smear per avenue light
+	for lx in [-48.0, -20.0, 20.0, 48.0]:
+		var warm: bool = lx < 0.0
+		var pcol := Color(0.9, 0.45, 0.75) if warm \
+				else Color(0.35, 0.8, 0.9)
+		var pool := MeshInstance3D.new()
+		var pm := QuadMesh.new()
+		pm.size = Vector2(7.5, 6.0)
+		var pmat := StandardMaterial3D.new()
+		pmat.albedo_color = Color(pcol.r, pcol.g, pcol.b, 0.6)
+		pmat.emission_enabled = true
+		pmat.emission = pcol
+		pmat.emission_energy_multiplier = 1.6
+		pmat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		pm.material = pmat
+		pool.mesh = pm
+		pool.rotation = Vector3(-PI / 2.0, 0, 0)
+		pool.position = Vector3(lx, 0.02, 1.0)
+		pool.name = "AvenuePool_%d" % int(lx)
+		add_child(pool)
+		var smear := MeshInstance3D.new()
+		var sm := QuadMesh.new()
+		sm.size = Vector2(2.6, 10.0)
+		var smat := StandardMaterial3D.new()
+		smat.albedo_color = Color(pcol.r, pcol.g, pcol.b, 0.15)
+		smat.emission_enabled = true
+		smat.emission = pcol
+		smat.emission_energy_multiplier = 0.9
+		smat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		sm.material = smat
+		smear.mesh = sm
+		smear.rotation = Vector3(-PI / 2.0, 0, 0)
+		smear.position = Vector3(lx, 0.025, -2.5)
+		smear.name = "AvenueSmear_%d" % int(lx)
+		add_child(smear)
 	var fill := DirectionalLight3D.new()
 	fill.name = "CityFill"
 	fill.rotation_degrees = Vector3(-55, 30, 0)
 	fill.light_color = Color(0.26, 0.24, 0.4)
-	fill.light_energy = 0.5
+	fill.light_energy = 0.75
 	add_child(fill)
 	# the warm haze: the district's own air (fog volume read, mobile)
 	var env := WorldEnvironment.new()
@@ -374,11 +426,14 @@ func _lamps() -> void:
 	e.background_mode = Environment.BG_COLOR
 	e.background_color = Color(0.012, 0.012, 0.025)
 	e.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	e.ambient_light_color = Color(0.05, 0.045, 0.09)
+	e.ambient_light_color = Color(0.10, 0.09, 0.15)
 	e.ambient_light_energy = 1.0
 	e.fog_enabled = true
-	e.fog_light_color = Color(0.07, 0.05, 0.1)
-	e.fog_density = 0.012
+	e.fog_light_color = Color(0.07, 0.05, 0.11)
+	e.fog_density = 0.008
+	e.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	e.tonemap_exposure = 1.3
+	e.tonemap_white = 1.0
 	env.environment = e
 	add_child(env)
 

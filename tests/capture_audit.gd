@@ -61,6 +61,22 @@ func _ready() -> void:
 	await _aim_at_player(Vector3(0.9, 1.5, 1.6), 50.0)
 	await _snap("04_hero_closeup")
 
+	# 5-6 the club avenue + the docks, composed down their lines
+	await Game.travel("club_district", "from_neighbourhood")
+	await _wait_s(1.5)
+	var camc := await _take_camera()
+	camc.fov = 58.0
+	camc.global_position = Vector3(-44.0, 2.6, 7.5)
+	camc.look_at(Vector3(36.0, 2.0, -1.0))
+	await _snap("07_club_avenue")
+	await Game.travel("docks", "start")
+	await _wait_s(1.5)
+	var camd := await _take_camera()
+	camd.fov = 55.0
+	camd.global_position = Vector3(14.0, 3.2, 12.0)
+	camd.look_at(Vector3(-10.0, 1.2, -4.0))
+	await _snap("08_docks")
+
 	print("AUDIT CAPTURE DONE (%d shots)" % _shots)
 	get_tree().quit(0)
 
