@@ -18,7 +18,7 @@ runs — it waits on a real device report.
 | 3 | Real game experience (boot→menu→story→play) | VERIFIED | live_boot suite: picker→title→PLAY→apartment→save/load |
 | 4.1 | Characters: models, faces, rigs | VERIFIED | humanoid.gd code-built bodies+faces; smoke_cast/pose/tpose |
 | 4.2 | Animation breadth | VERIFIED | walk/sprint/jump/punch/kick/flinch/guard/roll/grab/phone/dance/chat; smoke_pose |
-| 4.3 | Environment art | VERIFIED | code facades, 5-paint palettes, window grids, signs, lamps; smoke_city |
+| 4.3 | Environment art | VERIFIED (B29) | code facades with base courses, floor-line ledges, roofline crowns, shop awnings (render_facades 6/6: 42 riverside bands, plinth band measured 0.037 vs wall 0.516); smoke_city |
 | 4.4 | Rendering & atmosphere | VERIFIED | night neon, rain, puddles, fog, wet roads; smoke_weather; llvmpipe-proven |
 | 5.1 | City structure (3 blocks, roads, alleys) | VERIFIED | riverside/market/foundry + back alleys; smoke_worldsim |
 | 5.2 | Accessible interiors (5) | VERIFIED | apartment, shop, foundry office, gym, safehouse; smoke_interiors |
@@ -52,15 +52,12 @@ runs — it waits on a real device report.
 
 ## The next fronts (in dependency order)
 
-1. VOICE + dialogue delivery (mandate 12): real voice lines for the
-   brother call, the fixer, shopkeeper, Roz; subtitles already sync.
-2. DYNAMIC WORLD EVENTS (mandate 16): street disputes, fender-benders,
-   police sweeps that NPCs and the radio react to.
-3. NPC DEPTH (mandates 6.2/6.3): gossip/witness sharing between
-   wanderers, multi-line smalltalk, rain umbrellas, richer states.
-4. DRUNKEN STYLE full chain + parry (mandate 9).
-5. THE HIGH-GRADE-ASSET PASS (mandates 21/4.4): material sheen, facade
-   detail, tiered glow - on top of the proven code-built renderer law.
-6. THE DEVICE REPORT (mandate 25/28): every Linux claim above is
+1. DRUNKEN STYLE full chain + parry (mandate 9) - the last combat gap.
+2. DEEPER VOICE (mandate 12): the rep/heat conditional cast variants,
+   now the recording pipeline is proven (gen_voice.py).
+3. INTERIOR NAV (mandate 17): the standing PARTIAL in the map system.
+4. THE NEXT VISUAL PASSES (mandates 21/4.4): interior dressing on the
+   proven renderer law; the street's facades dressed (B29).
+5. THE DEVICE REPORT (mandate 25/28): every Linux claim above is
    honestly INTEGRATED+TESTED level only; DEVICE VERIFIED waits on a
    real Xogot/iPhone run.

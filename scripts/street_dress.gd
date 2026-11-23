@@ -13,6 +13,7 @@ const CLS_Watcher := preload("res://scripts/watcher.gd")
 func _ready() -> void:
 	_fire_escape(Vector3(-10.2, 0.0, -9.0), 3.4, 3)   # BuildingA south face
 	_fire_escape(Vector3(-8.4, 0.0, 9.0), 3.0, 2)     # BuildingD north face
+	_facade_jewelry()
 	_wires()
 	_windows()
 	_ac_units()
@@ -100,6 +101,57 @@ func _box(size: Vector3, mat: Material) -> MeshInstance3D:
 
 
 # --- wires between buildings ---------------------------------------------------
+
+
+## B29 THE DRESSED STREET (mandate 4.3 - high-grade environment art):
+## the six riverside volumes wear their stonework now - a wet-dark
+## base course at the street, floor-line ledges under the window
+## rows, and a roofline crown. All static, all unlit, zero new
+## emission: the Mobile light budget stays the law. Geometry read
+## straight off each building's own collider, never hardcoded.
+func _facade_jewelry() -> void:
+	var stone := StandardMaterial3D.new()
+	stone.albedo_color = Color(0.135, 0.13, 0.125)
+	stone.roughness = 0.85
+	var trim := StandardMaterial3D.new()
+	trim.albedo_color = Color(0.23, 0.22, 0.205)
+	trim.roughness = 0.8
+	for b in ["A", "B", "C", "D", "E", "F"]:
+		var body := get_node_or_null("../Buildings/Building" + b) as StaticBody3D
+		if body == null or not body.has_node("Shape"):
+			continue
+		var cs := body.get_node("Shape") as CollisionShape3D
+		if cs == null or not (cs.shape is BoxShape3D):
+			continue
+		var size: Vector3 = (cs.shape as BoxShape3D).size
+		var c := body.global_position
+		# the base course: the dark plinth every real street building wears
+		_detail_band(Vector3(c.x, 0.55, c.z),
+				Vector3(size.x + 0.14, 1.1, size.z + 0.14), stone)
+		# floor-line ledges on the street faces, under the lit rows
+		var floors := clampf(int((size.y - 2.2) / 3.0), 1, 4)
+		for fl in floors:
+			var y := 1.62 + fl * 3.0
+			for side in [-1.0, 1.0]:
+				_detail_band(Vector3(c.x, y,
+						c.z + side * (size.z / 2.0 + 0.05)),
+						Vector3(size.x + 0.08, 0.09, 0.26), trim)
+		# the roofline crown (the B23 lip gets a shadowed cap)
+		_detail_band(Vector3(c.x, c.y + size.y / 2.0 - 0.2, c.z),
+				Vector3(size.x + 0.24, 0.4, size.z + 0.24), trim)
+
+
+## One static stonework band, tagged for the facade-detail facts probe.
+func _detail_band(pos: Vector3, size: Vector3, mat: Material) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	var bm := BoxMesh.new()
+	bm.size = size
+	bm.material = mat
+	mi.mesh = bm
+	mi.position = pos
+	mi.add_to_group("facade_detail")
+	add_child(mi)
+	return mi
 
 
 func _wires() -> void:

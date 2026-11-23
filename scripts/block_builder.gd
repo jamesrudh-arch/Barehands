@@ -329,6 +329,23 @@ func _building(cx: float, cz: float, w: float, d: float, h: float,
 		face_w = kit
 	else:
 		_roofline(cx, cz, w, d, h)
+		# B29 THE DRESSED STREET: the code facade wears its stonework -
+		# base course at the kerb line + floor ledges under the window
+		# rows (kit buildings keep their own geometry)
+		var plinth_mat := StandardMaterial3D.new()
+		plinth_mat.albedo_color = Color(0.135, 0.13, 0.125)
+		plinth_mat.roughness = 0.85
+		_stonework(Vector3(cx, 0.55, cz),
+				Vector3(w + 0.14, 1.1, d + 0.14), plinth_mat)
+		var trim_mat := StandardMaterial3D.new()
+		trim_mat.albedo_color = Color(0.23, 0.22, 0.205)
+		trim_mat.roughness = 0.8
+		var street_side := 1.0 if cz < 0 else -1.0
+		var rows := clampf(int((h - 2.2) / 3.0), 1, 4)
+		for fl in rows:
+			_stonework(Vector3(cx, 1.62 + fl * 3.0,
+					cz + street_side * (d / 2.0 + 0.05)),
+					Vector3(w + 0.08, 0.09, 0.26), trim_mat)
 	if windows:
 		# B23 MILESTONE A: a real facade - a full window grid per floor
 		# across the street face (some lit, some dark, some skipped:
@@ -358,6 +375,21 @@ func _building(cx: float, cz: float, w: float, d: float, h: float,
 
 ## One facade window: a warm lit pane or a dark one. Lit panes join the
 ## flicker group under the 1.45 glow threshold (the Xogot lesson).
+
+## B29: one static stonework band (plinth / ledge / crown), tagged for
+## the facade-detail facts probe. Unlit, unemissive - budget law.
+func _stonework(pos: Vector3, size: Vector3, mat: Material) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	var bm := BoxMesh.new()
+	bm.size = size
+	bm.material = mat
+	mi.mesh = bm
+	mi.position = pos
+	mi.add_to_group("facade_detail")
+	add_child(mi)
+	return mi
+
+
 func _window(pos: Vector3, rot: Vector3, lit: bool) -> void:
 	var win := MeshInstance3D.new()
 	var wm := QuadMesh.new()
@@ -555,6 +587,30 @@ func _front(label: String, pos: Vector3, color: Color, w := 3.0) -> void:
 		glow.position = Vector3(0, 0.04, -1.2)
 	glow.add_to_group("decal")
 	g.add_child(glow)
+	# B29 THE DRESSED STREET: the shopfront wears an awning - a tilted
+	# canvas blade over the door line, the street's own rain cover.
+	# Unlit fabric, no emission; reads at night by the spill beneath.
+	var awn := MeshInstance3D.new()
+	var am := BoxMesh.new()
+	am.size = Vector3(w * 0.9, 0.06, 1.15)
+	var amat := StandardMaterial3D.new()
+	amat.albedo_color = Color(0.22, 0.1, 0.1).darkened(0.35) \
+			if color.r > color.g else Color(0.08, 0.1, 0.2).darkened(0.35)
+	amat.roughness = 0.95
+	am.material = amat
+	awn.mesh = am
+	awn.position = Vector3(0, 2.55, 0.62)
+	awn.rotation = Vector3(-0.34 if pos.z <= 0 else 0.34, 0, 0)
+	awn.add_to_group("facade_detail")
+	g.add_child(awn)
+	var valance := MeshInstance3D.new()
+	var vm := BoxMesh.new()
+	vm.size = Vector3(w * 0.9, 0.16, 0.05)
+	vm.material = amat
+	valance.mesh = vm
+	valance.position = Vector3(0, 2.38, 1.12 if pos.z <= 0 else -1.12)
+	valance.add_to_group("facade_detail")
+	g.add_child(valance)
 
 
 # --- block 2: the club quarter --------------------------------------------------

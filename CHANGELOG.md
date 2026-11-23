@@ -1,5 +1,30 @@
 # CHANGELOG.md — batch history (newest first)
 
+## B29 — THE DRESSED STREET (2026-11-23, the production mandate Sections 4.3/21)
+
+- **FACADE JEWELRY (Section 4.3 - high-grade environment art)**: the
+  code-built volumes wear their stonework now. street_dress reads each
+  riverside building's own collider at runtime and dresses all six:
+  a wet-dark BASE COURSE at the street, FLOOR-LINE LEDGES under the
+  lit window rows on both street faces, and a shadowed ROOFLINE CROWN.
+  block_builder's code facades get the same three pieces, and every
+  shopfront (the _front family) wears an AWNING - a tilted canvas
+  blade with a valance over the door line, fabric tone keyed to the
+  shop's sign colour. All static, all unlit, ZERO new emission - the
+  Mobile light budget stays the law; roughness-tuned stone/trim
+  materials instead.
+- **`render_facades` NEW 6/6**: the rendered-facts probe - 42
+  stonework bands on the riverside volumes (6 base courses, 30
+  ledges), 6 market awnings + market stonework, and the base course
+  READS as a darker band in the frame (measured: plinth strip 0.037
+  vs wall strip 0.516 luminance - the jewellery is visible fact, not
+  an eyeball claim). One of this pass's own thresholds was a guess
+  (market stonework +10) - corrected to the measured reality (+4,
+  6 bands + 6 awnings).
+- **REGRESSION AT FINAL CODE**: city, lookdev 6/6, kits 70/70,
+  worldsim 25/25, null_watch 993 frames 0 fails (the new meshes are
+  null-clean), render_check 56/56, live_boot 15/15.
+
 ## B28 — THE RECORDED CAST (2026-11-23, the production mandate Section 12)
 
 - **VOICE (Section 12 - complete audio)**: the empty voice hook that
