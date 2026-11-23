@@ -33,6 +33,8 @@ var _was_locked := false
 var _route: PackedVector2Array = PackedVector2Array()
 var _layers := {"jobs": true, "control": false, "heat": false,
 		"friends": true, "damage": false}
+# B32: the interior card's live facts (id + geometry) for the suite
+var _inside_room := {}
 
 # entry-point counters the device report reads
 static var opened_radar := 0
@@ -464,16 +466,90 @@ func _draw_map() -> void:
 				pw + Vector2(7, -4)])
 		d.draw_colored_polygon(pts, Color(1.0, 0.3, 0.85, 1.0))
 		d.draw_circle(pw + Vector2(0, -4), 2.5, Color(1, 1, 1, 0.85))
-	# the hero arrow
+	# the hero arrow. B32: while INSIDE, the arrow pins to the room's
+	# street door with an INSIDE badge - the off-axis room position is
+	# useless on a street map, the door is where you come back to
 	var hero := get_tree().get_first_node_in_group("player") as Node3D
+	_inside_room = {}
 	if hero:
-		var ph := _world_to_map(Vector2(hero.global_position.x,
-				hero.global_position.z))
-		var f: Vector3 = -hero.global_transform.basis.z
-		var dir := Vector2(f.x, f.z).normalized()
-		var pts2 := PackedVector2Array([ph + dir * 10.0,
-				ph + dir.rotated(2.5) * 8.0, ph + dir.rotated(-2.5) * 8.0])
-		d.draw_colored_polygon(pts2, Color(0.4, 1.0, 0.9, 1.0))
+		var room := CLS_MapData.inside(hero.global_position.x)
+		if not room.is_empty():
+			_inside_room = room
+			var pd := _world_to_map(room["street"])
+			d.draw_arc(pd, 11.0, 0.0, TAU, 32, Color(0.4, 1.0, 0.9, 0.95), 3.0, true)
+			d.draw_string(font, pd + Vector2(14, 4), "YOU'RE INSIDE",
+					HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(0.4, 1.0, 0.9, 0.95))
+			d.draw_string(font, pd + Vector2(14, 18), str(room["label"]),
+					HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.75, 0.85, 1.0, 0.9))
+		else:
+			var ph := _world_to_map(Vector2(hero.global_position.x,
+					hero.global_position.z))
+			var f: Vector3 = -hero.global_transform.basis.z
+			var dir := Vector2(f.x, f.z).normalized()
+			var pts2 := PackedVector2Array([ph + dir * 10.0,
+					ph + dir.rotated(2.5) * 8.0, ph + dir.rotated(-2.5) * 8.0])
+			d.draw_colored_polygon(pts2, Color(0.4, 1.0, 0.9, 1.0))
+	# B32: the interior card - the room's floor plan drawn over the
+	# street map, so "where am I" answers even off the axis
+	if not _inside_room.is_empty() and hero:
+		_draw_interior_card(d, font, _inside_room, hero)
+
+
+## The interior card's layout: pure math shared by the draw and the
+## suite's facts, so the test reads the truth the player sees.
+## Returns {card, room_rect, scale} - card in panel px, room_rect the
+## floor plan inside it, scale = card px per metre.
+func interior_card_layout(room: Dictionary, panel_size: Vector2) -> Dictionary:
+	var cw := minf(230.0, panel_size.x * 0.34)
+	var ch := minf(200.0, panel_size.y * 0.36)
+	var card := Rect2(panel_size.x - cw - 14.0, 12.0, cw, ch)
+	var w := float(room["w"])
+	var dp := float(room["d"])
+	var s := minf((card.size.x - 28.0) / w, (card.size.y - 44.0) / dp)
+	var rr := Rect2(card.position.x + (card.size.x - w * s) * 0.5,
+			card.position.y + 34.0 + (card.size.y - 44.0 - dp * s) * 0.5,
+			w * s, dp * s)
+	return {"card": card, "room_rect": rr, "scale": s}
+
+
+## Local room XZ -> card px (the same transform the card draws with).
+func interior_card_point(room: Dictionary, panel_size: Vector2,
+		local: Vector2) -> Vector2:
+	var lay := interior_card_layout(room, panel_size)
+	var rr: Rect2 = lay["room_rect"]
+	return Vector2(rr.position.x + (local.x + float(room["w"]) * 0.5) * lay["scale"],
+			rr.position.y + (local.y + float(room["d"]) * 0.5) * lay["scale"])
+
+
+func _draw_interior_card(d: Control, font: Font, room: Dictionary,
+		hero: Node3D) -> void:
+	var lay := interior_card_layout(room, d.size)
+	var card: Rect2 = lay["card"]
+	var rr: Rect2 = lay["room_rect"]
+	# the card plate
+	d.draw_rect(card, Color(0.01, 0.02, 0.04, 0.92))
+	d.draw_rect(card, Color(0.35, 0.5, 0.65, 0.7), false, 1.5)
+	d.draw_string(font, card.position + Vector2(10, 18), "YOU ARE INSIDE",
+			HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(0.4, 1.0, 0.9, 0.95))
+	d.draw_string(font, card.position + Vector2(10, 32), str(room["label"]),
+			HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(0.85, 0.9, 1.0, 0.95))
+	# the floor plan: floor, walls, door gap
+	d.draw_rect(rr, Color(0.09, 0.1, 0.13, 0.95))
+	d.draw_rect(rr, Color(0.45, 0.55, 0.7, 0.8), false, 2.0)
+	var door_px := interior_card_point(room, d.size, room["door"])
+	d.draw_circle(door_px, 5.0, Color(0.25, 1.0, 0.5))
+	d.draw_string(font, door_px + Vector2(8, 4), "EXIT",
+			HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(0.25, 1.0, 0.5, 0.95))
+	# the features (counter, bed, ring, bar, dance floor)
+	for feat in room["features"]:
+		var fp := interior_card_point(room, d.size, feat["p"])
+		d.draw_string(font, fp + Vector2(-3, 4), str(feat["g"]),
+				HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.7, 0.75, 0.85, 0.9))
+	# the player: local position + facing, and the way out
+	var local := CLS_MapData.local_in_room(hero.global_position, room)
+	var pp := interior_card_point(room, d.size, local)
+	d.draw_line(pp, door_px, Color(0.25, 1.0, 0.5, 0.9), 2.0, true)
+	d.draw_circle(pp, 5.0, Color(0.4, 1.0, 0.9, 0.95))
 
 
 func _safe_rect() -> Rect2:

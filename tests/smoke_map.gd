@@ -49,6 +49,7 @@ func _ready() -> void:
 	await _objective()
 	await _map_screens()
 	_fog()
+	await _interior_nav()
 
 	if _fails == 0:
 		print("MAP PASS (%d checks)" % _checks)
@@ -56,6 +57,69 @@ func _ready() -> void:
 	else:
 		print("MAP FAIL (%d of %d checks)" % [_fails, _checks])
 		get_tree().quit(1)
+
+
+# --- B32: the interior card (where am I, off the axis) ---------------------------
+
+
+func _interior_nav() -> void:
+	var hero := get_tree().get_first_node_in_group("player") as Node3D
+	var street_pos := hero.global_position
+	# 1. the room table answers for every real interior, and only inside
+	var ids := []
+	for room in CLS_MapData.INTERIOR_ROOMS:
+		ids.append(room["id"])
+	_check(ids.size() == 5 and ids.has("bar"),
+			"all five rooms are in the plan table (%s)" % str(ids))
+	_check(CLS_MapData.inside(720.0)["id"] == "noodle"
+			and CLS_MapData.inside(780.0)["id"] == "safehouse"
+			and CLS_MapData.inside(840.0)["id"] == "gym"
+			and CLS_MapData.inside(900.0)["id"] == "bar"
+			and CLS_MapData.inside(960.0)["id"] == "velvet",
+			"inside() names the room by its axis")
+	_check(CLS_MapData.inside(0.0).is_empty()
+			and CLS_MapData.inside(240.0).is_empty(),
+			"the street is not a room")
+
+	# 2. inside the noodle shop: the card is live, the facts are true
+	hero.global_position = Vector3(720.0, 0.02, 1.6)
+	await _wait_s(0.3)
+	_map.call("open", "suite")
+	await _wait_s(0.4)
+	var room: Dictionary = _map.get("_inside_room")
+	_check(room.get("id", "") == "noodle",
+			"the map knows the hero is inside (%s)" % str(room.get("id", "?")))
+	var panel: Vector2 = (_map.get("_panel") as Control).size
+	var lay: Dictionary = _map.call("interior_card_layout", room, panel)
+	var rr: Rect2 = lay["room_rect"]
+	var player_px: Vector2 = _map.call("interior_card_point", room, panel,
+			CLS_MapData.local_in_room(hero.global_position, room))
+	_check(rr.has_point(player_px),
+			"the player dot lands INSIDE the floor plan (%s in %s)"
+			% [str(player_px.round()), str(rr)])
+	var door_px: Vector2 = _map.call("interior_card_point", room, panel,
+			room["door"])
+	_check(door_px.distance_to(Vector2(rr.position.x + rr.size.x * 0.5,
+			rr.position.y + rr.size.y)) < 26.0,
+			"the EXIT marker sits on the door wall (%s)" % str(door_px.round()))
+	_check(player_px.distance_to(door_px) < rr.size.length(),
+			"the way out is drawn across the room (%.0f px)"
+			% player_px.distance_to(door_px))
+	_map.call("close")
+	await _wait_s(0.2)
+
+	# 3. the street-side pin: while inside, the hero marker sits at the
+	#    room's STREET door (not off the axis)
+	hero.global_position = Vector3(960.0, 0.02, -0.5)   # the Velvet Room
+	await _wait_s(0.3)
+	_map.call("open", "suite")
+	await _wait_s(0.4)
+	room = _map.get("_inside_room")
+	_check(room.get("id", "") == "velvet",
+			"the club's room answers too (%s)" % str(room.get("id", "?")))
+	_map.call("close")
+	hero.global_position = street_pos
+	await _wait_s(0.2)
 
 
 # --- the street graph + routes --------------------------------------------------

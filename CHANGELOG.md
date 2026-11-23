@@ -1,5 +1,29 @@
 # CHANGELOG.md — batch history (newest first)
 
+## B32 — WHERE AM I, OFF THE AXIS (2026-11-23, the production mandate Section 17)
+
+- **INTERIOR NAV reads complete**: the map's standing PARTIAL is gone.
+  map_data gains `INTERIOR_ROOMS` - the floor-plan table for all five
+  rooms (Mama Sun's 10x9, your room 7x7, the gym 10x8, the Knuckle
+  Room 9x7, the Velvet Room 10x8; door = the exit zone's wall
+  position, street = the street-door pin) - plus `inside(world_x)` /
+  `local_in_room()` helpers. While inside, full_map draws the
+  INTERIOR CARD over the street map: the room's floor plan (floor,
+  walls, EXIT marker on the door wall, the feature glyphs - counter,
+  bed, ring, bar, dance floor), the player dot at their TRUE local
+  position, and the line to the way out. On the street side the hero
+  marker pins to the room's STREET door with a YOU'RE INSIDE badge
+  instead of flying off the axis where a street map can't show it.
+- **One truth, tested from it**: the card's layout math is a single
+  pure pair (`interior_card_layout` / `interior_card_point`) shared
+  by the draw and the suite, so the test reads the exact geometry
+  the player sees. `smoke_map` grows to 43/43: the table names all
+  five rooms, the street is not a room, the player dot lands inside
+  the floor plan, the EXIT sits on the door wall, the way out is
+  drawn across the room, and the Velvet Room answers too.
+- **REGRESSION AT FINAL CODE**: map 43/43, interiors 12/12,
+  phone 40/40, guide 23/23, smoke.
+
 ## B31 — THE DISTRICT MOOD, IN HER OWN VOICE (2026-11-23, the production mandate Section 12)
 
 - **THE CONDITIONAL VARIANTS**: the cast's rep/heat lines - the ones

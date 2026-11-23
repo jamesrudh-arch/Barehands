@@ -37,7 +37,7 @@ runs — it waits on a real device report.
 | 14 | Factions, relationships | VERIFIED | trust/family-corp-crew hooks via ledger+radio; smoke_friends |
 | 15 | Phone & information hub | VERIFIED | contacts/calls/messages/jobs/map/notes; smoke_phone |
 | 16 | World events & emergence | VERIFIED (B27) | events.gd: dispute (angry faces, crowd, memory), fender-bender (hazards pulse, lane holds), police sweep (beacons, road clears); every event into the ONE memory the radio/gossip/smalltalk read; smoke_events 22/22 x2 |
-| 17 | Map, navigation, GPS | VERIFIED | live map with routes/markers; smoke_map; interior nav PARTIAL |
+| 17 | Map, navigation, GPS | VERIFIED (B32) | live map with routes/markers; INTERIOR NAV complete: the interior card (floor plan, EXIT at the door, the way out) + street-side YOU'RE INSIDE pin; smoke_map 43/43 |
 | 18 | UI & presentation | VERIFIED | menus/HUD/dialogue/subtitles; DESIGN_SYSTEM.md tokens; smoke_safe |
 | 19 | Touch & controller support | VERIFIED | floating scheme, B-button law, drive cluster (B25); smoke_controls; gamepad PARTIAL |
 | 20 | Save & world continuity | VERIFIED | wallet/heat/gear/city/phone/vehicle round trip; smoke_drive+save suites |
@@ -52,12 +52,10 @@ runs — it waits on a real device report.
 
 ## The next fronts (in dependency order)
 
-1. DEEPER VOICE (mandate 12): the rep/heat conditional cast variants.
-2. DEEPER VOICE (mandate 12): the rep/heat conditional cast variants,
-   now the recording pipeline is proven (gen_voice.py).
-3. INTERIOR NAV (mandate 17): the standing PARTIAL in the map system.
-4. THE NEXT VISUAL PASSES (mandates 21/4.4): interior dressing on the
+1. THE NEXT VISUAL PASSES (mandates 21/4.4): interior dressing depth,
+   more street jewelry on the proven renderer law.
+2. THE NEXT VISUAL PASSES (mandates 21/4.4): interior dressing on the
    proven renderer law; the street's facades dressed (B29).
-5. THE DEVICE REPORT (mandate 25/28): every Linux claim above is
+3. THE DEVICE REPORT (mandate 25/28): every Linux claim above is
    honestly INTEGRATED+TESTED level only; DEVICE VERIFIED waits on a
    real Xogot/iPhone run.

@@ -99,6 +99,50 @@ static func _log(msg: String) -> void:
 		if lg:
 			lg.call("info", msg)
 
+
+# --- B32: interior floor plans for the map's inside view ---------------------
+# Local coords match each room's own node (world = room_x + local).
+# door = the EXIT zone's wall position (local XZ); street = the street
+# door zone (world XZ) the map pins the hero at while inside; features
+# carry one glyph each. Sizes read from each room's built floor shell.
+const INTERIOR_ROOMS := [
+	{"id": "noodle", "room_x": 720.0, "w": 10.0, "d": 9.0,
+		"door": Vector2(0.0, 3.6), "street": Vector2(-4.0, 6.4),
+		"label": "MAMA SUN'S NOODLES",
+		"features": [{"p": Vector2(0.0, -3.4), "g": "C"}]},  # the counter
+	{"id": "safehouse", "room_x": 780.0, "w": 7.0, "d": 7.0,
+		"door": Vector2(0.0, -3.2), "street": Vector2(-2.0, 8.9),
+		"label": "YOUR ROOM",
+		"features": [{"p": Vector2(2.2, -2.0), "g": "B"}]},  # the bed
+	{"id": "gym", "room_x": 840.0, "w": 10.0, "d": 8.0,
+		"door": Vector2(0.0, 3.4), "street": Vector2(233.5, 10.2),
+		"label": "IRON PALM GYM",
+		"features": [{"p": Vector2(0.0, -1.5), "g": "R"}]},  # the ring
+	{"id": "bar", "room_x": 900.0, "w": 9.0, "d": 7.0,
+		"door": Vector2(0.0, 3.4), "street": Vector2(238.8, 10.2),
+		"label": "THE KNUCKLE ROOM",
+		"features": [{"p": Vector2(0.0, -2.2), "g": "A"}]},  # the bar
+	{"id": "velvet", "room_x": 960.0, "w": 10.0, "d": 8.0,
+		"door": Vector2(0.0, 3.4), "street": Vector2(231.0, -10.2),
+		"label": "THE VELVET ROOM",
+		"features": [{"p": Vector2(0.0, 0.0), "g": "D"}]},  # the dance floor
+]
+
+
+## The room the given world X sits inside (rooms sit off the axis,
+## each on its own room_x), or {} when the position is on the street.
+static func inside(world_x: float) -> Dictionary:
+	for room in INTERIOR_ROOMS:
+		if absf(world_x - float(room["room_x"])) < float(room["w"]) * 0.5 + 2.0:
+			return room
+	return {}
+
+
+## The player's local position inside a room (XZ, node-local).
+static func local_in_room(world_pos: Vector3, room: Dictionary) -> Vector2:
+	return Vector2(world_pos.x - float(room["room_x"]), world_pos.z)
+
+
 ## Waypoint the player pinned on the full map (world XZ); null = none.
 static var _waypoint: Vector2 = Vector2.INF
 ## Discovered POI ids (interiors + shortcuts stay hidden until found).
