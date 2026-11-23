@@ -46,13 +46,32 @@ optimise → verify → deliver).
 
 ## In progress
 
-**STAGE 4 step 4 — the warehouse home (03 §5 step 4)**: the full
-home from 02_MASTER_DESIGN §3 area 1 — bed, workbench, phone table,
-weapon rack, punching bag, sparring dummy, mirror, the roller door +
-side door to a private yard — built on the kits (Kenney furniture
-GLBs are on disk; the kit placement contract from the old project is
-harvested first), replacing the shell's placeholder dressing in
-place (same scene path, the shell grows into the home).
+**STAGE 4 step 5 — combat core (03 §5 step 5)**: the five styles'
+first pass on the dummy + the bag — `player/combat.gd` +
+`data/styles/*` + `data/attacks/*` (AttackData: damage, hitstop
+frames, knockback, cancel window, haptic, audio layers), hit
+reactions on the dummy, the Leverage Strike meter, the Style Rank.
+X punch / Y heavy / A kick / B dodge behind the style tables; the
+KayKit CombatMelee clips drive the swings.
+
+## Step 4 — DONE (the warehouse home)
+
+**smoke_home 26/26 + smoke_hero 30/30** — area 1 is the real home:
+the corner loft bed (Kenney kit on a code loft), the workbench
+(Kenney desk), the phone table + phone prop, the fridge, the floor
+lamp, the weapon rack (pipe, bat, two bottles), the TRAINING CORNER
+(punching bag on its chain, the sparring dummy, the wall mirror),
+the LOCKED big roller door (slats + lock + its honest sign), the
+side door — a REAL 1.5 m doorway through the east wall — into the
+private YARD (fence with the matching doorway gap, bins, crates,
+the signposted gate for the step-6 street, the flickering sodium
+lamp). Lighting: warm main + bed practical + door spill + the
+flickering yard lamp + city fill. Kit placements carry stand-in
+box colliders (_kit_aabb merges GLB child meshes). Bugs caught by
+the suite: Label3D uses outline_modulate (not outline_color) in
+4.7, sibling name collisions @-rename (unique bottle names), and
+the yard fence originally sealed the doorway - the walk test
+caught it.
 
 ## Step 3 — DONE (the player stack)
 
@@ -118,16 +137,25 @@ Four bugs found and fixed on the way to green, all worth remembering:
 
 ## NEXT ACTION (exact)
 
-1. Commit step 3 (the player stack + docs).
-2. STEP 4 — the warehouse home: harvest the old kit placement
-   contract (scripts/kit.gd + furniture list), dress
-   scenes/areas/warehouse_shell.tscn into the full home (bed,
-   workbench, phone table, weapon rack, bag, dummy, mirror, roller
-   door, side door, yard), light it to the art direction (2-3
-   dynamic lights + practicals), suite: smoke_home (each furnishing
-   present + enterable yard + render check).
-3. THEN step 5 — combat core (the five styles' first pass on the
-   dummy + bag, AttackData, hit reactions, Style Rank).
+1. Commit step 4 (the home + suite + docs).
+2. STEP 5 — combat core:
+   a. `data/attacks/*.tres` AttackData resources (damage, frames,
+      knockback, cancel window, haptic pattern, audio layers) — the
+      old repo's proven .tres pattern, rebuilt; five styles first:
+      BRAWLER (X X X, X X Y, X A), KICKBOXING, GRAPPLING, DRUNKEN,
+      WEAPON each with its own stance idle + strings.
+   b. `scripts/player/combat.gd`: the attack state machine on the
+      hero (tokens, cancels, hitstop on attacker+target only),
+      dodge with i-frames, the dummy/bag take hits (hit reactions,
+      the bag sways, the dummy's posture breaks).
+   c. The Leverage Strike meter + Style Rank (the HUD pass is step
+      8; the values live on the combat system now).
+   d. `tests/smoke_combat_r.gd`: face buttons fire the right
+      attacks per style, hits land on the dummy (damage + reaction
+      + meter), dodge avoids, combos cancel correctly, the style
+      wheel swaps styles.
+3. THEN step 6 — the neighbourhood area + the door law + WorldState
+   persistence (the big teardown: blocks/block_builder/main.tscn).
 
 
 ## Known blockers / watch items
