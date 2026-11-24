@@ -6,8 +6,8 @@ class_name BuildInfo
 ## the DEVICE REPORT. COMMIT is the CODE commit this build runs; the
 ## stamp commit itself lands one above it (see VERSION.txt at the root).
 const BATCH := "S5.22"
-const COMMIT := "30f95f9"
-const BUILT := "2026-11-24 17:30 UTC"
-const STAMP := "S5.22 30f95f9 (2026-11-24 17:30 UTC)"
+const COMMIT := "f376736"
+const BUILT := "2026-11-24 17:34 UTC"
+const STAMP := "S5.22 f376736 (2026-11-24 17:34 UTC)"
 const CONFIG := "xogot-mobile-safe (Mobile renderer, the proven Xogot iOS path; Xogot Connect addon vendored + preset provisioned)"
 const PLATFORM := "iPhone via Xogot App Store 1.7.12 (engine Godot 4.7, Metal backend); Linux desktop dev"
