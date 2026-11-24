@@ -24,12 +24,20 @@ const LINES := [
 
 const RING_S := "metal_ring_0"   # the loft's phone
 
+## S5.19 THE VOICE: Marla's lines are SPOKEN (tongtong, slowed);
+## the hero stays text - the noir call. Step index -> clip.
+const VO := {
+	1: "vo_marla_1", 3: "vo_marla_2", 5: "vo_marla_3", 7: "vo_marla_4",
+}
+
 var _step := 0
 var _typing := false
 var _chars_shown := 0
 var _type_t := 0.0
 var _line_done := false
 var _wait_t := 0.0
+var _line_hold := 2.8
+var _type_rate := 0.032
 var _label: Label
 var _speaker: Label
 var _dim: ColorRect
@@ -137,8 +145,8 @@ func _process(delta: float) -> void:
 		_type_t += delta
 		var full := _full_text()
 		while _chars_shown < full.length() \
-				and _type_t > 0.032:
-			_type_t -= 0.032
+				and _type_t > _type_rate:
+			_type_t -= _type_rate
 			_chars_shown += 1
 		_label.text = full.substr(0, _chars_shown)
 		if _chars_shown >= full.length():
@@ -146,7 +154,7 @@ func _process(delta: float) -> void:
 			_line_done = true
 	elif _line_done and _step < LINES.size() - 1:
 		_wait_t += delta
-		if _wait_t > 2.8:   # the auto-advance floor
+		if _wait_t > _line_hold:   # the VO-aware floor
 			_advance()
 	elif _step == LINES.size() - 1:
 		_wait_t += delta
@@ -176,12 +184,26 @@ func _next_line() -> void:
 	_type_t = 0.0
 	_wait_t = 0.0
 	_line_done = false
+	_line_hold = 2.8
 	if kind == "RING":
 		_typing = false
 		_label.text = _full_text()
 		_line_done = true   # holds, tap advances
 	else:
 		_typing = true
+	if VO.has(_step):
+		# S5.19: the spoken line owns the card - the text holds
+		# until the voice finishes (tap still cuts through)
+		var st: AudioStream = load(
+				"res://assets/audio/%s.wav" % VO[_step])
+		if st != null:
+			Sound.play(str(VO[_step]), -3.0, 1.0, 0.0, "Voice")
+			_line_hold = maxf(_line_hold, st.get_length() + 0.9)
+			# the type-out paces to the voice: chars per second
+			_type_rate = maxf(0.012,
+					st.get_length() / _full_text().length())
+		else:
+			_type_rate = 0.032
 	_advance_hint.visible = kind in ["RING"]
 
 

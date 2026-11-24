@@ -171,6 +171,9 @@ func travel(id: String, spawn: String = "") -> void:
 	# THE CRITTERS (S5.18): the city breathes - moths at the
 	# lamps, rats at the alley bases, fish in the fountain
 	Critters.spawn_for(get_tree().current_scene, id)
+	# S5.19 THE WORLD PILLARS: the river, the filling station,
+	# the birds - the gaps the scorecard named
+	WorldPillars.spawn_for(get_tree().current_scene, id)
 	_fading = false
 	# the landing IS the checkpoint (and the menu's CONTINUE lights)
 	if SaveGame != null:

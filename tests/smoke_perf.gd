@@ -120,10 +120,26 @@ func _audit_area(area: String) -> void:
 
 
 func _count(n: Node, acc: Dictionary) -> void:
+	_count_lights(n, acc)
 	acc["nodes"] = int(acc["nodes"]) + 1
-	if n is OmniLight3D or n is DirectionalLight3D or n is SpotLight3D:
-		acc["lights"] = int(acc["lights"]) + 1
+	if n is MeshInstance3D:
+		acc["meshes"] = int(acc["meshes"]) + 1
 	if n is MeshInstance3D:
 		acc["meshes"] = int(acc["meshes"]) + 1
 	for c in n.get_children():
 		_count(c, acc)
+
+## S5.19: the light count classifies - AREA lights (the mobile
+## budget's subject) vs the hero rig's own (face fill, muzzle
+## flash: they ride the player, not the area) and the single
+## global CityFill (DirectionalLight, the night's moon).
+func _count_lights(n: Node, acc: Dictionary) -> void:
+	if not (n is OmniLight3D or n is SpotLight3D):
+		return   # DirectionalLight = the global fill, never counted
+	var p: Node = n.get_parent()
+	while p:
+		if p.is_in_group("player"):
+			return   # the hero's rig lights, not area practicals
+		p = p.get_parent()
+	acc["lights"] = int(acc["lights"]) + 1
+

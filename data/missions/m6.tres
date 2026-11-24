@@ -34,4 +34,4 @@ stages = [{
 }]
 reward_cash = 0
 reward_xp = 30.0
-next = "j1"
+next = "m7"

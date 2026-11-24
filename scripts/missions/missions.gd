@@ -443,6 +443,9 @@ func _complete() -> void:
 	_banner.text = "%s - DONE%s" % [m.title,
 			" (+$%d)" % m.reward_cash if m.reward_cash > 0 else ""]
 	WorldState.set_flag("mission_done:" + m.id)
+	# S5.19: the finale's completion IS the campaign's end state
+	if m.id == "m7":
+		WorldState.set_flag("story_done")
 	WorldState.set_value("mission_active:" + m.id, false)
 	if m.reward_cash > 0:
 		WorldState.bump("stash_cash", float(m.reward_cash))

@@ -372,6 +372,10 @@ func _fill() -> void:
 					"clean_cash", 0.0))), Color(0.55, 0.9, 1.0))
 			_line("THE DEBT  $%d" % int(float(WorldState.get_value(
 					"debt", 0.0))), Color(1.0, 0.55, 0.3))
+			if WorldState.flag("story_done"):
+				# S5.19: the finale landed - the ledger says so
+				_line("THE DEBT IS DONE - the city keeps the rest",
+						Color(1.0, 0.8, 0.4))
 			_line("HEAT  %d" % int(float(WorldState.get_value(
 					"heat", 0.0))), Color(1.0, 0.45, 0.2))
 			# the quick-pay chip (bible: pay_chip on the Ledger)

@@ -247,6 +247,25 @@ func _ready() -> void:
 	_check(last != null and is_equal_approx(float(last.get("hp")),
 			want), "refusal escalates with tier %d: 80 x1.25 = %.0f"
 			% [tier, want])
+	# --- S5.19: THE LEDGER (the finale exists, chains, ends)
+	var m7 := load("res://data/missions/m7.tres")
+	_check(m7 != null and m7.id == "m7" \
+			and m7.title == "THE LEDGER", "m7 THE LEDGER exists")
+	_check(m7.stages.size() == 5 \
+			and str(m7.stages[0].get("ring", {}).get("from", "")) \
+			== "MARLA", "m7 opens with Marla's ring")
+	var sp: int = m7.stages[2].get("spawn", []).size()
+	_check(sp == 5 \
+			and bool(m7.stages[2].get("spawn", [])[0].get( \
+			"armored", false)), "m7's fight: five men, plate from\
+			 the first")
+	_check(m7.next == "" and load(\
+			"res://data/missions/m6.tres").next == "m7", \
+			"m6 chains to m7; m7 ends the chain")
+	ms.start("res://data/missions/m7.tres")
+	await _wait_s(0.3)
+	_check(ms.active.id == "m7" \
+			and ms.stage_index == 0, "m7 starts at the call")
 	_finish()
 
 func _finish() -> void:

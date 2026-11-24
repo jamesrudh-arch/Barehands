@@ -1,0 +1,93 @@
+[gd_resource type="Resource" script_class="MissionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/mission_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "m7"
+title = "THE LEDGER"
+blurb = "The counting house opens tonight. The book with your brother's name is inside. How the debt ends is yours."
+stages = [{
+"area": "neighbourhood",
+"check": "any_flag",
+"flags": ["m7_call_answered"],
+"ring": {
+"from": "MARLA",
+"duration": 16.0,
+"lines": ["'You held the corner. Now the Corporation opens its counting house - one night, the book with your brother's name on the page.'", "'Tony's gym, after close. The men who keep it stay after. Five of them, and two wear plates under their coats.'", "'Whatever you do with that ledger - it ends tonight. This city keeps no other endings.'"],
+"choices": [{
+"label": "STAY ON THE LINE",
+"flag": "m7_call_answered"
+}],
+"decline": {
+"flag": "m7_call_answered"
+}
+},
+"marker": Vector3(-42.0, 1.2, 7.2),
+"objective": "MARLA is calling - the counting house opens tonight"
+}, {
+"area": "club_district",
+"check": "at_area",
+"marker": Vector3(0.0, 1.2, 6.0),
+"objective": "The counting house - cross to Tony's side of the district"
+}, {
+"area": "club_district",
+"check": "defeat",
+"need": 5,
+"spawn": [{
+"pos": Vector3(-8.0, 0.05, 3.0),
+"hp": 90.0,
+"armored": true
+}, {
+"pos": Vector3(6.0, 0.05, 3.0),
+"hp": 90.0,
+"armored": true
+}, {
+"pos": Vector3(-2.0, 0.05, -4.0),
+"hp": 90.0,
+"armored": true
+}, {
+"pos": Vector3(-12.0, 0.05, 0.0),
+"hp": 80.0
+}, {
+"pos": Vector3(10.0, 0.05, 0.0),
+"hp": 80.0
+}],
+"marker": Vector3(0.0, 1.2, 6.0),
+"objective": "THE KEEPERS - five men, three in plate. Put them all down"
+}, {
+"area": "club_district",
+"check": "any_flag",
+"flags": ["m7_burned", "m7_delivered"],
+"ring": {
+"from": "MARLA",
+"duration": 20.0,
+"lines": ["'The ledger's in your hands. I can hear it in your breathing.'", "'Burn it, and the Corporation never stops - but every name in that book breathes free, your brother's included.'", "'Hand it to me, and the bar covers the family half. The Corporation's half you carry alone - the honest weight.'"],
+"choices": [{
+"label": "BURN THE BOOK\nevery name free, the Corp hunts you",
+"flag": "m7_burned",
+"debt": -5000.0,
+"heat": 6.0
+}, {
+"label": "HAND IT TO MARLA\nthe bar pays the family half",
+"flag": "m7_delivered",
+"debt": -3500.0
+}],
+"decline": {
+"flag": "m7_burned",
+"debt": -5000.0,
+"heat": 6.0
+}
+},
+"marker": Vector3(0.0, 1.2, 6.0),
+"objective": "THE LEDGER - burn the book, or hand it to Marla"
+}, {
+"area": "warehouse",
+"check": "reach",
+"marker": Vector3(8.8, 0.1, 5.8),
+"objective": "Walk home - the loft where the call started"
+}]
+reward_cash = 500
+reward_clean = 500
+reward_xp = 60.0
+next = ""

@@ -33,6 +33,7 @@ Haptics="*res://scripts/haptics.gd"
 Log="*res://scripts/log.gd"
 Fx="*res://scripts/fx.gd"
 Sound="*res://scripts/sound.gd"
+Music="*res://scripts/core/music.gd"
 Doors="*res://scripts/world/doors.gd"
 
 [display]

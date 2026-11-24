@@ -114,7 +114,12 @@ func _menu_flow() -> void:
 	_check(cont != null and cont.disabled,
 			"CONTINUE is disabled (no save system yet)")
 	var note: Label = menu.get_node_or_null("ContinueNote")
-	_check(note != null and "ledger build" in note.text,
+	# S5.19: the save system landed (SaveGame at every landing) -
+	# the note now states the standing debt, the honest reason a
+	# CONTINUE differs from a fresh PLAY. The old "ledger build"
+	# expectation was stale since that build.
+	_check(note != null and ("debt" in note.text
+			or "no save yet" in note.text),
 			"CONTINUE states its honest reason (%s)"
 			% (note.text if note else "no note"))
 	# settings: opens, three toggles, persists

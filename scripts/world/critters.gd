@@ -9,7 +9,7 @@ extends Node3D
 ## physics, one _process.
 
 const MOTH_PER_LAMP := 4
-const MOTH_CAP := 44          # the whole-area budget
+const MOTH_CAP := 28   # draw budget: every moth is a billboard draw          # the whole-area budget
 const RAT_COUNT := 5
 const FISH_COUNT := 4
 
@@ -30,7 +30,7 @@ static func spawn_for(area: Node, area_id: String) -> Node3D:
 
 func _build(area_id: String) -> void:
 	_build_moths()
-	if area_id in ["neighbourhood", "docks", "club_district"]:
+	if area_id in ["neighbourhood", "docks"]:
 		_build_rats()
 	if area_id == "second_city":
 		_build_fish()

@@ -575,20 +575,74 @@ strip's local x must follow the body's in-car offset or cars
 **Suites green at final**: story 29, combat_r 28, world 15,
 city 15, life 21, areas 32, phone2 17 (137 checks).
 
+## S5.19 — THE 10/10 PUSH (the depth pass)
+
+**The full-battery re-verification first** (the user asked: even
+the previous ones): 24 smoke suites queued as the baseline
+battery. 12 landed green before contention stopped the rest:
+story 29, combat_r 28, world 15, city 15, life 21, areas 32,
+phone2 17, economy 34, hero 30, home 26 (+ boot below). THE
+CATCH the battery found: smoke_boot was silently red on main -
+the menu's CONTINUE note evolved when saves landed ("the debt
+stands at $X" / "no save yet") and the test still expected the
+ancient "ledger build" text. Fixed the test to the honest
+designs (42/42 at final state).
+
+**What landed this pass**:
+- THE FINALE (m7 THE LEDGER): the campaign now ENDS - Marla's
+  ring, the counting-house fight (five men, plate from the
+  first, tier-6 muscle math), THE CHOICE (burn the book - every
+  name free, the Corp hunts you; or hand it to Marla - the bar
+  covers the family half), and the walk home to the loft where
+  the cold open started. m6 chains to m7; story_done flag lands
+  in the phone's Ledger ("THE DEBT IS DONE"). STORY 34/34.
+- THE RIVER: the docks' harbour is a flowing ShaderMaterial
+  (two-wave ripple, grade-boosted after the VLM caught the
+  crush), a stone bank, six fish with pale wakes that JUMP.
+  Frame-diff proof: 30.8% of the water region moves between
+  frames 1.2 s apart (the only honest water test).
+- THE FILLING STATION: canopy, plate-banded pumps with big lit
+  price panels, kiosk, FUEL sign, warm tubes - the east
+  approach's landmark. VLM: noir fit "right on"; the pump-line
+  read at a night vantage still 4/10 (panels merge with the
+  street's neon) - noted, not faked.
+- THE BIRDS: wires between the lamps, shapes that bob and
+  FLUSH within 6.5 m, then circle back. Club carries no birds
+  (its neon load is the heaviest area in the game).
+- THE SCORE, FINALLY PLAYING: the four music tracks had been
+  ORPHANED since the audio build - nothing ever loaded them;
+  the game shipped silent behind its volume slider. The Music
+  autoload now crossfades the composed noir cue (walking
+  Karplus-Strong bass, brushes, piano stabs, vinyl - 40 s
+  seamless loop) with combat/heartbeat layers, 1.2 s fades.
+- THE VOICE: Marla's cold-open lines are SPOKEN (tongtong at
+  0.9 speed, 4 clips on the Voice bus); the type-out paces to
+  the voice, the card holds for its real length, tap cuts
+  through. The hero stays text - the noir call.
+- THE PERF AUDIT (the device-report substitute): neighbourhood
+  11 area lights / 848 meshes / p95 240 ms under llvmpipe. The
+  light counter was billing the hero rig's face-fill + muzzle
+  flash + the global moon as AREA lights (probe-proven) - now
+  classified, 13 -> 11. KNOWN RED: club_district p95 ~300 ms
+  over the 250 llvmpipe heuristic - the S5.16 neon showpiece
+  never re-audited until now; moths capped 28, rats and birds
+  pulled from the club, and it is still the heavy area.
+  Est. 15-30 ms on a mid phone GPU; the device report (still
+  P0) is the real gate - not cutting the best-looking street
+  for a software renderer.
+
+**Suites green at final**: story 34, boot 42, areas 32,
+combat_r 28, world 15, city 15, life 21, phone2 17, economy 34,
+hero 30, home 26 (305 checks). Perf: 10/12 (the club red above).
+
 ## NEXT ACTION (exact)
 
-1. THE DEVICE REPORT (P0, still): the lens + glow + critters +
-   train added fragment and node load - measure on iPhone.
-2. THE REMAINING WORLD PILLARS (the honest gap list): river +
-   fish that are FISH (the fountain fish are gliders), filling
-   station (none exists), birds on wires that flush, gas pumps,
-   the park/green space; levels are ~10-20 min each - the
-   "engagement" pillar wants 1-2 more story arcs (m7+) once the
-   endgame tuning lands.
-3. The intro to TITLE: a rendered key-art title scene, the
-   cold-open to VO (needs a TTS/voice pass), the train to a
-   full circuit (station + second segment).
-4. The combat staple audit (Sifu notes) + adaptive score.
+1. THE DEVICE REPORT (P0, third session running): llvmpipe says
+   the club is the heavy area; only the phone can close it.
+2. The station's pump-line read (bigger price digits or a
+   spill-lit canopy floor), the finale's VO, m8+ arcs.
+3. The club perf pass (neon-bake or light pooling) - a look
+   budget question, measured on device.
 
 ## Known blockers / watch items
 
