@@ -679,6 +679,26 @@ hero 30, home 26, boot 42 (S5.19 final battery). smoke_perf:
 10/12 - the club p95 289 (documented above) + a one-frame
 neighbourhood hitch under llvmpipe jitter (p50 216 is the truth).
 
+## S5.21 — THE PRE-FLIGHT HARDENING (before you run it)
+
+The audit before the first real run found three real gaps, all
+closed: (1) export_presets.cfg DID NOT EXIST - the S5.20 "export
+preset" was prose in the device report; the real file now ships
+(arm64-v8a, VIBRATE permission for the haptics per the plugin
+docs and Godot's Android export docs, immersive full-screen,
+1.0.0, com.zgames.leverage) - engine-validated: the preset
+parses, the only remaining export blocker is the Android SDK
+which lives on the real machine. (2) THE SUSPEND KILL: saves
+happened only at area landings - an Android suspend-kill ate
+everything since; Game._notification now checkpoints on
+APPLICATION_PAUSED / FOCUS_OUT / WM_CLOSE_REQUEST. (3) THE
+RENDERER PIN: every green suite ran under the compatibility
+driver, but project.godot said method "mobile" - the phone
+would have taken an UNTESTED Vulkan-Mobile path;
+rendering_method.mobile is now pinned to gl_compatibility.
+Boot smoke 42/42 after all three. Research-backed: non-debug
+keystore for any Play Store upload (official export docs).
+
 ## NEXT ACTION (exact)
 
 1. THE DEVICE REPORT runs on hardware (P0 - the checklist is

@@ -61,6 +61,21 @@ Measured by toggling passes in the live club frame:
 ## 4. The export preset (Android, OpenGL ES 3)
 
 - Renderer: `gl_compatibility` (the game's path — mobile-honest)
+- S5.21 REAL PRESET: `export_presets.cfg` now exists in the repo —
+  arm64-v8a, VIBRATE permission ON (the haptics need it),
+  immersive full-screen, version 1.0.0, package
+  `com.zgames.leverage`, `script_export_mode=2`.
+- S5.21 RENDERER PIN: every green suite ran under the
+  compatibility driver; `project.godot` now pins
+  `rendering_method.mobile="gl_compatibility"` so the phone
+  never takes the untested Vulkan-Mobile path.
+- S5.21 SUSPEND-SAFE: `Game._notification` checkpoints on
+  APPLICATION_PAUSED / FOCUS_OUT / WM_CLOSE_REQUEST — the
+  Android kill-after-suspend can no longer eat progress since
+  the last area landing.
+- Play Store upload (not side-load): sign with a non-debug
+  keystore per the official export docs; the preset ships
+  debug-signed for direct install.
 - Orientations: landscape only
 - Architecture: arm64-v8a + armeabi-v7a
 - Screen: `canvas_items` stretch, aspect `expand`

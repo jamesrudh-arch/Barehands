@@ -181,6 +181,19 @@ func travel(id: String, spawn: String = "") -> void:
 	await fade_in(FADE_S)
 
 
+func _notification(what: int) -> void:
+	# S5.21 PRE-FLIGHT: suspend/close = checkpoint NOW. The area
+	# landing saves survive only polite exits; Android kills the
+	# process after background, taking everything since the last
+	# landing. Guard: only mid-run (an area is mounted).
+	if (what == MainLoop.NOTIFICATION_APPLICATION_PAUSED
+			or what == MainLoop.NOTIFICATION_APPLICATION_FOCUS_OUT
+			or what == NOTIFICATION_WM_CLOSE_REQUEST) \
+			and area_id != "":
+		SaveGame.save_now()
+		Log.info("Game: suspend/close checkpoint (area=%s)" % area_id)
+
+
 ## PLAY mounts the player stack exactly once per area: the hero at
 ## the spawn marker, the camera rig on it, and the touch UI (one
 ## instance for the whole session - it survives area swaps).
