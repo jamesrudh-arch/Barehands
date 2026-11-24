@@ -22,9 +22,11 @@ var _sweep: SweepBand
 
 
 func _ready() -> void:
+	set_meta("boot_alive", true)  # the BuildStamp trap reads this
 	Game.set_state(Game.State.SPLASH)
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	_build_black_card()
+	set_meta("boot_drawn", true)  # first card exists - boot drew
 	_build_studio_card()
 	_build_notice_card()
 	_build_title_card()

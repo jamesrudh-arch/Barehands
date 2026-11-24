@@ -25,6 +25,7 @@ func _process(_delta: float) -> void:
 
 
 func _ready() -> void:
+	set_meta("boot_alive", true)
 	Game.set_state(Game.State.MENU)
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	var bg := ColorRect.new()
@@ -32,6 +33,7 @@ func _ready() -> void:
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
 	bg.color = Color(0.02, 0.024, 0.06, 0.42)  # a scrim, not a wall
+	set_meta("boot_drawn", true)  # the menu drew
 	# THE TITLE BACKDROP (step 12): the drifting 3D avenue under the
 	# menu - the camera slides, the neon does the work
 	var backdrop: Node3D = load(

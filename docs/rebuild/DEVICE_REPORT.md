@@ -65,10 +65,23 @@ Measured by toggling passes in the live club frame:
   arm64-v8a, VIBRATE permission ON (the haptics need it),
   immersive full-screen, version 1.0.0, package
   `com.zgames.leverage`, `script_export_mode=2`.
-- S5.21 RENDERER PIN: every green suite ran under the
-  compatibility driver; `project.godot` now pins
-  `rendering_method.mobile="gl_compatibility"` so the phone
-  never takes the untested Vulkan-Mobile path.
+- S5.21b RENDERER, per channel (revert of the pin): the
+  Xogot-proven iOS path is the **Mobile method (Metal)** — the
+  repo's own build_info law; the Android preset passes
+  `--rendering-method gl_compatibility` at runtime (the path
+  every green suite ran under). One project, two channels,
+  each on its tested renderer.
+- S5.21b THE STAMP DIAGNOSES: the build label now shows the
+  **runtime engine version** (if Xogot's embedded Godot is not
+  4.7.2, scripts can fail to compile only on device — one
+  glance answers it), and a **BOOT TRAP** at t+6 s paints the
+  verdict in red on screen: NO SCENE / SCRIPT FAILED / SCRIPT
+  DID NOT RUN / READY CRASHED. The gray-screen report needs no
+  logs anymore.
+- S5.21b THE GRAY REPORT: the Nov 24 screenshot (blank + teal
+  stamp) means the autoload chain ran but the main scene's
+  script never drew. The stale f563337 stamp is regenerated per
+  commit now — the next screenshot identifies itself.
 - S5.21 SUSPEND-SAFE: `Game._notification` checkpoints on
   APPLICATION_PAUSED / FOCUS_OUT / WM_CLOSE_REQUEST — the
   Android kill-after-suspend can no longer eat progress since

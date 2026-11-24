@@ -17,15 +17,16 @@ func _ready() -> void:
 	layer.name = "BuildStamp"
 	add_child(layer)
 	_label = Label.new()
-	_label.text = CLS_BuildInfo.STAMP
+	_label.text = "%s\nruntime %s" % [CLS_BuildInfo.STAMP,
+			_runtime_line()]
 	_label.anchor_left = 1.0
 	_label.anchor_right = 1.0
 	_label.anchor_top = 0.0
 	_label.anchor_bottom = 0.0
 	_label.offset_left = -360.0
 	_label.offset_right = -8.0
-	_label.offset_top = 6.0
-	_label.offset_bottom = 26.0
+	_label.offset_top = 4.0
+	_label.offset_bottom = 66.0
 	_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_label.add_theme_font_size_override("font_size", 13)
@@ -34,6 +35,50 @@ func _ready() -> void:
 	# the window title too - desktop convenience, ignored on phones
 	if DisplayServer.get_name() != "headless":
 		get_window().title = "LEVERAGE %s" % CLS_BuildInfo.STAMP
+
+
+## The runtime line: WHICH GODOT is actually executing this. If
+## the device's player (Xogot embeds its own engine build) is not
+## the version the code was built against, scripts can fail to
+## compile ONLY there - one glance at this line answers it.
+func _runtime_line() -> String:
+	var v: Dictionary = Engine.get_version_info()
+	return "%s %s / %s" % [str(v.get("string", "?")),
+			OS.get_name(), Engine.get_architecture_name()]
+
+
+## THE BOOT TRAP (S5.21b): the gray-screen device report - the
+## autoloads drew (this label) but the scene script never ran,
+## leaving the bare root + clear color. No logs exist on a phone,
+## so the trap renders the verdict ON SCREEN at t+6 s. The boot
+## scenes carry heartbeat metas: boot_alive (first line of
+## _ready) and boot_drawn (first card built).
+var _trap_t := 0.0
+var _trapped := false
+
+
+func _process(delta: float) -> void:
+	if _trapped:
+		return
+	_trap_t += delta
+	if _trap_t < 6.0:
+		return
+	_trapped = true
+	var sc := get_tree().current_scene
+	var why := ""
+	if sc == null:
+		why = "NO SCENE - main_scene failed to load"
+	elif sc.get_script() == null:
+		why = "SCRIPT FAILED: %s" % sc.scene_file_path
+	elif not sc.has_meta("boot_alive"):
+		why = "SCRIPT DID NOT RUN: %s" 				% str(sc.get_script().resource_path)
+	elif not sc.has_meta("boot_drawn"):
+		why = "READY CRASHED: %s" 				% str(sc.get_script().resource_path)
+	if why != "":
+		_label.add_theme_color_override("font_color",
+				Color(1.0, 0.3, 0.25, 0.95))
+		_label.text = "%s\nruntime %s\nBOOT TRAP: %s" 				% [CLS_BuildInfo.STAMP, _runtime_line(), why]
+		Log.info("BuildStamp: BOOT TRAP - %s" % why)
 
 
 # RETIRED (rebuild step 1): the B17 failsafe camera injected a camera
