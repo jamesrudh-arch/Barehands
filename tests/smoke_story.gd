@@ -228,15 +228,25 @@ func _ready() -> void:
 			and is_equal_approx(float(WorldState.get_value(
 			"stash_cash", 0.0)), 84.375),
 			"the Corporation's line: the box at half, dirty ($15.63)")
-	# refusing sends harder men
+	# refusing sends harder men (S5.18: the story tier climb and
+	# the armored archetype stack on the refusal escalate now - the
+	# expectation computes them from the same laws the game uses)
 	WorldState.set_flag("m6_declined")
 	ms._pending_spawn = [{"pos": Vector3(0, 0.05, 0), "hp": 80.0}]
 	ms._spawn_muscle()
 	var last: Node = null
 	for e in get_tree().get_nodes_in_group("mission_spawn"):
 		last = e
+	var tier := 0
+	for i in 7:
+		if WorldState.flag("mission_done:m%d" % i):
+			tier += 1
+	var want := 80.0 * 1.25 * (1.0 + 0.13 * tier)
+	if tier >= 3:   # the first spec of a tier-3+ wave wears armor
+		want *= 1.5
 	_check(last != null and is_equal_approx(float(last.get("hp")),
-			100.0), "refusal escalates: 80 hp x1.25 = 100")
+			want), "refusal escalates with tier %d: 80 x1.25 = %.0f"
+			% [tier, want])
 	_finish()
 
 func _finish() -> void:

@@ -38,8 +38,7 @@ func _ready() -> void:
 			"res://scripts/boot/title_backdrop.gd").new()
 	backdrop.name = "TitleBackdrop"
 	add_child(backdrop)
-	var f := SystemFont.new()
-	f.font_names = ["Arial Black", "Arial", "sans-serif"]
+	var f := Fonts.display()  # S5.18: the wordmark gets its voice
 	# the small title mark, top-left, out of the button zone
 	var mark := Label.new()
 	mark.text = "LEVERAGE"
@@ -170,6 +169,8 @@ func _open_credits() -> void:
 	_credit(col, "City, vehicle, furniture & audio kits (Kenney)",
 			"CC0 1.0 — kenney.nl")
 	_credit(col, "Godot Engine 4.7", "MIT — godotengine.org")
+	_credit(col, "Anton, Barlow & Playfair Display (Google Fonts)",
+			"SIL OFL 1.1 — fonts.google.com")
 	var close := Button.new()
 	close.text = "CLOSE"
 	close.pressed.connect(_close_panel)

@@ -34,6 +34,7 @@ enum State { IDLE, ALERT, APPROACH, TELEGRAPH, SWING, RECOVER,
 		HITSTUN, DOWNED }
 
 const WALK := 2.6
+var _speed_mul := 1.0   # S5.18: armor costs pace
 const GRAVITY := 18.0
 const SPOT_R := 11.0
 const ATTACK_R := 1.9
@@ -42,7 +43,7 @@ const SWING_S := 0.18
 const RECOVER_S := 0.75
 const HITSTUN_S := 0.35
 const DOWN_S := 5.0
-const DAMAGE := 8.0
+var DAMAGE := 8.0   # S5.18: the armored archetype scales it
 const MAX_HP := 40.0
 const POSTURE_MAX := 8.0
 
@@ -66,6 +67,26 @@ func _ready() -> void:
 	# the grounding disc (S5.17): the blob anchors the body to the
 	# wet street (NightLook.blob existed - nothing called it)
 	preload("res://scripts/world/night_look.gd").blob(self, 0.55)
+	# S5.18 THE ARMORED ARCHETYPE: plate reads before the first
+	# punch lands - hp/posture up, damage up, a shade slower
+	if get_meta("armored", false):
+		hp *= 1.5
+		posture *= 1.4
+		DAMAGE *= 1.25
+		_speed_mul = 0.86
+		var vest := MeshInstance3D.new()
+		vest.name = "PlateVest"
+		var bm := BoxMesh.new()
+		bm.size = Vector3(0.44, 0.52, 0.34)
+		var vm := StandardMaterial3D.new()
+		vm.albedo_color = Color(0.28, 0.16, 0.13)
+		vm.metallic = 0.35
+		vm.roughness = 0.55
+		bm.material = vm
+		vest.mesh = bm
+		vest.position = Vector3(0, 1.18, 0)
+		add_child(vest)
+		name += " [ARMORED]"
 	# S5.4 meta hooks (THE COPY + future casts): one authoritative
 	# body, per-instance identity
 	name = str(get_meta("npc_name", "Thug"))
@@ -195,7 +216,7 @@ func _process(delta: float) -> void:
 			_face(to_hero, delta)
 			if dist > ATTACK_R:
 				var dir := to_hero.normalized()
-				velocity = dir * WALK
+				velocity = dir * WALK * _speed_mul
 				move_and_slide()
 			else:
 				state = State.TELEGRAPH

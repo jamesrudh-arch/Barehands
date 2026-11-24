@@ -107,10 +107,10 @@ func _build_black_card() -> void:
 	_cards.append(card)
 
 
-func _serif(size: int) -> SystemFont:
-	var f := SystemFont.new()
-	f.font_names = ["Georgia", "Times New Roman", "serif"]
-	return f
+func _serif(size: int) -> Font:
+	# S5.18: bundled Playfair - the studio's serif voice renders
+	# identically on device (SystemFont's Georgia dies on mobile)
+	return Fonts.serif()
 
 
 func _label(text: String, size: int, color: Color, font: Font,
@@ -179,8 +179,7 @@ func _build_notice_card() -> void:
 	bg.color = Color(0, 0, 0)
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	card.add_child(bg)
-	var f := SystemFont.new()
-	f.font_names = ["Helvetica Neue", "Arial", "sans-serif"]
+	var f := Fonts.body()
 	var main := _label("MATURE THEMES 16+", 44, Color(0.92, 0.92, 0.96), f)
 	main.position = Vector2(0, size.y * 0.5 - 60)
 	main.size = Vector2(size.x, 60)

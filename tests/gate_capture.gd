@@ -39,6 +39,9 @@ func _take_camera() -> Camera3D:
 func _ready() -> void:
 	DirAccess.make_dir_recursive_absolute(OUT)
 	Settings.set_value("first_run_done", true)
+	# S5.18: the cold open plays on a fresh boot - the gameplay
+	# gates skip it (gate_intro covers the call itself)
+	Settings.set_value("skip_intro", true)
 	WorldState.reset()
 	for i in 4:
 		await get_tree().process_frame

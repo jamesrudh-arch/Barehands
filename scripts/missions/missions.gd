@@ -388,6 +388,14 @@ func _spawn_muscle() -> void:
 			or WorldState.flag("corp_enemy"):
 		escalate = Tuning.v("escalate_hp_mult")
 	var script := load("res://scripts/npc/enemy.gd") as GDScript
+	# S5.18 THE CLIMB: the tier counts finished STORY beats
+	# (m0..m6); jobs and kinks ride the story's difficulty, not
+	# their own. Tier 0 = the first night; tier 6 = the endgame.
+	var tier := 0
+	for i in 7:
+		if WorldState.flag("mission_done:m%d" % i):
+			tier += 1
+	var idx := 0
 	for spec in _pending_spawn:
 		var e: CharacterBody3D = script.new()
 		e.position = spec.get("pos", Vector3.ZERO)
@@ -396,11 +404,22 @@ func _spawn_muscle() -> void:
 			e.set("hp", float(spec["hp"]) * escalate)
 		else:
 			e.set("hp", float(e.get("hp")) * escalate)
+		# the tier lift (stacks with the endgame escalate branch)
+		var thp: float = float(e.get("hp")) * (1.0 + 0.13 * tier)
+		e.set("hp", thp)
+		e.set("posture", float(e.get("posture")) 				* (1.0 + 0.09 * tier))
+		# ARMOR: authored in the spawn spec, or every second
+		# thug once the story is half-turned (tier >= 3)
+		if bool(spec.get("armored", false)) \
+				or (tier >= 3 and idx % 2 == 0):
+			e.set_meta("armored", true)
+		idx += 1
 		e.add_to_group("mission_spawn")
 		scene.add_child(e)
-		Log.info("Mission: muscle at %s (hp %.0f)" % [
+		Log.info("Mission: muscle at %s (hp %.0f, tier %d%s)" % [
 				str(spec.get("pos", Vector3.ZERO)),
-				float(e.get("hp"))])
+				float(e.get("hp")), tier,
+				" ARMORED" if e.get_meta("armored", false) else ""])
 	_pending_spawn = []
 
 

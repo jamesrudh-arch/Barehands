@@ -203,7 +203,10 @@ func _physics_process(delta: float) -> void:
 
 func _var_stick_processing(delta: float) -> void:
 	var stick := move_stick
-	if stick == Vector2.ZERO:
+	# the cold-open owns the frame: inputs go quiet (S5.18)
+	if Game.in_cinematic:
+		stick = Vector2.ZERO
+	elif stick == Vector2.ZERO:
 		stick = Input.get_vector("move_left", "move_right",
 				"move_up", "move_down")
 	_actions()

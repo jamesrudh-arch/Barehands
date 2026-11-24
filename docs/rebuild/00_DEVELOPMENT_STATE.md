@@ -521,18 +521,74 @@ surfaces), AO or cheaper vertex-bent contact shading, the device
 report (P0: the lens + glow roughly double the fragment cost -
 measure, don't assume), the hero costume value pass.
 
+## S5.18 — THE WORLD-PILLAR PASS (the whole-game 10/10 reckoning)
+
+**The honest audit first** (the user asked pillar by pillar):
+splash + studio card + menu + 4 adaptive music tracks + 21
+missions EXISTED; the intro conversation, wildlife, difficulty
+curve, elevated train, gas station, river, and ANY font identity
+did NOT exist at all. This pass built the four that matter most:
+
+**What landed**:
+- THE COLD OPEN (scripts/boot/cold_open.gd): Marla's midnight
+  call - eight typed lines over the LIVE rainy loft, letterbox
+  bars breathing in, speaker-tagged two-voice exchange, tap or
+  any action key advances (impatient tap finishes the line -
+  the reader's law), the world keeps living behind it
+  (Game.in_cinematic gates hero input only). Canon-only facts:
+  the brother's five grand split $3,500 family / $1,500 Corp,
+  Tony's boys at the bar, the bag at the workbench. Once ever
+  (intro_seen), honours skip_intro. VLM: "cinematic, intentional
+  staging - terse noir survives on implication."
+- THE CRITTERS (class_name Critters, spawned per area from
+  Game._mount_player): moths orbit every lamp cone (lissajous,
+  cap 44 quads), rats scurry the alley bases of three areas and
+  BOLT within 3 m of the hero, fish glide the second city's
+  fountain. One _process, no lights, no physics.
+- THE CLIMB + ARMOR: every finished story beat (m0..m6) lifts
+  muscle tier - hp +13%/tier, posture +9%/tier (stacks with the
+  m6-refusal escalate); from tier 3 every second thug wears
+  PLATE (vest quad, hp x1.5, posture x1.4, damage x1.25, pace
+  x0.86). The story suite now VERIFIES the math against real
+  spawned hp (updated: refusal escalates with tier).
+- THE ELEVATED TRAIN (scripts/world/el_train.gd): pylons +
+  rails over the north sidewalk, a 4-car lit train crossing the
+  avenue every ~35 s at 11 m/s with a low rumble. Emissive
+  windows + full-length warm side strips, energy 4.5.
+- THE FONTS (assets/fonts/, OFL, credited): Anton (the
+  LEVERAGE wordmark voice), Playfair Display (the studio serif),
+  Barlow (UI body) - bundled, so mobile renders the same face
+  desktop does (SystemFont's Georgia/Arial fallbacks die on
+  device). splash/menu/cold_open wired through class Fonts.
+
+**The train saga's four laws** (a full diagnosis chain, all
+frame-truth): (1) the lit flanks must be CULL_DISABLED - any
+off-axis street vantage backfaces one flank and body-occludes
+the other; (2) the camera rig calls make_current() EVERY FRAME
+- a gate camera never takes unless the rig's _process is frozen
+first; (3) an evidence vantage can sit inside a building and
+shoot the WALL (the "black mass" was never the train); (4) the
+strip's local x must follow the body's in-car offset or cars
+1-3's strips float 6-19 m behind. Pixel-truth before VLM (again
+- warm-run row probes caught every lie).
+
+**Suites green at final**: story 29, combat_r 28, world 15,
+city 15, life 21, areas 32, phone2 17 (137 checks).
+
 ## NEXT ACTION (exact)
 
-1. THE DEVICE REPORT (P0, unchanged): Xogot run on iPhone 13
-   mini + 16; fps + draw calls + light counts per area with the
-   lens + glow live. The art passes have spent the fragment
-   budget twice over - it needs measuring.
-2. Wet-road planar reflections (the VLM's "single biggest
-   noir-in-rain tell") + neon colour bounce quads.
-3. Rain v2 layered system (the Remember Me research in the
-   audit report).
-4. The combat staple audit (Sifu deep-dive notes) + adaptive
-   score; the hero costume value pass.
+1. THE DEVICE REPORT (P0, still): the lens + glow + critters +
+   train added fragment and node load - measure on iPhone.
+2. THE REMAINING WORLD PILLARS (the honest gap list): river +
+   fish that are FISH (the fountain fish are gliders), filling
+   station (none exists), birds on wires that flush, gas pumps,
+   the park/green space; levels are ~10-20 min each - the
+   "engagement" pillar wants 1-2 more story arcs (m7+) once the
+   endgame tuning lands.
+3. The intro to TITLE: a rendered key-art title scene, the
+   cold-open to VO (needs a TTS/voice pass), the train to a
+   full circuit (station + second segment).
+4. The combat staple audit (Sifu notes) + adaptive score.
 
 ## Known blockers / watch items
 

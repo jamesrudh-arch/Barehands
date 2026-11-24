@@ -12,6 +12,10 @@ signal state_changed(from_name: String, to_name: String)
 
 enum State { BOOT, SPLASH, TITLE, MENU, PLAY, PAUSE }
 
+## True while the cold-open cinematic owns the frame (S5.18):
+## the hero's inputs go quiet; the world keeps living behind it.
+var in_cinematic := false
+
 ## The six-area registry (02_MASTER_DESIGN §3). Grows as areas land.
 const AREAS := {
 	"warehouse": "res://scenes/areas/warehouse_shell.tscn",
@@ -124,6 +128,13 @@ func start_new_game() -> void:
 	# over the rest (M2 Kickboxing, M3 Drunken, the Collector later)
 	WorldState.set_value("unlocked_styles", ["brawler", "weapon"])
 	await travel("warehouse", "start")
+	# THE COLD OPEN (S5.18): Marla's call lands the story's grab
+	# over the live loft, once ever, unless the player opted out
+	if not WorldState.flag("intro_seen") \
+			and not bool(Settings.value("skip_intro")):
+		var co := preload(
+				"res://scripts/boot/cold_open.gd").new()
+		add_child(co)
 
 
 ## CONTINUE: the last landing, loaded back.
@@ -157,6 +168,9 @@ func travel(id: String, spawn: String = "") -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 	_mount_player(spawn)
+	# THE CRITTERS (S5.18): the city breathes - moths at the
+	# lamps, rats at the alley bases, fish in the fountain
+	Critters.spawn_for(get_tree().current_scene, id)
 	_fading = false
 	# the landing IS the checkpoint (and the menu's CONTINUE lights)
 	if SaveGame != null:

@@ -58,6 +58,9 @@ const BREAKABLE := ["THE LAUNDROMAT", "THE DAILIES"]
 
 func _ready() -> void:
 	_ground()
+	# S5.18 THE ELEVATED TRAIN: the lit line over the north
+	# sidewalk - the noir image, every ~35 s
+	preload("res://scripts/world/el_train.gd").build(self)
 	_fronts_north()
 	_fronts_south()
 	_plaza()

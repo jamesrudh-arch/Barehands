@@ -103,6 +103,7 @@ func _fountain() -> void:
 	mat.albedo_color = PALETTE.stone
 	bm.material = mat
 	bowl.mesh = bm
+	bowl.name = "Fountain"
 	bowl.position = Vector3(0, 0.25, -4.0)
 	add_child(bowl)
 	var jet := MeshInstance3D.new()
