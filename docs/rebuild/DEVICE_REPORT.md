@@ -96,7 +96,60 @@ Measured by toggling passes in the live club frame:
 - Fonts embedded: Anton, Playfair Display, Barlow (OFL, credited
   in the CREDITS screen)
 
-## 5. What fails on the phone (the honest predictions)
+## 5. XOGOT ON iPHONE — the current documented truth (S5.22)
+
+Researched from Xogot's own current sources (the XogotDocs
+repository github.com/Xibbon/XogotDocs, its App Store release
+notes, and the official xogot_connect addon), not from memory:
+
+- **The engine you run on**: the iOS App Store Xogot (current
+  1.7.12) embeds **Godot 4.7** (upgraded from 4.6 at release
+  1.7.2). This project is built on 4.7.2 — same minor line. The
+  S5.21b stamp's runtime line confirms the exact engine on your
+  phone in one glance. Keep Xogot updated: an older install
+  (pre-1.7.2) runs a 4.6 engine, where 4.7-built scripts can
+  fail to compile — one shape of the gray screen.
+- **Two documented ways onto the phone**:
+  1. **File copy** (Getting Started doc): copy the whole project
+     folder into "On My iPhone/iPad > Xogot" via the Files app
+     (iCloud/USB/zip). Xogot runs Godot's import pipeline on
+     device — let it finish before pressing Play. A git-zip
+     copy has no `.godot/` (gitignored): that is fine, Xogot
+     imports on open. A reboot of Xogot may be needed for the
+     project to appear (documented).
+  2. **Xogot Connect** (the official path, now vendored in this
+     repo): the addon (github.com/xibbon/xogot_connect, MIT,
+     pure GDScript, editor-only) adds a "Remote Deploy" button
+     to the desktop editor — deploy + live debug over the local
+     network, no Xcode, no export round-trips. It ships its own
+     export preset (`platform="Xogot"`, provisioned in
+     export_presets.cfg as preset.1) and passes
+     `--remote-debug --remote-fs` + the main scene path (the
+     addon resolves the UID itself — "Godot's network
+     filesystem may omit the UID cache", their comment).
+- **What Xogot cannot run** (Differences doc): no C#, no native
+  (C++/Swift/Rust) plugins, GDScript-only addons. This game:
+  pure GDScript, zero native code, zero .NET — compatible.
+- **Virtual Controller**: Project Settings > Input Devices >
+  Virtual Controller (surfaced by the addon). **Left OFF by
+  design** — the game ships its own touch stack (move stick +
+  cam stick + X/Y/A/B); Apple's system overlay would fight it.
+  Flip it there only if you ever want the system gamepad.
+- **iOS Virtual memory**: Xogot 1.7.12 "increased the iOS
+  memory limit to support larger projects" — our 13 MB audio
+  bank streams (no full-bank load), all 3D is procedural
+  meshes (no gltf/obj files to misplace).
+- **The renderer**: Xogot's backend is Metal (their release
+  notes fix Metal shader issues). The repo's own proven law
+  stands: Mobile method on iOS, the XOGOT SAFE path — and the
+  ANDROID preset pins gl_compatibility at runtime (each channel
+  on its tested renderer, S5.21b).
+- **Assets**: fonts are TTFs with standard Godot imports
+  (Xogot's release notes track the Font Importer parity);
+  audio .ogg/.wav standard imports. No 3D model files — the
+  world is built from engine primitives in scripts.
+
+## 6. What fails on the phone (the honest predictions)
 
 - The club canyon on a low-end GPU (< 2019): expect 25–30 fps;
   the glow/lens Settings toggles are the fallbacks.

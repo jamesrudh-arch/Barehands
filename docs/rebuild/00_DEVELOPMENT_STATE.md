@@ -699,6 +699,26 @@ rendering_method.mobile is now pinned to gl_compatibility.
 Boot smoke 42/42 after all three. Research-backed: non-debug
 keystore for any Play Store upload (official export docs).
 
+## S5.22 — XOGOT, THE DOCUMENTED ALIGNMENT
+
+Researched from Xogot's CURRENT sources (the XogotDocs repo,
+App Store release notes, the official addon - not memory):
+iOS App Store Xogot 1.7.12 embeds Godot 4.7 (4.6->4.7 at
+release 1.7.2; same minor line as this build), Metal backend,
+GDScript-only, on-device import. SHIPPED: the official Xogot
+Connect addon vendored (MIT, pure GDScript, editor-only,
+parse-clean under 4.7.2), plugin enabled in project.godot,
+its Remote-Deploy export preset pre-provisioned (preset.1,
+the exact template the addon writes for itself), the DEVICE
+REPORT's Xogot section rewritten from the docs with the two
+sanctioned deploy paths (Files-App folder copy; Connect
+remote-deploy). The Virtual Controller setting stays OFF by
+design (the game ships its own touch stack). Verified after:
+boot 42, areas 32, story 34, phone2 17 - the game runtime is
+untouched (editor-only additions). Update Xogot on the phone
+to current before the device run; the stamp's runtime line
+now confirms the engine in one glance.
+
 ## NEXT ACTION (exact)
 
 1. THE DEVICE REPORT runs on hardware (P0 - the checklist is

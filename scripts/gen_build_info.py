@@ -26,8 +26,8 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 OUT = ROOT / "scripts" / "build_info.gd"
 
 BATCH = sys.argv[1] if len(sys.argv) > 1 else "B21"
-CONFIG = "xogot-mobile-safe (Mobile renderer, XOGOT SAFE default on iOS)"
-PLATFORM = "iPhone via Xogot (Godot 4.7 Mobile/Metal); Linux desktop dev"
+CONFIG = ("xogot-mobile-safe (Mobile renderer, the proven Xogot iOS path; Xogot Connect addon vendored + preset provisioned)")
+PLATFORM = ("iPhone via Xogot App Store 1.7.12 (engine Godot 4.7, Metal backend); Linux desktop dev")
 
 
 def git(args: list) -> str:

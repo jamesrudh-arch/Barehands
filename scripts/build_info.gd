@@ -5,9 +5,9 @@ class_name BuildInfo
 ## autoload), in the debug menu, on Stage 0, in the SafeBoot log and in
 ## the DEVICE REPORT. COMMIT is the CODE commit this build runs; the
 ## stamp commit itself lands one above it (see VERSION.txt at the root).
-const BATCH := "S5.21b"
-const COMMIT := "bde1fb9"
-const BUILT := "2026-11-24 17:07 UTC"
-const STAMP := "S5.21b bde1fb9 (2026-11-24 17:07 UTC)"
-const CONFIG := "xogot-mobile-safe (Mobile renderer, XOGOT SAFE default on iOS)"
-const PLATFORM := "iPhone via Xogot (Godot 4.7 Mobile/Metal); Linux desktop dev"
+const BATCH := "S5.22"
+const COMMIT := "30f95f9"
+const BUILT := "2026-11-24 17:30 UTC"
+const STAMP := "S5.22 30f95f9 (2026-11-24 17:30 UTC)"
+const CONFIG := "xogot-mobile-safe (Mobile renderer, the proven Xogot iOS path; Xogot Connect addon vendored + preset provisioned)"
+const PLATFORM := "iPhone via Xogot App Store 1.7.12 (engine Godot 4.7, Metal backend); Linux desktop dev"
