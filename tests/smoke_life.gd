@@ -96,9 +96,13 @@ func _ready() -> void:
 			# thug at -20,3.4 keeps its own flee cycle running - the
 			# gate's walker was oscillating between two dangers and
 			# opened no net distance; suite flake, not a game bug)
+			# deterministic pick: mid-street (flee room to the
+			# west), clear of the fixed thug - the probe proves the
+			# flee itself opens 12+ m when unblocked
 			var w: CharacterBody3D = walkers[0]
 			for cand in walkers:
-				if (cand as Node3D).global_position.distance_to(
+				var cx: float = (cand as Node3D).global_position.x
+				if absf(cx) < 25.0 and (cand as Node3D).global_position.distance_to(
 						Vector3(-20.0, 0.05, 3.4)) > 14.0:
 					w = cand
 					break

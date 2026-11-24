@@ -16,7 +16,7 @@ var _scene_path := ""
 var _scene_inst: Node = null
 var _authored := {}      # scene -> {bg, amb_e, fog} (the base look)
 var _crimes_this_beat := 0
-var _rain: GPUParticles3D = null
+var _rain: CPUParticles3D = null
 var _rain_mat: ParticleProcessMaterial
 
 
@@ -156,7 +156,12 @@ func _apply_weather() -> void:
 			_rain.emitting = false
 
 
-## the rain column: streaks in a 16 m box over the hero
+## the rain column: streaks in a 16 m box over the hero.
+## CPUParticles3D (S5.15 law: GPUParticles drew NOTHING on the
+## compatibility path - the diff probe proved 0.05% pixel change
+## with emitting=true; CPU particles render on every renderer).
+## Streaks sized for the READABILITY law: a 1.4 cm sliver is
+## sub-pixel at street distance - these read as rain.
 func _ensure_rain() -> void:
 	var scene := get_tree().current_scene
 	if scene == null:
@@ -166,32 +171,30 @@ func _ensure_rain() -> void:
 		return
 	if _rain and is_instance_valid(_rain):
 		_rain.queue_free()
-	_rain = GPUParticles3D.new()
+	_rain = CPUParticles3D.new()
 	_rain.name = "RainColumn"
 	_rain.amount = int(Tuning.v("rain_particles"))
 	_rain.lifetime = 0.9
+	_rain.explosiveness = 0.0
 	_rain.visibility_aabb = AABB(Vector3(-9, -10, -9),
 			Vector3(18, 20, 18))
-	_rain_mat = ParticleProcessMaterial.new()
-	_rain_mat.direction = Vector3(0.06, -1, 0.04)  # a slight wind
-	_rain_mat.spread = 6.0
-	_rain_mat.gravity = Vector3(0, -30, 0)
-	_rain_mat.initial_velocity_min = 26.0
-	_rain_mat.initial_velocity_max = 34.0
-	_rain_mat.scale_min = 0.7
-	_rain_mat.scale_max = 1.3
-	_rain_mat.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
-	_rain_mat.emission_box_extents = Vector3(8.0, 0.4, 8.0)
-	_rain.process_material = _rain_mat
+	_rain.direction = Vector3(0.06, -1, 0.04)  # a slight wind
+	_rain.spread = 6.0
+	_rain.gravity = Vector3(0, -30, 0)
+	_rain.initial_velocity_min = 26.0
+	_rain.initial_velocity_max = 34.0
+	_rain.scale_amount_min = 0.8
+	_rain.scale_amount_max = 1.4
+	_rain.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+	_rain.emission_box_extents = Vector3(8.0, 0.4, 8.0)
 	var streak := BoxMesh.new()
-	streak.size = Vector3(0.014, 0.55, 0.014)
+	streak.size = Vector3(0.05, 0.9, 0.05)
 	var sm := StandardMaterial3D.new()
-	sm.albedo_color = Color(0.65, 0.75, 0.9, 0.6)
+	sm.albedo_color = Color(0.75, 0.85, 1.0, 0.75)
 	sm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	sm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	sm.vertex_color_use_as_albedo = true
 	streak.material = sm
-	_rain.draw_pass_1 = streak
+	_rain.mesh = streak
 	scene.add_child(_rain)
 	var hero := get_tree().get_first_node_in_group("player") as Node3D
 	if hero and is_instance_valid(hero):

@@ -68,6 +68,17 @@ func _ready() -> void:
 	_panel.set_anchors_preset(Control.PRESET_CENTER_RIGHT)
 	_panel.custom_minimum_size = Vector2(470, 300)
 	_panel.position = Vector2(-490, -150)
+	var ps := StyleBoxFlat.new()
+	ps.bg_color = Color(0.04, 0.05, 0.12, 0.96)
+	ps.border_color = Color(0.79, 0.02, 0.5)
+	ps.border_width_bottom = 2
+	ps.set_border_width_all(2)
+	ps.set_corner_radius_all(6)
+	ps.content_margin_left = 10.0
+	ps.content_margin_right = 10.0
+	ps.content_margin_top = 8.0
+	ps.content_margin_bottom = 10.0
+	_panel.add_theme_stylebox_override("panel", ps)
 	_root.add_child(_panel)
 	# ONE column inside the panel: a PanelContainer stretches
 	# EVERY child to its full rect - tabs and body as siblings
@@ -88,10 +99,18 @@ func _ready() -> void:
 		b.action_mode = BaseButton.ACTION_MODE_BUTTON_PRESS
 		b.pressed.connect(_set_tab.bind(t))
 		head.add_child(b)
+	# the body SCROLLS (S5.15 gate law: THE CHOICE's buttons fell
+	# below the panel fold - a call longer than the screen pushed
+	# the choices out of view; on a phone that is a soft-lock)
+	var scroll := ScrollContainer.new()
+	scroll.name = "BodyScroll"
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	slab.add_child(scroll)
 	_col = VBoxContainer.new()
 	_col.name = "Body"
 	_col.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	slab.add_child(_col)
+	scroll.add_child(_col)
 	# the ring banner: top-centre, under the objective line, added
 	# directly to the CanvasLayer (NOT _root - it must show while
 	# the phone slab is shut)
@@ -203,6 +222,10 @@ func ring(call: Dictionary) -> void:
 
 
 func _answer() -> void:
+	# answering pulls the CALL forward, whatever tab was open (the
+	# gate law: a choice behind the BOARD tab is no choice at all)
+	_tab = "CALLS"
+	_fill_dirty = true
 	_call = _ring
 	_ring = {}
 	_ring_panel.visible = false
@@ -558,8 +581,17 @@ func _taxi(dest: String) -> void:
 
 func _short_area(a: String) -> String:
 	var l: String = str(CITY[a]["label"]).trim_prefix("THE ")
-	if l.length() > 12:
-		l = l.substr(0, 11) + "."
+	match a:
+		"neighbourhood":
+			l = "HOME BLOCK"
+		"club_district":
+			l = "CLUB STRIP"
+		"warehouse":
+			l = "WAREHOUSE"
+		"docks":
+			l = "DOCKS"
+		"airport":
+			l = "AIRPORT"
 	return l
 
 

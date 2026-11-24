@@ -238,6 +238,10 @@ func _dodge() -> void:
 
 func _styles() -> void:
 	var c := _combat()
+	# S5.10: the five are LEARNED - unlock the teachers' three, then
+	# cycle the full set (brawler + weapon ride the boot default)
+	for st in ["kickboxing", "grappling", "drunken"]:
+		_hero().unlock_style(st)
 	# cycle through all five; each has its own clips + numbers
 	var ids := []
 	for i in 5:
@@ -249,6 +253,15 @@ func _styles() -> void:
 			ids.append(c.style_id)
 	_check(ids.size() == 5,
 			"the STYLE action cycles all five styles (%s)" % str(ids))
+	# the wrap: press until BRAWLER comes back (an input frame can
+	# swallow a press - the wrap is the law, not the press count)
+	for i in 4:
+		if c.style_id == "brawler":
+			break
+		Input.action_press("style")
+		await get_tree().process_frame
+		Input.action_release("style")
+		await _wait_s(0.15)
 	_check(c.style_id == "brawler",
 			"the cycle wraps back to BRAWLER (%s)" % c.style_id)
 	# WEAPON plays differently: same X, bigger number, longer reach

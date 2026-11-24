@@ -81,7 +81,7 @@ func set_style(id: String) -> void:
 
 func _style_unlocked(id: String) -> bool:
 	var unlocked: Array = WorldState.get_value("unlocked_styles",
-			["brawler"])
+			["brawler", "weapon"])
 	return unlocked.has(id)
 
 
@@ -89,7 +89,7 @@ func unlock_style(id: String) -> bool:
 	if not STYLES.has(id) or _style_unlocked(id):
 		return false
 	var unlocked: Array = WorldState.get_value("unlocked_styles",
-			["brawler"])
+			["brawler", "weapon"])
 	unlocked.append(id)
 	WorldState.set_value("unlocked_styles", unlocked)
 	style_changed.emit(id)

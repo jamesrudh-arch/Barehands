@@ -77,7 +77,7 @@ func _ready() -> void:
 	ws.set_weather("rain")
 	await _wait_s(0.4)
 	var rain := get_tree().current_scene.get_node_or_null(
-			"RainColumn") as GPUParticles3D
+			"RainColumn") as CPUParticles3D
 	_check(rain != null and rain.emitting,
 			"the rain column falls (particles emitting)")
 	_check(Sound.amb_player("rain_asphalt") != null
@@ -110,7 +110,7 @@ func _ready() -> void:
 	await Game.travel("neighbourhood", "start")
 	await _wait_s(1.6)
 	var rain2 := get_tree().current_scene.get_node_or_null(
-			"RainColumn") as GPUParticles3D
+			"RainColumn") as CPUParticles3D
 	_check(rain2 != null and rain2.emitting,
 			"the rain follows the travel")
 	# --- the save carries the clock

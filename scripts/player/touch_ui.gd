@@ -147,8 +147,12 @@ var _drive_pills: Array = []
 
 func _build_pills() -> void:
 	var y := _safe_bottom() - 44.0
-	_foot_pills = _pill_row(PILLS, _safe_right() - 150.0 - 250.0, y)
-	_drive_pills = _pill_row(DRIVE_PILLS, _safe_right() - 150.0 - 250.0, y)
+	# the row ENDS at the safe margin (S5.15 gate law: the 6th pill
+	# clipped off-screen since GUN joined the row)
+	var right := _safe_right() - 150.0
+	_foot_pills = _pill_row(PILLS, right - PILLS.size() * 92.0, y)
+	_drive_pills = _pill_row(DRIVE_PILLS,
+			right - DRIVE_PILLS.size() * 92.0, y)
 	for b in _drive_pills:
 		b.visible = false
 

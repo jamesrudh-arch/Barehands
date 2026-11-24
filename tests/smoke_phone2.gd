@@ -29,7 +29,7 @@ func _labels() -> Array:
 	var phn := _ph()
 	if phn == null:
 		return out
-	var body := phn.get_node_or_null("Root/Slab/SlabCol/Body")
+	var body := phn.get_node_or_null("Root/Slab/SlabCol/BodyScroll/Body")
 	if body == null:
 		return out
 	for l in body.get_children():
@@ -64,7 +64,7 @@ func _ready() -> void:
 	ph._set_tab("MAP")
 	await _wait_s(0.3)
 	var mapc: Control = null
-	for c in ph.get_node("Root/Slab/SlabCol/Body").get_children():
+	for c in ph.get_node("Root/Slab/SlabCol/BodyScroll/Body").get_children():
 		if c is Control and not (c is Label) and not (c is Button):
 			mapc = c
 	_check(mapc != null and mapc is Control,
@@ -131,7 +131,7 @@ func _ready() -> void:
 	ph._set_tab("SETTINGS")
 	await _wait_s(0.3)
 	var sliders: Array = []
-	for c in ph.get_node("Root/Slab/SlabCol/Body").get_children():
+	for c in ph.get_node("Root/Slab/SlabCol/BodyScroll/Body").get_children():
 		if c is HBoxContainer:
 			for cc in c.get_children():
 				if cc is HSlider:
@@ -160,7 +160,7 @@ func _ready() -> void:
 	_check(typing, "the line types out (characters hidden)")
 	await _wait_s(4.0)
 	var btns: Array = []
-	for c in ph.get_node("Root/Slab/SlabCol/Body").get_children():
+	for c in ph.get_node("Root/Slab/SlabCol/BodyScroll/Body").get_children():
 		if c is Button:
 			btns.append(c)
 	_check(btns.size() >= 1
@@ -174,7 +174,7 @@ func _ready() -> void:
 	await _wait_s(0.3)
 	# the log entry carries the call; replay re-reads it
 	var has_voicemail := false
-	for c in ph.get_node("Root/Slab/SlabCol/Body").get_children():
+	for c in ph.get_node("Root/Slab/SlabCol/BodyScroll/Body").get_children():
 		if c is Button and str((c as Button).text) \
 				== "PLAY VOICEMAIL":
 			has_voicemail = true

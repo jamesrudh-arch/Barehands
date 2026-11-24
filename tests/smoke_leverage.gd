@@ -31,7 +31,7 @@ func _hero() -> Node3D:
 func _board_text() -> String:
 	var ph := get_tree().get_first_node_in_group("phone")
 	var txt := ""
-	var body := ph.get_node_or_null("Root/Slab/SlabCol/Body")
+	var body := ph.get_node_or_null("Root/Slab/SlabCol/BodyScroll/Body")
 	if body == null:
 		return ""
 	for l in body.get_children():

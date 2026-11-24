@@ -351,23 +351,73 @@ pay() returns ok, not invented keys; bump() reads a 0 default
 heat 10 spawns THE COPY into any wait; prices LAYER (midnight x
 hot block) and expectations must compound honestly.
 
+## S5.15 — THE CLOSE-OUT AUDIT (one pass, all verified)
+
+**The full battery**: all FIFTEEN suites green at the final state -
+world 15, econ 34, phone2 17, skills 18, leverage 17, surface 11,
+city 15, story 29, jobs 27, areas 32, life 21, hero 30, combat_r
+28, pistol 10, police 14 = **314 checks**. (Fixes en route: the
+life flee-gate suite flake made deterministic - the probe proved
+the walker opens 12+ m when unblocked; combat_r teaches the three
+locked styles before cycling + the wrap check presses until
+BRAWLER returns; combat.gd's missing-key fallback is
+["brawler", "weapon"].)
+
+**The four visual gates** (VLM-judged, evidence in
+download/overhaul_audit/shots/gate_*.jpg): rain 7/10, MAP 6/10,
+BOARD 8/10, CHOICE 7/10. Four real defects found + fixed:
+1. THE INVISIBLE RAIN: GPUParticles3D emitted=true and rendered
+   ZERO pixels on the compatibility path (the frame-diff probe
+   measured 0.05% pixel change). Rebuilt on CPUParticles3D with
+   readability-law streaks (5 cm x 90 cm) - the re-probe reads
+   8.93% of the street frame changing, 34.4% looking up.
+2. THE CHOICE BELOW THE FOLD: the phone body had no
+   ScrollContainer - a 3-line call pushed SAVE THEM / TAKE THE
+   PAYOFF off-screen (a soft-lock of the ending on a phone).
+   The body scrolls now.
+3. Answering a ring now forces the CALLS tab forward (a choice
+   behind the BOARD tab is no choice).
+4. The touch pill row's END anchors the safe margin (the 6th
+   pill had clipped off-screen since GUN joined) + the phone
+   panel gained an opaque noir StyleBox (world labels bled
+   through).
+
+**The deliverable**: download/LEVERAGE_Full_Game_Audit_and_
+Upgrade_Roadmap.docx (+ PDF) - the full audit (coverage vs the
+master design section by section, the defect ledger) and a
+RESEARCH-BACKED roadmap with six sources read in full and cited
+by URL: GDQuest 3D optimization, the Godot renderers overview,
+the fxguide Remember Me rain case study, the Sifu deep-dive,
+the arXiv "Playing to Pay" monetization study, GameRefinery's
+2025 outlook. Headline recommendations: the device report is
+P0; rain v2 as three layers (near column + camera-locked sheet
++ cover-respecting splashes + wet BRDF); the combat
+staple/specific audit (Sifu); MultiMesh + the 8-lights-per-mesh
+check (Godot docs/GDQuest); premium positioning per the
+monetization research.
+
+LAWS this pass: the VLM reads dark noir frames as "black" -
+pixel-truth first, VLM for semantics; a frame-DIFF (dry vs wet
+from one camera) is the only honest rain test; a stale probe
+file lies (the GPUParticles cast on a CPUParticles node read
+exists=false); the docx TOC tool leaves a dead nested PAGEREF
+hyperlink inside the TOC field (LibreOffice renders it as a
+numberless first line - cut the hyperlink, keep the field);
+ImageRun sizes must come from a real JPEG/PNG parser (PNG
+offsets on a JPEG give 32-million-pixel heights).
+
 ## NEXT ACTION (exact)
 
-1. The FULL final battery: world 15, econ 34, phone2 17, skills
-18, leverage 17, surface 11, city 15 AND smoke_story 29/29 are
-GREEN at the final state (867aa92). Still to re-run after the
-S5.12-S5.14 patches: jobs (27/27 at S5.11), hero, combat_r,
-pistol, police, areas, life. Expect green; fix what isn't.
-2. VLM gates outstanding: the rain in motion, the MAP app, the
-BOARD app, THE CHOICE screen. Patterns proven in earlier gates.
-3. Open nits: no music (the second city "its own music" is
-unbuilt), no hangouts/fishing/darts (trust moves only through the
-story + extortion), Grappling still teacherless (the Collector,
-later), the map's second city shows "by plane only" - the airport
-taxi is the route, NG+ Carried Debt unbuilt, no photo mode /
-tournaments / collectibles (FULL tier per 02 §17).
-4. Then: the FULL tier list in 02_MASTER_DEPMENT §17, or the
-first on-device DEVICE REPORT (none has ever been received).
+1. THE DEVICE REPORT (P0 of the roadmap): Xogot run on iPhone
+   13 mini + iPhone 16; fps, draw calls, light counts per area,
+   load + travel times; hold 30/60 or cut (GDQuest: consistency
+   beats peaks). Nothing else in the roadmap can be prioritized
+   honestly before it.
+2. Then the roadmap order: rain v2 -> combat staple/specific
+   audit -> adaptive score -> grappling teacher -> MAP polish ->
+   the FULL tier.
+3. Open defects ledger lives in the report (Table 3): MAP label
+   clipping, no music, HUD contrast/truncation nits.
 
 ## Known blockers / watch items
 
