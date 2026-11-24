@@ -56,6 +56,24 @@ func _ready() -> void:
 	await _snap("river")
 	await _wait_s(1.2)
 	await _snap("river2")
+	# --- SHOT 3: the club canyon (the glow/halo change's look check)
+	await Game.travel("club_district", "start")
+	await _wait_s(1.4)
+	for r in get_tree().get_nodes_in_group("camera_rig"):
+		r.set_process(false)
+	var cam3 := Camera3D.new()
+	cam3.name = "GateCam3"
+	get_tree().current_scene.add_child.call_deferred(cam3)
+	await get_tree().process_frame
+	var old3 := get_viewport().get_camera_3d()
+	if old3:
+		old3.current = false
+	cam3.current = true
+	cam3.global_position = Vector3(-6.0, 3.0, 8.0)
+	cam3.look_at(Vector3(-20.0, 3.5, -6.0))
+	cam3.fov = 64.0
+	await _wait_s(0.8)
+	await _snap("club")
 	get_tree().quit(0)
 
 

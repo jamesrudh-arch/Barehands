@@ -32,8 +32,9 @@ static func grade(e: Environment, exposure := 1.3) -> void:
 	e.glow_hdr_threshold = 1.05
 	e.glow_hdr_scale = 1.0
 	# two bloom radii: a tight inner halo + a wide city haze
-	e.set_glow_level(3, 0.6)
-	e.set_glow_level(5, 0.3)
+	# S5.20: one bloom radius (the second blur pyramid measured
+	# ~30 ms/frame under llvmpipe; the wide haze folds into 3)
+	e.set_glow_level(3, 0.9)
 	# the grade: lift contrast so silhouettes read, sat so the
 	# sodium/magenta split pops - noir is TEAL shadows vs WARM
 	# sources, not gray
@@ -162,7 +163,7 @@ static func blob(parent: Node3D, radius := 0.55) -> MeshInstance3D:
 static var _halo_tex: ImageTexture
 
 static func halo(parent: Node3D, pos: Vector3, col: Color,
-		size := 3.2) -> MeshInstance3D:
+		size := 3.0) -> MeshInstance3D:
 	if _halo_tex == null:
 		var img := Image.create(128, 128, false, Image.FORMAT_RGBA8)
 		for y in 128:
@@ -180,7 +181,7 @@ static func halo(parent: Node3D, pos: Vector3, col: Color,
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
 	mat.albedo_texture = _halo_tex
-	mat.albedo_color = Color(col.r, col.g, col.b, 0.4)
+	mat.albedo_color = Color(col.r, col.g, col.b, 0.52)
 	qm.material = mat
 	m.mesh = qm
 	m.position = pos

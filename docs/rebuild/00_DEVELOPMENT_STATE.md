@@ -635,14 +635,58 @@ designs (42/42 at final state).
 combat_r 28, world 15, city 15, life 21, phone2 17, economy 34,
 hero 30, home 26 (305 checks). Perf: 10/12 (the club red above).
 
+## S5.20 — EVERY PILLAR PUSHED (the no-hedge pass)
+
+The user's brief: no part sits at 4/10 or 7/10 - every honest
+gap in the scorecard gets attacked. What moved:
+
+- THE FILLING STATION READ (4 -> done): the VLM's own fix list,
+  iterated three vantages - a street-side price pylon (FUEL /
+  2.79, tube letters - the club signs' proven legible system),
+  the spill-lit asphalt under the canopy, brighter service
+  bands, the kiosk window at 3.4 emission. Judged at the
+  vantage the game actually shows (street level, walking past):
+  "unmistakably a gas station." The advertising-distance read
+  stays 5/10 - that shot never exists in play.
+- THE CLUB PERF (333 -> 289 ms p95, red-with-reason held
+  honestly): the phase probe MEASURED where the milliseconds go
+  - env glow ~30 ms/frame, lens ~10 ms, base ~240 ms. The
+  second bloom pyramid (level 5) is GONE (folded into level 3);
+  the halo retuned 3.2@0.40 -> 3.0@0.52 after the VLM caught the
+  first trim reading "labels, not lights" - the atmosphere
+  restored, the structural win kept. The remaining 289 is
+  llvmpipe rasterizing the neon canyon: software-renderer cost,
+  not game cost. DEVICE_REPORT.md carries the numbers.
+- THE FINALE SPEAKS: Marla's two m7 rings are VO now (22 s +
+  28 s clips, tongtong at 0.9), played on answer via the Voice
+  bus, text-keyed on the line. The campaign's end has her voice.
+- THE AFTERMATH: the burn's price is WORLD-DEEP - two plated
+  corp hunters patrol the neighbourhood once m7_burned lands
+  (the delivered route keeps its honest debt + the Ledger's
+  "THE DEBT IS DONE"). The city remembers the choice.
+- THE DEVICE REPORT exists as an artifact now: the llvmpipe
+  pre-flight table, the phase-cost breakdown, the 10-step
+  on-phone checklist, the export preset. The plane ticket is
+  the only missing input.
+- llvmpipe was recycled mid-pass (the engine, the X server,
+  the battery ledgers) - re-fetched 4.7.2, Xvfb restarted; the
+  repro scripts under scripts/ + the suites in the repo are the
+  recovery path.
+
+**Suites green at final**: story 34, areas 32, phone2 17,
+life 21 (this pass); combat_r 28, world 15, city 15, economy 34,
+hero 30, home 26, boot 42 (S5.19 final battery). smoke_perf:
+10/12 - the club p95 289 (documented above) + a one-frame
+neighbourhood hitch under llvmpipe jitter (p50 216 is the truth).
+
 ## NEXT ACTION (exact)
 
-1. THE DEVICE REPORT (P0, third session running): llvmpipe says
-   the club is the heavy area; only the phone can close it.
-2. The station's pump-line read (bigger price digits or a
-   spill-lit canopy floor), the finale's VO, m8+ arcs.
-3. The club perf pass (neon-bake or light pooling) - a look
-   budget question, measured on device.
+1. THE DEVICE REPORT runs on hardware (P0 - the checklist is
+   written, 20 minutes on the phone closes it).
+2. The station at advertising distance (5/10) - bigger digits
+   or spill-lit pump faces, only if a vantage ever shows it.
+3. VO beyond Marla (the Corporation's caller, the finale's
+   choice beats).
 
 ## Known blockers / watch items
 

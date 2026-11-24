@@ -231,6 +231,18 @@ func _answer() -> void:
 	_ring_panel.visible = false
 	_call_log.append({"from": _call.get("from", "?"),
 			"state": "answered", "call": _call.duplicate(true)})
+	# S5.20 THE VOICE: Marla's finale rings are spoken (the cold
+	# open's tongtong, on the Voice bus; the hero stays text)
+	var lines: Array = _call.get("lines", [])
+	if not lines.is_empty():
+		var l0 := str(lines[0])
+		var clip := ""
+		if "counting house" in l0:
+			clip = "vo_m7_ring1"
+		elif "in your hands" in l0:
+			clip = "vo_m7_ring2"
+		if clip != "":
+			Sound.play(clip, -2.0, 1.0, 0.0, "Voice")
 	_tab = "CALLS"
 	Log.info("Phone: answered %s" % str(_call.get("from", "?")))
 	_fill_dirty = true

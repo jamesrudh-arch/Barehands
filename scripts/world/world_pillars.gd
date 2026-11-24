@@ -10,6 +10,9 @@ extends Node3D
 ## grey shapes on strung wires that bob, and flush when the hero
 ## closes. One script, spawned per area from Game.travel.
 
+const CLS_NightLook := preload(
+		"res://scripts/world/night_look.gd")
+
 const FISH_COUNT := 6
 const BIRD_WIRES := 3
 const FLUSH_R := 6.5
@@ -37,6 +40,10 @@ func _build(area_id: String) -> void:
 	if area_id == "neighbourhood":
 		_filling_station()
 		_wires_and_birds()
+		# S5.20 THE AFTERMATH: burn the ledger and the Corporation
+		# remembers - plate men pace your street for keeps
+		if WorldState.flag("m7_burned"):
+			_corp_hunters()
 	elif area_id == "second_city":
 		_wires_and_birds()   # the club's neon load carries no birds
 
@@ -201,8 +208,8 @@ func _filling_station() -> void:
 		var bm2 := BoxMesh.new()
 		bm2.size = Vector3(0.84, 0.5, 1.04)
 		var bmat2 := StandardMaterial3D.new()
-		bmat2.albedo_color = Color(0.85, 0.83, 0.78)
-		bmat2.roughness = 0.6
+		bmat2.albedo_color = Color(0.93, 0.91, 0.87)
+		bmat2.roughness = 0.45
 		bm2.material = bmat2
 		band.mesh = bm2
 		band.position = Vector3(px, 1.0, 0)
@@ -238,13 +245,43 @@ func _filling_station() -> void:
 	var kwmat := StandardMaterial3D.new()
 	kwmat.albedo_color = Color(0, 0, 0)
 	kwmat.emission_enabled = true
-	kwmat.emission = Color(1.0, 0.85, 0.6)
-	kwmat.emission_energy_multiplier = 1.8
+	kwmat.emission = Color(1.0, 0.88, 0.66)
+	kwmat.emission_energy_multiplier = 3.4
 	kwm.material = kwmat
 	kwin.mesh = kwm
 	kwin.position = Vector3(0, 1.5, 3.48)
 	root.add_child(kwin)
 	_station_glow.append(kwin)
+	# THE SPILL: the canopy's light pools on the asphalt - the
+	# ground under it reads LIT from down the street
+	var spill := MeshInstance3D.new()
+	var spm := QuadMesh.new()
+	spm.size = Vector2(10.5, 6.5)
+	var spmat := StandardMaterial3D.new()
+	spmat.albedo_color = Color(1.0, 0.82, 0.55, 0.10)
+	spmat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	spmat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	spmat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	spm.material = spmat
+	spill.mesh = spm
+	spill.rotation.x = -PI / 2.0
+	spill.position = Vector3(0, 0.06, 0)
+	root.add_child(spill)
+	# THE PYLON: the street-side price totem - the station's icon
+	# anchor, readable at 50 m (the club signs' proven tube read)
+	var py := MeshInstance3D.new()
+	var pym := BoxMesh.new()
+	pym.size = Vector3(0.45, 5.6, 0.45)
+	pym.material = steel
+	py.mesh = pym
+	py.position = Vector3(-6.2, 2.8, -1.0)
+	root.add_child(py)
+	CLS_NightLook.sign(root, "FUEL",
+			Vector3(-6.2, 4.6, -1.0), PI,
+			Color(0.45, 0.9, 1.0), 110, false)
+	CLS_NightLook.sign(root, "2.79",
+			Vector3(-6.2, 3.5, -1.0), PI,
+			Color(1.0, 0.62, 0.25), 96, false)
 	# THE SIGN: FUEL, emissive, on the canopy's street edge
 	var sign := MeshInstance3D.new()
 	var sm := BoxMesh.new()
@@ -259,6 +296,21 @@ func _filling_station() -> void:
 	sign.position = Vector3(0, 5.2, -3.4)
 	root.add_child(sign)
 	_station_glow.append(sign)
+
+
+func _corp_hunters() -> void:
+	## the burned route's price: two plated collectors, pacing
+	## the east approach - not a mission, just the world's memory
+	var enemy_script := preload("res://scripts/npc/enemy.gd")
+	for i in 2:
+		var e: CharacterBody3D = enemy_script.new()
+		e.position = Vector3(24.0 + i * 7.0, 0.05, 1.5)
+		e.rotation.y = PI if i % 2 == 0 else 0.0
+		e.set("hp", 130.0)
+		e.set_meta("armored", true)
+		e.add_to_group("corp_hunter")
+		add_child(e)
+	Log.info("WorldPillars: corp hunters patrol (the burn's price)")
 
 
 # ============================================================
