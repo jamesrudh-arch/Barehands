@@ -290,6 +290,10 @@ func _open_front(label: String, x: float, glow: Color,
 	front.add_child(spill)
 	# the neon sign
 	_sign(front, label, glow, Vector3(0, 4.6, 0.2), 40)
+	# S5.17: the sign's colour bleeds onto the wet walk under it
+	# (the sodium smears had lamps only; the neon pays too)
+	CLS_NightLook.wet_streak(front,
+			Vector3(0, 0.02, 2.6), glow, 4.5, 1.6)
 	# the interior dressing per kind + its warm light
 	_interior_dressing(room, kind)
 	var lamp := OmniLight3D.new()

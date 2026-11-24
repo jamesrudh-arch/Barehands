@@ -63,6 +63,9 @@ var _swing_hit := false  # one swing, one hit (no per-frame multi-hits)
 func _ready() -> void:
 	add_to_group("npc")
 	add_to_group("enemy")
+	# the grounding disc (S5.17): the blob anchors the body to the
+	# wet street (NightLook.blob existed - nothing called it)
+	preload("res://scripts/world/night_look.gd").blob(self, 0.55)
 	# S5.4 meta hooks (THE COPY + future casts): one authoritative
 	# body, per-instance identity
 	name = str(get_meta("npc_name", "Thug"))
@@ -273,6 +276,39 @@ func _face(to: Vector3, delta: float) -> void:
 
 
 ## The combat core calls this (same contract as the train targets).
+## THE HIT FLASH (S5.17): a white additive billboard pops on the
+## chest for 90 ms - the 2D-fighter law that reads at any camera
+## distance. Per-instance quad, no shared-material surgery (the
+## Kenney mats are one resource across every enemy on the street).
+func _flash_hit() -> void:
+	if _flash and is_instance_valid(_flash):
+		_flash.queue_free()
+	var m := MeshInstance3D.new()
+	m.name = "HitFlash"
+	var qm := QuadMesh.new()
+	qm.size = Vector2(1.15, 1.5)
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.albedo_color = Color(1.0, 1.0, 1.0, 0.9)
+	mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	mat.no_depth_test = true
+	qm.material = mat
+	m.mesh = qm
+	m.position = Vector3(0, 1.05, 0)
+	add_child(m)
+	_flash = m
+	# pop on, fade out, gone in 90 ms (a scene-tree timer, not a
+	# tween - the enemy may free itself mid-hit)
+	get_tree().create_timer(0.09).timeout.connect(func():
+		if _flash and is_instance_valid(_flash):
+			_flash.queue_free())
+
+
+var _flash: MeshInstance3D = null
+
+
 func take_hit(damage: float, knockback: float, from_dir: Vector3,
 		posture_damage: float) -> void:
 	if state == State.DOWNED:
@@ -283,6 +319,7 @@ func take_hit(damage: float, knockback: float, from_dir: Vector3,
 	_t = 0.0
 	velocity = from_dir.normalized() * knockback
 	move_and_slide()
+	_flash_hit()
 	_play("ambient/Hit_A" if hp > MAX_HP * 0.4 else "ambient/Hit_B")
 	Sound.play("body_med_0", -4.0, randf_range(0.9, 1.1))
 	if posture <= 0.0:

@@ -25,15 +25,15 @@ static func grade(e: Environment, exposure := 1.3) -> void:
 	# VLM-tuned (S5.16): the road hotspot blew out at 0.85/1.2 -
 	# raise the threshold so ONLY true HDR pixels (lamps, neon)
 	# bloom, and pull the strength back one notch
-	e.glow_intensity = 0.45
-	e.glow_strength = 0.8
+	e.glow_intensity = 0.6
+	e.glow_strength = 0.85
 	e.glow_bloom = 0.05
 	e.glow_blend_mode = Environment.GLOW_BLEND_MODE_ADDITIVE
 	e.glow_hdr_threshold = 1.05
 	e.glow_hdr_scale = 1.0
 	# two bloom radii: a tight inner halo + a wide city haze
-	e.set_glow_level(3, 0.45)
-	e.set_glow_level(5, 0.2)
+	e.set_glow_level(3, 0.6)
+	e.set_glow_level(5, 0.3)
 	# the grade: lift contrast so silhouettes read, sat so the
 	# sodium/magenta split pops - noir is TEAL shadows vs WARM
 	# sources, not gray

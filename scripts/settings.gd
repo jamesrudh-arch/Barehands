@@ -42,6 +42,7 @@ const DEFAULTS := {
 	"left_handed": false,
 	"first_run_done": false,
 	"haptics_on": true,
+	"noir_screen": true,  # the S5.17 lens (vignette/grain/fringe)
 	"haptic_str": 1.0,
 	"preset": "classic",
 	"layout": {},

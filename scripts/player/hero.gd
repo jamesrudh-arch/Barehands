@@ -86,6 +86,12 @@ func _build_rig() -> void:
 	# S5.16: the contact blob - grounds the hero on the wet street
 	CLS_NightLook.blob(self, 0.6)
 	_skel = _find(_rig, Skeleton3D) as Skeleton3D
+	# the grounding disc (S5.17): nobody called NightLook.blob -
+#    every character floated. The hero anchors first.
+	if _rig:
+		var CLS_NightLook := preload(
+				"res://scripts/world/night_look.gd")
+		CLS_NightLook.blob(_rig, 0.6)
 	_anim = _find(_rig, AnimationPlayer) as AnimationPlayer
 	if _anim == null and _skel != null:
 		_anim = AnimationPlayer.new()

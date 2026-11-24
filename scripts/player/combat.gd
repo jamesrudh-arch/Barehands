@@ -329,7 +329,18 @@ func _try_hit() -> void:
 		for layer in _attack.audio_layers:
 			Sound.play(layer, -3.0)
 		Fx.emit_hit("kick", from + fwd * 1.2)
-		_hitstop_s = 0.05  # the selective freeze, attacker only
+		# S5.17: hitstop carries the move's WEIGHT - a jab nips
+		# (0.04 s), a heavy or a super SLAMS (0.10 s). Flat 0.05
+		# made every hit read the same.
+		var weight: float = clampf(
+				float(_attack.damage) / 26.0, 0.0, 1.0)
+		_hitstop_s = lerpf(0.04, 0.10, weight)
+		# the camera answers every landed blow (0.25 jab whisper
+		# -> 0.6 heavy slam; stacks through the trauma model)
+		var cam_rig := get_tree().get_first_node_in_group(
+				"camera_rig") as Node3D
+		if cam_rig and cam_rig.has_method("add_impulse"):
+			cam_rig.add_impulse(lerpf(0.25, 0.6, weight))
 	else:
 		Sound.play("cloth_2", -12.0, 1.2)  # the whiff
 

@@ -468,19 +468,71 @@ the VLM still reads them), a noir HUD skin, the hero's bright
 trousers, rain depth-sorting (engine-level, acceptable at this
 scale).
 
+## S5.17 — THE FEEL PASS (the "world-class" reckoning)
+
+**The honest audit**: the juice skeleton existed (selective
+hitstop, haptics patterns, layered impact audio, an Fx signal
+bus, slow-mo machinery) - but the camera was SILENT (no shake,
+no FOV language, no idle life), damage had no visual signature
+(the hitstun state played with zero flash), no character was
+grounded (NightLook.blob existed and NOTHING called it), and the
+screen had no lens identity (grade yes, print no).
+
+**What landed**:
+- CAMERA SPEAKS: trauma-decay impulse shake (Eiserloh model,
+  quadratic falloff, pos+roll never pitch - pitch fights the
+  look stick), sprint FOV kick 68->74, handheld drift when the
+  hero stands (a locked camera reads as surveillance).
+- HITSTOP CARRIES WEIGHT: jab 0.04 s -> heavy/super 0.10 s
+  (flat 0.05 made every hit read identical) + the camera answers
+  every landed blow (0.25 whisper -> 0.6 slam, stacks through
+  trauma).
+- THE HIT FLASH: 90 ms white additive billboard on the chest -
+  the 2D-fighter law, reads at any camera distance; per-instance
+  quad, no shared-material surgery.
+- THE BLOBS: every hero and enemy grounded (the float is dead).
+- THE NOIR LENS (scripts/world/noir_screen.gd): fullscreen
+  canvas pass at layer 1 (under HUD 20, over world 0) -
+  vignette, animated film grain, edge-only chromatic fringe,
+  filmic toe (crushed blacks). Settings-gated ("noir_screen").
+  Dose history: the first pass hit VLM 4/10 ("all at 30%
+  intensity"); doubled to 52/11%/34 + gamma 1.12 + toe -> 6.5
+  ("post stack genuinely working"), + restored glow halation
+  (0.6/0.6/0.3 - safe now the DUSK sky lift is dead) + neon
+  wet-streaks under every front -> 7/10 ("solid lit-noir
+  baseline; missing selective bloom bleed, colored reflections,
+  and layered rain keeps it from 9").
+- Pixel truths at final: avg 58, sky 28, street 69, p95 168.
+
+**Suites green at final state**: combat_r 28, world 15, city 15,
+life 21, areas 32, phone2 17, story 29 (137 checks this pass).
+The combat suite caught a real bug on the way: my camera-impulse
+patch collided with an existing `rig` local (parse error killed
+the whole load chain - the inference law again); the life
+spawn-failures were first-run shader-compile flakes, gone on
+re-run.
+
+**What 10/10 still demands** (the honest gap list, in priority
+order): planar wet-road reflections (the biggest noir-in-rain
+tell), layered rain v2 (depth-modulated density, wind, splash
+rings + ripples where streaks land, rain catching neon colour),
+selective bloom bleed (colour-matched neon reflections on wet
+surfaces), AO or cheaper vertex-bent contact shading, the device
+report (P0: the lens + glow roughly double the fragment cost -
+measure, don't assume), the hero costume value pass.
+
 ## NEXT ACTION (exact)
 
-1. THE DEVICE REPORT (P0 of the roadmap): Xogot run on iPhone
-   13 mini + iPhone 16; fps, draw calls, light counts per area,
-   load + travel times. The art pass roughly doubles the
-   emissive surface count - the budget needs measuring, not
-   assuming.
-2. The rain v2 layered system (near column + camera-locked
-   sheet + cover-respecting splash rings) per the fxguide
-   research already in the audit report.
-3. The combat staple/specific audit (Sifu) + the adaptive score.
-4. The VLM's polish list above, after the device report
-   prioritizes it honestly.
+1. THE DEVICE REPORT (P0, unchanged): Xogot run on iPhone 13
+   mini + 16; fps + draw calls + light counts per area with the
+   lens + glow live. The art passes have spent the fragment
+   budget twice over - it needs measuring.
+2. Wet-road planar reflections (the VLM's "single biggest
+   noir-in-rain tell") + neon colour bounce quads.
+3. Rain v2 layered system (the Remember Me research in the
+   audit report).
+4. The combat staple audit (Sifu deep-dive notes) + adaptive
+   score; the hero costume value pass.
 
 ## Known blockers / watch items
 
