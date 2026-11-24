@@ -1,4 +1,5 @@
 extends CharacterBody3D
+const CLS_NightLook := preload("res://scripts/world/night_look.gd")
 
 ## AN ENEMY (rebuild step 11): the street's muscle on the proven
 ## KayKit pipeline. The AI is honest and readable - the player must
@@ -95,6 +96,7 @@ func _ready() -> void:
 		tag.outline_size = 10
 		tag.position = Vector3(0, 2.15, 0)
 		add_child(tag)
+		CLS_NightLook.blob(self, 0.55)
 		_anim = _find(_rig, AnimationPlayer) as AnimationPlayer
 		if _anim == null and _skel != null:
 			# the cast bundle ships no player (no clips of her own)

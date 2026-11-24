@@ -8,6 +8,7 @@ extends Node3D
 ## plane at its stand with the stairs down.
 
 const CLS_MatLib := preload("res://scripts/world/mat_lib.gd")
+const CLS_NightLook := preload("res://scripts/world/night_look.gd")
 
 const PALETTE := {
 	"ink": Color(0.015, 0.02, 0.035),
@@ -172,6 +173,7 @@ func _lighting() -> void:
 	e.ambient_light_color = Color(0.09, 0.11, 0.15)
 	e.ambient_light_energy = 1.0
 	e.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	CLS_NightLook.grade(e)
 	e.tonemap_exposure = 1.35
 	e.tonemap_white = 1.0
 	e.fog_enabled = true
@@ -192,6 +194,9 @@ func _lighting() -> void:
 		pole.mesh = pm
 		pole.position = Vector3(x, 4.5, 8.0)
 		add_child(pole)
+		# S5.16: the cold stare has a shape now - the floodlight cone
+		CLS_NightLook.cone(self, Vector3(x, 8.6, 8.0),
+				Color(0.75, 0.85, 1.0), 6.5, 8.2)
 		var head := MeshInstance3D.new()
 		var hm := BoxMesh.new()
 		hm.size = Vector3(1.4, 0.3, 0.8)

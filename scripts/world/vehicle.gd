@@ -85,6 +85,7 @@ func _ready() -> void:
 		add_child(w)
 	# the visual body from the kit, scaled to real proportions
 	var visual := CLS_Kit.place(self, str(profile.model), Vector3.ZERO)
+	_noir_paint(visual)
 	if visual:
 		visual.name = "Body"
 		visual.scale = Vector3.ONE * float(profile.model_scale)
@@ -104,6 +105,31 @@ func _ready() -> void:
 	_engine_hum.max_distance = 26.0
 	add_child(_engine_hum)
 	_engine_hum.play()
+
+
+## The noir paint pass: every non-emissive surface's albedo gets
+## pulled toward grey (hue kept, saturation ~30%). Kenney models
+## ship toy-bright; the street reads moody only if the PAINT
+## stays quiet and the lights talk.
+func _noir_paint(node: Node) -> void:
+	for child in node.find_children("*", "MeshInstance3D", true, false):
+		var mesh: MeshInstance3D = child as MeshInstance3D
+		var surf_count: int = mesh.get_surface_override_material_count() \
+				if mesh else 0
+		for i in surf_count:
+			var m: Material = mesh.get_active_material(i)
+			var sm := m as StandardMaterial3D
+			if sm == null or not sm is StandardMaterial3D:
+				continue
+			if sm.emission_enabled:
+				continue  # lights keep their colour
+			var c: Color = sm.albedo_color if sm.albedo_texture == null \
+					else Color(1, 1, 1)
+			c = Color.from_hsv(c.h, c.s * 0.3, c.v * 0.75)
+			if sm.albedo_texture != null:
+				c = Color(0.55, 0.55, 0.58)  # greys the map itself
+			sm.albedo_color = c
+			sm.roughness = lerpf(sm.roughness, 0.55, 0.5)
 
 
 func _lights() -> void:

@@ -13,7 +13,7 @@ const DIR := "res://assets/v2/pbr/"
 const DEFS := {
 	# name: [diffuse, normal, roughness(0-1), metallic, tile_m]
 	"asphalt": [DIR + "asphalt_diff.jpg", DIR + "asphalt_nor.jpg",
-			0.07, 0.0, 3.5],   # wet-night sheen: low roughness
+			0.08, 0.25, 3.5],   # WET: dark diffuse + hot specular
 	"concrete": [DIR + "concrete_diff.jpg", DIR + "concrete_nor.jpg",
 			0.8, 0.0, 2.5],
 	"brick": [DIR + "brick_diff.jpg", DIR + "brick_nor.jpg",
@@ -64,7 +64,15 @@ static func surface(name: String, world_size: Vector3) -> StandardMaterial3D:
 	# the night-exposure lift: Polyhaven maps are photographed mid-
 	# grey; at night they read as void. Lift the albedo (colour
 	# multiplies the map) so lamp light has something to bounce off.
-	mat.albedo_color = Color(1.45, 1.45, 1.5)
+	# S5.16 MILK LAW: the art pass now lights the street (pools,
+	# neon, glow) - the 1.45 lift was authored when nothing did, and
+	# it floated the frame to daylight. 1.15 keeps faces readable.
+	# Asphalt goes DARK: its hot specular then reads as WET, not as
+	# grey wash.
+	var lift := 1.15
+	if name == "asphalt":
+		lift = 0.55
+	mat.albedo_color = Color(lift, lift, lift * 1.04)
 	var tile: float = def[4]
 	if tile > 0.0 and world_size.x > 0.0 and world_size.z > 0.0:
 		# tile the plane so the texture repeats every `tile` metres

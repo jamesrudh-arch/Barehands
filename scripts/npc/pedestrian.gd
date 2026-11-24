@@ -1,4 +1,5 @@
 extends CharacterBody3D
+const CLS_NightLook := preload("res://scripts/world/night_look.gd")
 
 ## A PEDESTRIAN (overhaul S5.3): the street's background life on the
 ## same cast bundles as the hero and the thug - realistic humans,
@@ -79,6 +80,7 @@ func _ready() -> void:
 		_tint = Color.from_hsv(_rng.randf(), 0.22, randf_range(0.75, 1.0))
 		_apply_tint(_rig, _tint)
 	var skel: Skeleton3D = _find(_rig, Skeleton3D)
+	CLS_NightLook.blob(self, 0.5)
 	_anim = _find(_rig, AnimationPlayer)
 	if _anim == null and skel != null:
 		_anim = AnimationPlayer.new()

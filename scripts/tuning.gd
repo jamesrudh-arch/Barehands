@@ -44,7 +44,7 @@ const DEFAULTS := {
 	"beat_real_seconds": 360.0,
 	"weather_rain_chance": 0.6,  # rain frequent - the signature
 	"weather_rain_stop": 0.35,  # it does eventually let up
-	"rain_particles": 340.0,  # the column density (mobile-honest)
+	"rain_particles": 2200.0,  # the column density (a downpour, mobile-honest)
 	"night_premium": 0.10,  # after MIDNIGHT everything costs more
 	"launder_cap_drift": 0.35,  # each window the cap drifts +/-35%
 	"taxi_fare": 25.0,  # the cab rides clean, any corner of the city

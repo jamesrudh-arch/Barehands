@@ -13,6 +13,7 @@ extends Node3D
 const CLS_Kit := preload("res://scripts/kit.gd")
 const CLS_Vehicle := preload("res://scripts/world/vehicle.gd")
 const CLS_MatLib := preload("res://scripts/world/mat_lib.gd")
+const CLS_NightLook := preload("res://scripts/world/night_look.gd")
 
 const PALETTE := {
 	"road": Color(0.05, 0.052, 0.065),
@@ -493,6 +494,11 @@ func _lamps() -> void:
 	d2.omni_range = 24.0
 	add_child(d2)
 	add_child(b)
+	# S5.16: the avenue's night-air cones - magenta west, cyan east
+	for lx in [-48.0, -20.0, 20.0, 48.0]:
+		CLS_NightLook.cone(self, Vector3(lx, 5.15, 0.0),
+				Color(0.9, 0.45, 0.75) if lx < 0.0 else
+				Color(0.35, 0.8, 0.9), 4.6, 5.2)
 	# the avenue's wet pools + smears (S5.2: the gate read 'no light
 	# pooling on the street') - one pool + one smear per avenue light
 	for lx in [-48.0, -20.0, 20.0, 48.0]:
@@ -550,6 +556,7 @@ func _lamps() -> void:
 	e.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	e.tonemap_exposure = 1.3
 	e.tonemap_white = 1.0
+	CLS_NightLook.grade(e)
 	env.environment = e
 	add_child(env)
 

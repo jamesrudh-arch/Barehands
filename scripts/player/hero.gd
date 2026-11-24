@@ -15,6 +15,7 @@ extends CharacterBody3D
 ## clips land with the UAL retarget (S5.1b) - attacks fire, hit and
 ## land meanwhile (combat._play_clip no-ops missing clips).
 
+const CLS_NightLook := preload("res://scripts/world/night_look.gd")
 const CLS_MixamoLib := preload("res://scripts/player/mixamo_lib.gd")
 const CLS_UALLib := preload("res://scripts/player/ual_lib.gd")
 const CLS_Combat := preload("res://scripts/player/combat.gd")
@@ -44,6 +45,9 @@ var _skel: Skeleton3D = null
 var _anim: AnimationPlayer = null
 var _tree: AnimationTree = null
 var _yaw := 0.0
+var _blend_walk := 0.0
+var _blend_run := 0.0
+var _blend_crouch := 0.0
 var _vel_y := 0.0
 var _grounded := true
 var _combat: Node = null
@@ -79,6 +83,8 @@ func _build_rig() -> void:
 	_rig = packed.instantiate()
 	_rig.name = "Rig"
 	add_child(_rig)
+	# S5.16: the contact blob - grounds the hero on the wet street
+	CLS_NightLook.blob(self, 0.6)
 	_skel = _find(_rig, Skeleton3D) as Skeleton3D
 	_anim = _find(_rig, AnimationPlayer) as AnimationPlayer
 	if _anim == null and _skel != null:
@@ -242,10 +248,36 @@ func _var_stick_processing(delta: float) -> void:
 		_yaw = lerp_angle(_yaw, want, TURN_SPEED * delta)
 	if _rig:
 		_rig.rotation.y = _yaw
-	_set_param("b_walk/blend_amount", clampf(target * 2.0, 0.0, 1.0))
-	_set_param("b_run/blend_amount", clampf(target * 2.0 - 1.0, 0.0, 1.0))
-	_set_param("b_crouch/blend_amount",
-			1.0 if (crouching and _grounded) else 0.0)
+	# S5.16 FEEL: the blends CHASE their targets (12/s) instead of
+	# snapping - idle melts into walk, walk into run; the snap was
+	# the "floppy" read
+	var want_walk := clampf(target * 2.0, 0.0, 1.0)
+	var want_run := clampf(target * 2.0 - 1.0, 0.0, 1.0)
+	var k := clampf(12.0 * delta, 0.0, 1.0)
+	_blend_walk = lerpf(_blend_walk, want_walk, k)
+	_blend_run = lerpf(_blend_run, want_run, k)
+	_blend_crouch = lerpf(_blend_crouch,
+			1.0 if (crouching and _grounded) else 0.0, k)
+	_set_param("b_walk/blend_amount", _blend_walk)
+	_set_param("b_run/blend_amount", _blend_run)
+	_set_param("b_crouch/blend_amount", _blend_crouch)
+	# S5.16 FEEL: cadence follows ground speed. The clips are
+	# authored at Mixamo's reference cadences (walk ~1.55 m/s,
+	# run ~3.5 m/s); scale the PLAYER so stride matches velocity -
+	# unscaled clips = foot sliding = the "floppy" read
+	var ground_speed: float = flat.length()
+	var walk_rate: float = ground_speed / 1.55
+	var run_rate: float = ground_speed / 3.5
+	var rate: float = lerpf(walk_rate, run_rate,
+			clampf(_blend_run, 0.0, 1.0))
+	# ONLY while the combat layer is idle (phase 0): an attack's
+	# authored impact timing is sacred - it must not scale with
+	# ground speed. The gate keeps locomotion-scaled cadence for
+	# travel and resets the rate the frame an attack takes over.
+	if _combat and _combat.phase == 0:
+		_anim.speed_scale = clampf(maxf(rate, 0.75), 0.75, 2.0)
+	else:
+		_anim.speed_scale = 1.0
 
 
 ## Crouch: the posture library clips + a slow move; the touch UI has

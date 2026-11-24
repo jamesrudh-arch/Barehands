@@ -7,6 +7,7 @@ extends Node3D
 ## actually runs. The giver's jobs are leverage-flavored asks.
 
 const CLS_MatLib := preload("res://scripts/world/mat_lib.gd")
+const CLS_NightLook := preload("res://scripts/world/night_look.gd")
 
 const PALETTE := {
 	"ink": Color(0.03, 0.02, 0.02),
@@ -173,6 +174,7 @@ func _lighting() -> void:
 	e.ambient_light_color = Color(0.12, 0.09, 0.07)
 	e.ambient_light_energy = 1.1
 	e.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	CLS_NightLook.grade(e)
 	e.tonemap_exposure = 1.3
 	e.tonemap_white = 1.0
 	e.fog_enabled = true
@@ -253,6 +255,11 @@ func _life() -> void:
 	CLS_Local.place(self, "res://assets/native/cast_michelle.tscn",
 			"res://assets/native/ual_baked_michelle.res",
 			Vector3(-12.0, 0.05, 8.0), PI, "THE GIVER - THE ANCHOR")
+	# S5.16: the warm side of the city - amber neon, no magenta here
+	CLS_NightLook.sign(self, "THE ANCHOR", Vector3(-12.0, 5.6, 5.9),
+			PI, Color(1.0, 0.72, 0.25), 40)
+	CLS_NightLook.sign(self, "HOT POT", Vector3(12.0, 5.6, 5.9),
+			PI, Color(1.0, 0.5, 0.2), 36, true)
 	var CLS_Pedestrian := load("res://scripts/npc/pedestrian.gd")
 	for i in 3:
 		var p: CharacterBody3D = CLS_Pedestrian.new()

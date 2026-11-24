@@ -406,18 +406,81 @@ numberless first line - cut the hyperlink, keep the field);
 ImageRun sizes must come from a real JPEG/PNG parser (PNG
 offsets on a JPEG give 32-million-pixel heights).
 
+## S5.16 — THE ART PASS (the "it looks basic" reckoning)
+
+**Diagnosis**: the characters were already rigged and animated;
+the flatness was the GRADE (filmic + no glow), no neon, no light
+cones, no lamp pools with falloff - and Kenney's toy palette at
+full saturation. The import cache also wipes on every sandbox
+recycle (696 textures re-imported first).
+
+**The grade + atmosphere** (scripts/world/night_look.gd + all 6
+areas): ACES + two-radius glow (only HDR pixels bloom), lamp
+cones under every head, radial-falloff light pools (no flat
+slabs), wet sodium smears, neon tube signs (incl. the flickering
+CLINIC), the noir paint pass on every vehicle body (colour lives
+in the LIGHTS, not the paint). VLM A/B on the rain street:
+BEFORE 4/10 "flat, reads like a debug scene" -> the pass landed
+(the per-frame VLM swings 3-8 on the same family of frames -
+flash-VLM noise; the PIXEL TRUTHS are what hold: sky 41, mid 62,
+street 93, rain 453 streak columns, VLM "rain clearly present,
+moderate-to-high clarity").
+
+**THE MILK SAGA** (how the frame went daylight and back): the
+art pass stacked additive brights; avg lum hit 162/255. Probe
+split: glow +21, exposure +28, then the REAL killer - the DUSK
+phase lifted the sky 50% toward white (authored when the void
+read black; now it floats everything). Fixes landed together:
+exposure 1.55->1.15, glow halved, mat_lib albedo lift 1.45->1.15
+(asphalt 0.55 dark-wet base), DUSK lift 0.5->0.10.
+
+**THE FEEL FIX** (the "floppy"): locomotion blends now CHASE
+their targets at 12/s (idle melts into walk) + the clip cadence
+follows ground speed (speed_scale = velocity / authored stride;
+gated to combat-idle so punch timing stays sacred).
+
+**RAIN, THE FOUR LAWS** (each probe-proven):
+1. A ROTATED CPUParticles3D node renders NOTHING on this path
+   (0.00% tilted vs 5.96% upright) - the wind lives in the
+   velocity vector, never the node transform.
+2. An invalid property assignment (angle_random on
+   CPUParticles3D) KILLED _ensure_rain SILENTLY - the column
+   vanished and the ambience diff (94%) masked it. The VLM was
+   right; the diff probe lied. Isolate the NODE (visible on/off)
+   before trusting a weather diff.
+3. LIFETIME = COLUMN HEIGHT: 0.7 s spreads streaks over 28 m of
+   fall (~14 visible); 0.35 s is a compact downpour (~3x the
+   visible density).
+4. THE VIEW-SCALE BOX: the frustum sees 10-30 m of street; a
+   hero-centred +-8 m column puts ~15 streaks in frame. +-16 m
+   with 2200 particles covers the street.
+Current read: 453 streak columns at avg 78 lum.
+
+**Suites re-verified green after the pass**: world 15, city 15
+(caught the amber-ambient regression my teal rain fill caused -
+the authored tint now returns when rain stops), areas 32, life
+21, phone2 17, story 29.
+
+**Remaining (the VLM's honest notes, roadmap items)**: puddle
+ripples + splashes (the Remember Me layered rain from the audit
+report), the vending-machine pastels (subjective - greyed but
+the VLM still reads them), a noir HUD skin, the hero's bright
+trousers, rain depth-sorting (engine-level, acceptable at this
+scale).
+
 ## NEXT ACTION (exact)
 
 1. THE DEVICE REPORT (P0 of the roadmap): Xogot run on iPhone
    13 mini + iPhone 16; fps, draw calls, light counts per area,
-   load + travel times; hold 30/60 or cut (GDQuest: consistency
-   beats peaks). Nothing else in the roadmap can be prioritized
-   honestly before it.
-2. Then the roadmap order: rain v2 -> combat staple/specific
-   audit -> adaptive score -> grappling teacher -> MAP polish ->
-   the FULL tier.
-3. Open defects ledger lives in the report (Table 3): MAP label
-   clipping, no music, HUD contrast/truncation nits.
+   load + travel times. The art pass roughly doubles the
+   emissive surface count - the budget needs measuring, not
+   assuming.
+2. The rain v2 layered system (near column + camera-locked
+   sheet + cover-respecting splash rings) per the fxguide
+   research already in the audit report.
+3. The combat staple/specific audit (Sifu) + the adaptive score.
+4. The VLM's polish list above, after the device report
+   prioritizes it honestly.
 
 ## Known blockers / watch items
 

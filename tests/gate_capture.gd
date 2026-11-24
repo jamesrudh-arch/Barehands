@@ -60,8 +60,8 @@ func _ready() -> void:
 	hero.rotation.y = PI  # face west, down-street
 	await _wait_s(0.4)
 	var cam := await _take_camera()
-	cam.global_position = Vector3(-12.0, 1.6, 4.0)
-	cam.look_at(Vector3(-40.0, 0.8, 5.4))
+	cam.global_position = Vector3(-12.0, 1.9, 2.6)
+	cam.look_at(Vector3(-30.0, 3.2, 5.6))
 	cam.fov = 65.0
 	await _wait_s(0.6)
 	await _snap("gate_rain")

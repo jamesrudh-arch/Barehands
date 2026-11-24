@@ -1,4 +1,5 @@
 extends CharacterBody3D
+const CLS_NightLook := preload("res://scripts/world/night_look.gd")
 
 ## A NAMED LOCAL (overhaul S5.3): the street's fixed points of
 ## life - a face at the venues the missions already name. Standing
@@ -56,6 +57,7 @@ func _ready() -> void:
 		_rig = packed.instantiate()
 		_rig.name = "Rig"
 		add_child(_rig)
+		CLS_NightLook.blob(self, 0.5)
 	var skel: Skeleton3D = _find(_rig, Skeleton3D)
 	_anim = _find(_rig, AnimationPlayer)
 	if _anim == null and skel != null:

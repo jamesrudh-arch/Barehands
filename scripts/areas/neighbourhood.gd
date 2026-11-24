@@ -14,6 +14,7 @@ extends Node3D
 const CLS_Kit := preload("res://scripts/kit.gd")
 const CLS_Vehicle := preload("res://scripts/world/vehicle.gd")
 const CLS_MatLib := preload("res://scripts/world/mat_lib.gd")
+const CLS_NightLook := preload("res://scripts/world/night_look.gd")
 
 const PALETTE := {
 	"road": Color(0.055, 0.058, 0.07),
@@ -174,6 +175,16 @@ func _fronts_north() -> void:
 	# the alley mouths: gaps with dressing between the fronts
 	for x in [-36.0, 24.0]:
 		_alley(x)
+	# S5.16 THE NEON ROW: tube-frame signs on the street's fronts -
+	# the bloom carries them (THE CLINIC's flickers: the street's
+	# one dead-lamp story)
+	for s in [["NOODLES", -42.0, Color(1.0, 0.62, 0.2), false],
+			["PAWN", -18.0, Color(0.85, 0.75, 0.3), false],
+			["THE RAIN GLASS", -6.0, Color(0.95, 0.7, 0.35), false],
+			["OPEN 24 HRS", 6.0, Color(0.3, 0.95, 0.6), false],
+			["CLINIC", 30.0, Color(0.9, 0.25, 0.25), true]]:
+		CLS_NightLook.sign(self, s[0],
+				Vector3(s[1], 4.35, FRONT_Z - 1.35), PI, s[2], 72, s[3])
 
 
 ## An OPEN front: a code facade with a REAL doorway + the interior
@@ -220,9 +231,10 @@ func _open_front(label: String, x: float, glow: Color,
 		# albedo makes the pane pop under lamp light in ANY
 		# renderer, pixel-verified)
 		# the pane: the DOOR-GLOW's exact recipe (probe-caught:
-		# this material renders bright in the capture pipeline;
+		# S5.16: dimmed from 0.9 - with GLOW live the old energy
+		# read as floating white slabs; this material renders bright;
 		# the pale-albedo variant did not)
-		bm.material = _glow(Color(1.0, 0.78, 0.48), 0.9)
+		bm.material = _glow(Color(1.0, 0.78, 0.48), 0.55)
 		band.mesh = bm
 		band.position = Vector3(wx, 2.4, -3.08)
 		band.name = "WindowBand"
@@ -270,7 +282,7 @@ func _open_front(label: String, x: float, glow: Color,
 	var spill := MeshInstance3D.new()
 	var sp := QuadMesh.new()
 	sp.size = Vector2(3.0, 2.3)
-	sp.material = _glow(Color(1.0, 0.72, 0.45), 0.65)
+	sp.material = _glow(Color(1.0, 0.72, 0.45), 0.38)
 	spill.mesh = sp
 	spill.rotation.x = -PI / 2.0
 	spill.position = Vector3(0, 0.03, -3.7)
@@ -473,8 +485,10 @@ func _vending() -> void:
 		var m := BoxMesh.new()
 		m.size = Vector3(0.9, 1.9, 0.7)
 		var mat := StandardMaterial3D.new()
-		mat.albedo_color = Color(0.35, 0.08, 0.25) if x > 40.9 \
-				else Color(0.08, 0.25, 0.35)
+		# S5.16 noir law: machines go QUIET dark grey; the glow
+		# (their emissive strip) carries the hue, not the paint
+		mat.albedo_color = Color(0.12, 0.11, 0.14) if x > 40.9 \
+				else Color(0.11, 0.13, 0.16)
 		mat.emission_enabled = true
 		mat.emission = Color(1.0, 0.3, 0.5) if x > 40.9 \
 				else Color(0.3, 0.9, 1.0)
@@ -540,11 +554,18 @@ func _lamps() -> void:
 			var head := MeshInstance3D.new()
 			var hm := BoxMesh.new()
 			hm.size = Vector3(0.5, 0.16, 0.24)
-			hm.material = _glow(PALETTE.sodium, 4.0)
+			hm.material = _glow(PALETTE.sodium, 1.5)
 			head.mesh = hm
 			head.position = Vector3(x, 4.55, sz * 7.0)
 			head.name = "LampHead_%d_%d" % [i, int(sz)]
 			add_child(head)
+			# S5.16: the cone of night air under every head - the
+			# fake-volumetric the audit's "flat" finding demanded
+			CLS_NightLook.cone(self, Vector3(x, 4.35, sz * 7.0),
+					PALETTE.sodium)
+			# the wet road mirrors the lamp: a sodium smear
+			CLS_NightLook.wet_streak(self,
+					Vector3(x, 0.02, sz * 6.4), PALETTE.sodium)
 			# the light pool decal on the walk
 			var pool := MeshInstance3D.new()
 			var qm := QuadMesh.new()
@@ -554,6 +575,25 @@ func _lamps() -> void:
 			qmat.emission_enabled = true
 			qmat.emission = Color(1.0, 0.72, 0.4)
 			qmat.emission_energy_multiplier = 2.2
+			# S5.16: a RADIAL gradient pools the light - hot under
+			# the head, black at the rim (the flat slab read "no
+			# falloff"); unshaded so it lights the walk evenly
+			var grad := Gradient.new()
+			grad.add_point(0.0, Color(1, 1, 1, 0.8))
+			grad.add_point(0.3, Color(1, 1, 1, 0.55))
+			grad.add_point(0.6, Color(1, 1, 1, 0.25))
+			grad.add_point(0.85, Color(1, 1, 1, 0.07))
+			grad.add_point(1.0, Color(1, 1, 1, 0.0))
+			var gt := GradientTexture2D.new()
+			gt.gradient = grad
+			gt.fill = GradientTexture2D.FILL_RADIAL
+			gt.fill_from = Vector2(0.5, 0.5)
+			gt.fill_to = Vector2(0.5, 0.0)
+			gt.width = 128
+			gt.height = 128
+			qmat.albedo_texture = gt
+			qmat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+			qmat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 			qmat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 			qm.material = qmat
 			pool.mesh = qm
@@ -617,8 +657,12 @@ func _lamps() -> void:
 	e.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	e.tonemap_exposure = 1.35
 	e.tonemap_white = 1.0
+	CLS_NightLook.grade(e)
 	e.fog_enabled = true
-	e.fog_light_color = Color(0.05, 0.055, 0.09)
+	# the fog's light colour is the HAZE the eye reads - near-black
+	# read as void ("buildings snap in"), a lit blue-grey reads as
+	# night air with depth (the VLM's exact ask)
+	e.fog_light_color = Color(0.07, 0.09, 0.13)
 	e.fog_density = 0.007
 	env.environment = e
 	add_child(env)

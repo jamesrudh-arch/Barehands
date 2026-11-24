@@ -10,6 +10,7 @@ extends Node3D
 
 const CLS_Kit := preload("res://scripts/kit.gd")
 const CLS_MatLib := preload("res://scripts/world/mat_lib.gd")
+const CLS_NightLook := preload("res://scripts/world/night_look.gd")
 
 const PALETTE := {
 	"ground": Color(0.075, 0.075, 0.08),
@@ -378,6 +379,7 @@ func _lamps() -> void:
 	e.fog_light_color = Color(0.06, 0.075, 0.10)
 	e.fog_density = 0.016
 	e.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	CLS_NightLook.grade(e)
 	e.tonemap_exposure = 1.35
 	e.tonemap_white = 1.0
 	env.environment = e
