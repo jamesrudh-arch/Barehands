@@ -719,14 +719,33 @@ untouched (editor-only additions). Update Xogot on the phone
 to current before the device run; the stamp's runtime line
 now confirms the engine in one glance.
 
+## S5.23 — THE LAST TWO GAPS CLOSED
+
+THE CORPORATION SPEAKS: three VO clips (jam voice, the cold
+counterweight to Marla's tongtong) - m6's hardware offer, j9's
+courtesy call, k4's payoff ultimatum - generated via TTS,
+wired in phone.gd's answer handler (routed by first line, on
+the Voice bus like every spoken line; 10-18 s each, 24 kHz).
+THE STATION READS: the 5/10 advertising note is closed - the
+gate found the root (the steel post BISECTED the sign quads:
+their plane sat 0.2 m behind the post face, the 'light column'
+in every read) and the fix is the real-pylon law: panels hang
+0.55 m off the post along the face normal, ONE face aimed at
+the approach diagonal (-105 deg: the 55 m west line and the
+game's vantage both inside its read cone), 1.9 m FUEL + 2.1 m
+white price digits at the club signs' proven 1.8-2.0 energies
+(two coplanar faces superimposed into garbage from diagonals -
+one aimed face beats two; and energy beyond the club law just
+glares the dark cutouts). VERIFIED: close vantage reads FUEL +
+2.79 exact (7/10, the bloom cap is the noir look itself, the
+club signs live at the same level), far 55 m reads the pylon
++ digits; boot 42, areas 32, story/phone2 green.
+
 ## NEXT ACTION (exact)
 
 1. THE DEVICE REPORT runs on hardware (P0 - the checklist is
-   written, 20 minutes on the phone closes it).
-2. The station at advertising distance (5/10) - bigger digits
-   or spill-lit pump faces, only if a vantage ever shows it.
-3. VO beyond Marla (the Corporation's caller, the finale's
-   choice beats).
+   written, 20 minutes on the phone closes it; the S5.21b
+   stamp self-diagnoses, the S5.22 Connect path deploys).
 
 ## Known blockers / watch items
 

@@ -36,6 +36,21 @@ func _ready() -> void:
 	cam.fov = 60.0
 	await _wait_s(0.6)
 	await _snap("filling_station")
+	# --- SHOT 1b: ADVERTISING DISTANCE (S5.23) - 55 m west, the
+	# driver's approach line: the pylon reads FUEL + the price
+	var camf := Camera3D.new()
+	camf.name = "GateCamFar"
+	get_tree().current_scene.add_child.call_deferred(camf)
+	await get_tree().process_frame
+	var oldf := get_viewport().get_camera_3d()
+	if oldf:
+		oldf.current = false
+	camf.current = true
+	camf.global_position = Vector3(-21.0, 2.0, 8.0)
+	camf.look_at(Vector3(27.8, 4.2, 8.0))
+	camf.fov = 55.0
+	await _wait_s(0.6)
+	await _snap("filling_station_far")
 	# --- SHOT 2: the river (water shader + fish + wakes + bank)
 	await Game.travel("docks", "start")
 	await _wait_s(1.4)

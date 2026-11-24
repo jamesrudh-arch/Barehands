@@ -241,8 +241,18 @@ func _answer() -> void:
 			clip = "vo_m7_ring1"
 		elif "in your hands" in l0:
 			clip = "vo_m7_ring2"
+		# S5.23: the Corporation speaks too - the cold caller
+		# (jam, the counterweight to Marla's tongtong), routed
+		# by its first line so every corp ring finds its voice
+		elif str(_call.get("from", "")) == "THE CORPORATION":
+			if "noticed" in l0:
+				clip = "vo_corp_m6"
+			elif "courtesy" in l0:
+				clip = "vo_corp_j9"
+			elif "our building" in l0:
+				clip = "vo_corp_k4"
 		if clip != "":
-			Sound.play(clip, -2.0, 1.0, 0.0, "Voice")
+			Sound.play(clip, -2.5, 0.97, 0.0, "Voice")
 	_tab = "CALLS"
 	Log.info("Phone: answered %s" % str(_call.get("from", "?")))
 	_fill_dirty = true

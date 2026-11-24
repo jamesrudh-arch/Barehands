@@ -56,7 +56,7 @@ static func grade(e: Environment, exposure := 1.3) -> void:
 ## `flicker` pulses one sign: the street's living detail.
 static func sign(parent: Node3D, text: String, pos: Vector3,
 		yaw: float, col: Color, font_size := 56,
-		flicker := false) -> Label3D:
+		flicker := false, energy := 1.8) -> Label3D:
 	var holder := Node3D.new()
 	holder.name = "Neon_" + text.substr(0, 12).replace(" ", "_")
 	holder.position = pos
@@ -74,7 +74,7 @@ static func sign(parent: Node3D, text: String, pos: Vector3,
 	tmat.albedo_color = Color(0.01, 0.01, 0.03)
 	tmat.emission_enabled = true
 	tmat.emission = col
-	tmat.emission_energy_multiplier = 1.8
+	tmat.emission_energy_multiplier = energy
 	tm.material = tmat
 	tube.mesh = tm
 	tube.position = Vector3(0, 0, 0.02)

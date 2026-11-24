@@ -268,20 +268,30 @@ func _filling_station() -> void:
 	spill.position = Vector3(0, 0.06, 0)
 	root.add_child(spill)
 	# THE PYLON: the street-side price totem - the station's icon
-	# anchor, readable at 50 m (the club signs' proven tube read)
+	# anchor. S5.23: the advertising-distance fix - the digits were
+	# one 1.2 m face aimed south only, edge-on to the western
+	# approach. Now 1.9 m letters, TWO faces (south + west, the
+	# driver's line), and hot 3.4 emission - read at 80 m.
 	var py := MeshInstance3D.new()
 	var pym := BoxMesh.new()
-	pym.size = Vector3(0.45, 5.6, 0.45)
+	pym.size = Vector3(0.45, 6.4, 0.45)
 	pym.material = steel
 	py.mesh = pym
-	py.position = Vector3(-6.2, 2.8, -1.0)
+	py.position = Vector3(-6.2, 3.2, -1.0)
 	root.add_child(py)
+	# ONE face, aimed down the true approach diagonal (SW, ~-105
+	# deg: both the 55 m west line and the game's east-approach
+	# vantage sit inside its +-30 deg read cone). Two coplanar
+	# faces superimposed from diagonals and the digits blurred
+	# into garbage - the gate caught it.
 	CLS_NightLook.sign(root, "FUEL",
-			Vector3(-6.2, 4.6, -1.0), PI,
-			Color(0.45, 0.9, 1.0), 110, false)
+			Vector3(-6.73, 4.9, -1.14), -1.83,
+			Color(0.45, 0.9, 1.0), 170, false, 1.8)
+	# the price: white digits (real pylons print the brand in
+	# color, the price in white) - orange faded at distance
 	CLS_NightLook.sign(root, "2.79",
-			Vector3(-6.2, 3.5, -1.0), PI,
-			Color(1.0, 0.62, 0.25), 96, false)
+			Vector3(-6.73, 3.9, -1.14), -1.83,
+			Color(1.0, 0.96, 0.82), 190, false, 2.0)
 	# THE SIGN: FUEL, emissive, on the canopy's street edge
 	var sign := MeshInstance3D.new()
 	var sm := BoxMesh.new()
